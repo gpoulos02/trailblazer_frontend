@@ -11,7 +11,8 @@ import SwiftUI
 struct TrailBlazerApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LandingView() // Start with the Landing View
         }
     }
 }
+

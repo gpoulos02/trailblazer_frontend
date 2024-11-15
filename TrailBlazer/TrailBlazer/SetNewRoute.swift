@@ -10,49 +10,7 @@ import SwiftUI
 struct SetNewRouteView: View {
     var body: some View {
         VStack( spacing: 20) {
-            HStack(spacing: 134) {
-                HStack(spacing: 10) {
-                    Text("9:41")
-                        .font(Font.custom("Inter", size: 17).weight(.semibold))
-                        .lineSpacing(22)
-                        .foregroundColor(.black)
-                }
-                .padding(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 6))
-                .frame(maxWidth: .infinity, minHeight: 22, maxHeight: 22)
-                
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .frame(width: 124, height: 10)
-                
-                HStack(spacing: 7) {
-                    ZStack() {
-                        Rectangle()
-                            .foregroundColor(.clear)
-                            .frame(width: 25, height: 13)
-                            .cornerRadius(4.30)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 4.30)
-                                    .inset(by: 0.50)
-                                    .stroke(.black, lineWidth: 0.50)
-                            )
-                            .offset(x: -1.16, y: 0)
-                            .opacity(0.35)
-                        
-                        Rectangle()
-                            .foregroundColor(.clear)
-                            .frame(width: 21, height: 9)
-                            .background(.black)
-                            .cornerRadius(2.50)
-                            .offset(x: -1.16, y: 0)
-                    }
-                    .frame(width: 27.33, height: 13)
-                }
-                .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 16))
-                .frame(maxWidth: .infinity, minHeight: 13, maxHeight: 13)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(EdgeInsets(top: 21, leading: 0, bottom: 0, trailing: 0))
-            .frame(width: 402, height: 50)
+            
             
             Rectangle()
                 .foregroundColor(.clear)

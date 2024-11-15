@@ -1,84 +1,79 @@
-//
-//  LogInView.swift
-//  TrailBlazer
-//
-//  Created by Sadie Smyth on 2024-11-13.
-//
-
 import SwiftUI
 
 struct LogInView: View {
+    @State private var username: String = ""
+    @State private var password: String = ""
+    @State private var errorMessage: String = ""
+    
     var body: some View {
-        
-        VStack(spacing: 20) {
-            // Placeholder Image
-            Rectangle()
-                .foregroundColor(.clear)
-                .frame(width: 314, height: 290)
-                .background(
-                    AsyncImage(url: URL(string: "https://via.placeholder.com/314x290"))
-                )
-                .padding(.top, 16)
-            
-            // Username Field
-            HStack(alignment: .top, spacing: 0) {
-                Text("Username")
-                    .font(Font.custom("Inter", size: 17))
-                    .lineSpacing(22)
-                    .foregroundColor(.black)
-                Spacer()
-                Text("Enter your username")
-                    .font(Font.custom("Inter", size: 17))
-                    .lineSpacing(22)
-                    .foregroundColor(Color(red: 0.24, green: 0.24, blue: 0.26).opacity(0.30))
-            }
-            .padding(.horizontal, 16)
-            .frame(width: 317, height: 45)
-            .overlay(
-                Rectangle()
-                    .stroke(Color(red: 0.33, green: 0.33, blue: 0.34).opacity(0.34), lineWidth: 0.17)
-            )
-            
-            // Password Field
-            HStack(alignment: .top, spacing: 0) {
-                Text("Password")
-                    .font(Font.custom("Inter", size: 17))
-                    .lineSpacing(22)
-                    .foregroundColor(.black)
-                Spacer()
-                Text("Enter your password")
-                    .font(Font.custom("Inter", size: 17))
-                    .lineSpacing(22)
-                    .foregroundColor(Color(red: 0.24, green: 0.24, blue: 0.26).opacity(0.30))
-            }
-            .padding(.horizontal, 16)
-            .frame(width: 317, height: 45)
-            .overlay(
-                Rectangle()
-                    .stroke(Color(red: 0.33, green: 0.33, blue: 0.34).opacity(0.34), lineWidth: 0.17)
-            )
-            
-            // Welcome Back Text
-            Text("Welcome Back!")
-                .font(Font.custom("Inter", size: 25))
-                .foregroundColor(.black)
-                .padding(.top, 20)
-            
-            // Log In Button
-            Rectangle()
-                .foregroundColor(.clear)
-                .frame(width: 287, height: 50)
-                .background(Color(red: 0.55, green: 0.74, blue: 0.96))
-                .cornerRadius(5)
-                .overlay(
+        NavigationStack {
+            VStack(spacing: 20) {
+                // Placeholder Image
+                            AsyncImage(url: URL(string: "https://via.placeholder.com/314x290"))
+                                .frame(width: 314, height: 290)
+                                .padding(.top, 16)
+                Text("Log In")
+                    .font(.largeTitle)
+                    .bold()
+                
+                // Username Input
+                TextField("Username", text: $username)
+                    .padding()
+                    //.background(Color(.systemGray6))
+                    .cornerRadius(8)
+                    //.autocapitalization(.none)
+                    .disableAutocorrection(true)
+                
+                // Password Input
+                SecureField("Password", text: $password)
+                    .padding()
+                    //.background(Color(.systemGray6))
+                    .cornerRadius(8)
+                
+                // Error Message
+                if !errorMessage.isEmpty {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.caption)
+                }
+                
+                // Log In Button
+                Button(action: {
+                    handleLogin()
+                }) {
                     Text("Log In")
-                        .font(Font.custom("Inter", size: 17).weight(.bold))
                         .foregroundColor(.white)
-                )
-                .padding(.horizontal, 16)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(8)
+                }
+                
+                // Change Password Button
+                NavigationLink(destination: ChangePasswordView()) {
+                    Text("Change Password")
+                        .foregroundColor(.blue)
+                        .underline()
+                }
+            }
+            .padding()
+        }
+    }
+    
+    private func handleLogin() {
+        if username.isEmpty || password.isEmpty {
+            errorMessage = "Please fill in all fields."
+        } else if password.count < 6 {
+            errorMessage = "Password must be at least 6 characters long."
+        } else {
+            errorMessage = ""
+            // Proceed with login logic (e.g., API call)
+            print("Logged in with Username: \(username)")
         }
     }
 }
+
+
 
 struct LogInView_Previews: PreviewProvider {
     static var previews: some View {
