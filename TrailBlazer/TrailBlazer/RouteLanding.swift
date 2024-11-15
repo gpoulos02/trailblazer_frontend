@@ -102,6 +102,16 @@ struct RouteLandingView: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
+                    NavigationLink(destination: FriendView()) {
+                        VStack {
+                            Image(systemName: "person.2.fill") // Represents friends
+                                .foregroundColor(.black)
+                            Text("Friends")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                     
                     // Placeholder for other buttons if needed, e.g. Friends, Map, Weather, Profile...
                 }

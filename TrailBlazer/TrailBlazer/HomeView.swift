@@ -1,7 +1,7 @@
-//  HomeView.swift
-//  TrailBlazer
+// HomeView.swift
+// TrailBlazer
 //
-//  Created by Sadie Smyth on 2024-11-15.
+// Created by Sadie Smyth on 2024-11-15.
 //
 
 import SwiftUI
@@ -13,41 +13,41 @@ struct HomeView: View {
     @State private var isHomeActive = false
     
     var body: some View {
-        VStack(spacing: 20) {
-            AsyncImage(url: URL(string: "https://via.placeholder.com/314x290"))
-                .frame(width: 314, height: 290)
-                .padding(.top, 16)
-            // Header
-            Text("Welcome, \(userName)")
-                .font(.title)
-                .fontWeight(.bold)
-                .padding(.top, 40)
-            
-            // Current Route Status
-            Text("Current Route: \(currentRoute)")
-                .font(.subheadline)
-                .foregroundColor(.gray)
-                .padding(.bottom, 40)
-            
-            // Quick Access Buttons (Create New Route and Set New Route)
-            HStack {
-                NavigationLink(destination: CreateNewRouteView()) {
-                    HomeButton(title: "Create New Route", imageName: "plus.circle.fill")
+        NavigationStack {
+            VStack(spacing: 20) {
+                AsyncImage(url: URL(string: "https://via.placeholder.com/314x290"))
+                    .frame(width: 314, height: 290)
+                    .padding(.top, 16)
+                
+                // Header
+                Text("Welcome, \(userName)")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .padding(.top, 40)
+                
+                // Current Route Status
+                Text("Current Route: \(currentRoute)")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .padding(.bottom, 40)
+                
+                // Quick Access Buttons (Create New Route and Set New Route)
+                HStack {
+                    NavigationLink(destination: CreateNewRouteView()) {
+                        HomeButton(title: "Create New Route", imageName: "plus.circle.fill")
+                    }
+                    NavigationLink(destination: SetNewRouteView()) {
+                        HomeButton(title: "Set New Route", imageName: "map.fill")
+                    }
                 }
-                NavigationLink(destination: SetNewRouteView()) {
-                    HomeButton(title: "Set New Route", imageName: "map.fill")
-                }
-            }
-            .padding(.horizontal, 20)
-            
-            Spacer()
-            // Navigation Bar at the Bottom
-            HStack {
-                // Home Button
-                NavigationLink(destination: HomeView()) {
-                    Button(action: {
-                        self.isHomeActive = true
-                    }) {
+                .padding()
+                
+                Spacer() // Pushes content upwards so the bottom navigation stays at the bottom
+                
+                // Navigation Bar at the Bottom
+                HStack {
+                    // Home Button
+                    NavigationLink(destination: HomeView()) {
                         VStack {
                             Image(systemName: "house.fill")
                                 .foregroundColor(.black)
@@ -57,16 +57,38 @@ struct HomeView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
+                    
+                    // Friends Button
+                    NavigationLink(destination: FriendView()) {
+                        VStack {
+                            Image(systemName: "person.2.fill") // Represents friends
+                                .foregroundColor(.black)
+                            Text("Friends")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    
+                    // Map Button (New addition)
+                    NavigationLink(destination: RouteLandingView()) {
+                        VStack {
+                            Image(systemName: "map.fill") // Represents Map
+                                .foregroundColor(.black)
+                            Text("Map")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                 }
+                .padding()
+                .background(Color.white)
+                .shadow(radius: 5)
             }
+            .edgesIgnoringSafeArea(.bottom) // Ensures bottom navigation bar is not obstructed by safe area
             .padding()
-            .background(Color.white)
-            .shadow(radius: 5)
-            
-            Spacer()
         }
-        .navigationTitle("Home")
-        .padding()
     }
 }
 
