@@ -68,9 +68,7 @@ struct SetNewRouteView: View {
             // Navigation Bar at the Bottom
             HStack {
                 // Home Button
-                Button(action: {
-                    // Action for Home tab
-                }) {
+                NavigationLink(destination: HomeView()) {
                     VStack {
                         Image(systemName: "house.fill")
                             .foregroundColor(.black)
@@ -82,9 +80,7 @@ struct SetNewRouteView: View {
                 .frame(maxWidth: .infinity)
                 
                 // Friends Button
-                Button(action: {
-                    // Action for Friends tab
-                }) {
+                NavigationLink(destination: FriendView()) {
                     VStack {
                         Image(systemName: "person.2.fill") // Represents friends
                             .foregroundColor(.black)
@@ -95,10 +91,8 @@ struct SetNewRouteView: View {
                 }
                 .frame(maxWidth: .infinity)
                 
-                // Map Button
-                Button(action: {
-                    // Action for Map tab
-                }) {
+                // Map Button (New addition)
+                NavigationLink(destination: RouteLandingView()) {
                     VStack {
                         Image(systemName: "map.fill") // Represents Map
                             .foregroundColor(.black)
@@ -108,11 +102,8 @@ struct SetNewRouteView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                
                 // Weather Button
-                Button(action: {
-                    // Action for Weather tab
-                }) {
+                NavigationLink(destination: WeatherView()) {
                     VStack {
                         Image(systemName: "cloud.sun.fill") // Represents Weather
                             .foregroundColor(.black)
@@ -122,11 +113,8 @@ struct SetNewRouteView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                
-                // Profile Button
-                Button(action: {
-                    // Action for Profile tab
-                }) {
+                // Profile Button (Navigates to Profile View)
+                NavigationLink(destination: ProfileView()) {
                     VStack {
                         Image(systemName: "person.fill") // Represents Profile
                             .foregroundColor(.black)

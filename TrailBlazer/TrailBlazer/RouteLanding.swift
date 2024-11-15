@@ -113,6 +113,39 @@ struct RouteLandingView: View {
                     }
                     .frame(maxWidth: .infinity)
                     
+                    NavigationLink(destination: RouteLandingView()) {
+                        VStack {
+                            Image(systemName: "map.fill") // Represents Map
+                                .foregroundColor(.black)
+                            Text("Map")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    // Weather Button
+                    NavigationLink(destination: WeatherView()) {
+                        VStack {
+                            Image(systemName: "cloud.sun.fill") // Represents Weather
+                                .foregroundColor(.black)
+                            Text("Weather")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    // Profile Button (Navigates to Profile View)
+                    NavigationLink(destination: ProfileView()) {
+                        VStack {
+                            Image(systemName: "person.fill") // Represents Profile
+                                .foregroundColor(.black)
+                            Text("Profile")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    
                     // Placeholder for other buttons if needed, e.g. Friends, Map, Weather, Profile...
                 }
                 .padding()

@@ -45,15 +45,12 @@ struct LandingView: View {
                 }
 
                 // Bottom Bar
-                HStack(spacing: 0) {
-                    RoundedRectangle(cornerRadius: 100)
-                        .fill(Color.black)
-                        .frame(width: 144, height: 5)
-                        .rotationEffect(.degrees(-180))
-                }
+               
                 .padding(.top, 21)
                 .padding(.horizontal, 128)
                 .frame(width: 400, height: 34)
+                
+                
             }
             .padding()
         }

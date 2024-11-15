@@ -82,71 +82,55 @@ struct CreateNewRouteView: View {
                                     .font(.caption)
                            }
                         }                        .frame(maxWidth: .infinity)
+                        
+                        // Friends Button
+                        NavigationLink(destination: FriendView()) {
+                            VStack {
+                                Image(systemName: "person.2.fill") // Represents friends
+                                    .foregroundColor(.black)
+                                Text("Friends")
+                                    .foregroundColor(.black)
+                                    .font(.caption)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        
+                        NavigationLink(destination: RouteLandingView()) {
+                            VStack {
+                                Image(systemName: "map.fill") // Represents Map
+                                    .foregroundColor(.black)
+                                Text("Map")
+                                    .foregroundColor(.black)
+                                    .font(.caption)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        // Weather Button
+                        NavigationLink(destination: WeatherView()) {
+                            VStack {
+                                Image(systemName: "cloud.sun.fill") // Represents Weather
+                                    .foregroundColor(.black)
+                                Text("Weather")
+                                    .foregroundColor(.black)
+                                    .font(.caption)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        // Profile Button (Navigates to Profile View)
+                        NavigationLink(destination: ProfileView()) {
+                            VStack {
+                                Image(systemName: "person.fill") // Represents Profile
+                                    .foregroundColor(.black)
+                                Text("Profile")
+                                    .foregroundColor(.black)
+                                    .font(.caption)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
                    }
 //
-//                    // Friends Button
-//                    NavigationLink(destination: FriendsView(), isActive: $isFriendsActive) {
-//                        Button(action: {
-//                            self.isFriendsActive = true
-//                        }) {
-//                            VStack {
-//                                Image(systemName: "person.2.fill") // Represents friends
-//                                    .foregroundColor(.black)
-//                                Text("Friends")
-//                                    .foregroundColor(.black)
-//                                    .font(.caption)
-//                            }
-//                        }
-//                        .frame(maxWidth: .infinity)
-//                    }
 //
-//                    // Map Button
-//                    NavigationLink(destination: MapView(), isActive: $isMapActive) {
-//                        Button(action: {
-//                            self.isMapActive = true
-//                        }) {
-//                            VStack {
-//                                Image(systemName: "map.fill") // Represents Map
-//                                    .foregroundColor(.black)
-//                                Text("Map")
-//                                    .foregroundColor(.black)
-//                                    .font(.caption)
-//                            }
-//                        }
-//                        .frame(maxWidth: .infinity)
-//                    }
-//
-//                    // Weather Button
-//                    NavigationLink(destination: WeatherView(), isActive: $isWeatherActive) {
-//                        Button(action: {
-//                            self.isWeatherActive = true
-//                        }) {
-//                            VStack {
-//                                Image(systemName: "cloud.sun.fill") // Represents Weather
-//                                    .foregroundColor(.black)
-//                                Text("Weather")
-//                                    .foregroundColor(.black)
-//                                    .font(.caption)
-//                            }
-//                        }
-//                        .frame(maxWidth: .infinity)
-//                    }
-//
-//                    // Profile Button
-//                    NavigationLink(destination: ProfileView(), isActive: $isProfileActive) {
-//                        Button(action: {
-//                            self.isProfileActive = true
-//                        }) {
-//                            VStack {
-//                                Image(systemName: "person.fill") // Represents Profile
-//                                    .foregroundColor(.black)
-//                                Text("Profile")
-//                                    .foregroundColor(.black)
-//                                    .font(.caption)
-//                            }
-//                        }
-//                        .frame(maxWidth: .infinity)
-//                    }
+//                    
                 }
                 .padding()
                 .background(Color.white)
