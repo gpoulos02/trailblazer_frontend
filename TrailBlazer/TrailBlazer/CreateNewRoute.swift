@@ -154,7 +154,7 @@ struct CreateNewRouteView: View {
                     .foregroundColor(.blue)
             }
         }
-        .frame(width: 402, height: 44)
+        .frame(width: 400, height: 44)
         .overlay(
             Rectangle()
                 .inset(by: -0.17)
@@ -193,18 +193,12 @@ struct CreateNewRouteView: View {
         }
     }
     
-struct CreateNewRouteView_Previews: PreviewProvider {
-    static var previews: some View {
-        CreateNewRouteView()
-    }
-    }
+    struct CreateNewRouteView_Previews: PreviewProvider {
+        static var previews: some View {
+            CreateNewRouteView()
+        }
+        }
+    
 }
 
-//struct OnApplyRouteView: View {
-//    var body: some View {
-//        Text("Applied Route Details")
-//            .font(.title)
-//            .foregroundColor(.black)
-//            .padding()
-//    }
-//}
+

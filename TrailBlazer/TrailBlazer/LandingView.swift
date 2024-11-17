@@ -51,8 +51,10 @@ struct LandingView: View {
                 .frame(width: 400, height: 34)
                 
                 
+                
             }
             .padding()
+            .navigationBarBackButtonHidden(true)
         }
     }
 }

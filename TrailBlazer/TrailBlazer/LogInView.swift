@@ -36,28 +36,26 @@ struct LogInView: View {
                         .font(.caption)
                 }
                 
-                // Log In Button
-                Button(action: {
-                    handleLogin()
-                }) {
-                    Text("Log In")
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
+                // Log In Button wrapped in NavigationLink
+                // Navigation Link to HomeView, triggered by successful sign-up
+                NavigationLink(
+                    destination: HomeView(),
+                    label: {
+                        Button("Submit") {
+                            handleLogin()
+                        }
+                        .frame(width: 287, height: 50)
                         .background(Color.blue)
-                        .cornerRadius(8)
-                }
+                        .foregroundColor(.white)
+                        .cornerRadius(5)
+                    }
+                )
                 
                 // Change Password Button
                 NavigationLink(destination: ChangePasswordView()) {
                     Text("Change Password")
                         .foregroundColor(.blue)
                         .underline()
-                }
-                
-                // Navigation to HomeView upon successful login
-                NavigationLink(destination: HomeView()) {
-                    EmptyView() // This navigation link triggers when isLoggedIn is true
                 }
             }
             .padding()

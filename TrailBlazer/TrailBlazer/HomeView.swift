@@ -110,6 +110,7 @@ struct HomeView: View {
             }
             .edgesIgnoringSafeArea(.bottom) // Ensures bottom navigation bar is not obstructed by safe area
             .padding()
+            .navigationBarBackButtonHidden(true)
         }
     }
 }
