@@ -9,66 +9,87 @@ struct SelectedRouteView: View {
 
     @ObservedObject private var locationManager = LocationManager()
 
+    @State private var showPerformanceButton = false // Show button after route ends
+    @State private var finalSpeed: Double = 0.0 // Store final speed
+    @State private var finalElevation: Double = 0.0 // Store final elevation
+    @State private var finalTime: TimeInterval = 0.0 // Store final time
+
     var body: some View {
-        VStack(spacing: 20) {
-            // Route Name
-            Text("\(routeName)")
-                .font(Font.custom("Inter", size: 20).weight(.bold))
-                .foregroundColor(.black)
+        NavigationView {
+            VStack(spacing: 20) {
+                // Route Name
+                Text("\(routeName)")
+                    .font(Font.custom("Inter", size: 20).weight(.bold))
+                    .foregroundColor(.black)
 
-            // Map Placeholder
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(height: 200)
-                .cornerRadius(8)
-                .overlay(
-                    Text("Map View (Coming Soon)")
-                        .font(Font.custom("Inter", size: 16))
-                        .foregroundColor(.black.opacity(0.7))
-                )
-
-            // Metrics
-            HStack(spacing: 40) {
-                VStack {
-                    Text("Speed")
-                        .font(Font.custom("Inter", size: 16))
-                        .foregroundColor(.black)
-                    Text("\(String(format: "%.1f", locationManager.currentSpeed)) m/s")
-                        .font(Font.custom("Inter", size: 16).weight(.bold))
-                        .foregroundColor(.blue)
-                }
-
-                VStack {
-                    Text("Elevation")
-                        .font(Font.custom("Inter", size: 16))
-                        .foregroundColor(.black)
-                    Text("\(String(format: "%.1f", locationManager.currentElevation)) m")
-                        .font(Font.custom("Inter", size: 16).weight(.bold))
-                        .foregroundColor(.blue)
-                }
-            }
-
-            // Timer
-            Text("Elapsed Time: \(formatTime(elapsedTime))")
-                .font(Font.custom("Inter", size: 16))
-                .foregroundColor(.black)
-
-            // Start/End Button
-            Button(action: toggleTimer) {
-                Text(timerRunning ? "End Route" : "Start Route")
-                    .font(Font.custom("Inter", size: 16).weight(.bold))
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(timerRunning ? Color.red : Color.blue)
+                // Map Placeholder
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 200)
                     .cornerRadius(8)
+                    .overlay(
+                        Text("Map View (Coming Soon)")
+                            .font(Font.custom("Inter", size: 16))
+                            .foregroundColor(.black.opacity(0.7))
+                    )
+
+                // Metrics
+                HStack(spacing: 40) {
+                    VStack {
+                        Text("Speed")
+                            .font(Font.custom("Inter", size: 16))
+                            .foregroundColor(.black)
+                        Text("\(String(format: "%.1f", locationManager.currentSpeed)) m/s")
+                            .font(Font.custom("Inter", size: 16).weight(.bold))
+                            .foregroundColor(.blue)
+                    }
+
+                    VStack {
+                        Text("Elevation")
+                            .font(Font.custom("Inter", size: 16))
+                            .foregroundColor(.black)
+                        Text("\(String(format: "%.1f", locationManager.currentElevation)) m")
+                            .font(Font.custom("Inter", size: 16).weight(.bold))
+                            .foregroundColor(.blue)
+                    }
+                }
+
+                // Timer
+                Text("Elapsed Time: \(formatTime(elapsedTime))")
+                    .font(Font.custom("Inter", size: 16))
+                    .foregroundColor(.black)
+
+                // Start/End Button
+                Button(action: toggleTimer) {
+                    Text(timerRunning ? "End Route" : "Start Route")
+                        .font(Font.custom("Inter", size: 16).weight(.bold))
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(timerRunning ? Color.red : Color.blue)
+                        .cornerRadius(8)
+                }
+                .padding(.vertical)
+
+                // View Performance Button (Visible after route ends)
+                if showPerformanceButton {
+                    NavigationLink(destination: PerformanceMetricsView()) {
+                        Text("View Performance")
+                            .font(Font.custom("Inter", size: 16).weight(.bold))
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.green)
+                            .cornerRadius(8)
+                    }
+                    .padding(.vertical)
+                }
             }
-            .padding(.vertical)
-        }
-        .padding()
-        .onDisappear {
-            stopTimer()
-            locationManager.stopUpdatingLocation()
+            .padding()
+            .onDisappear {
+                stopTimer()
+                locationManager.stopUpdatingLocation()
+            }
         }
     }
 
@@ -89,6 +110,7 @@ struct SelectedRouteView: View {
                 elapsedTime += Date().timeIntervalSince(start)
             }
             saveMetrics() // Save metrics to the backend
+            showPerformanceButton = true // Show the "View Performance" button
         } else {
             // Start the timer
             startTime = Date()
@@ -117,6 +139,9 @@ struct SelectedRouteView: View {
     private func saveMetrics() {
         // Simulate saving metrics to backend
         print("Saving metrics: \(elapsedTime) seconds, Speed: \(locationManager.currentSpeed), Elevation: \(locationManager.currentElevation)")
+        finalTime = elapsedTime
+        finalSpeed = locationManager.currentSpeed
+        finalElevation = locationManager.currentElevation
     }
 }
 
