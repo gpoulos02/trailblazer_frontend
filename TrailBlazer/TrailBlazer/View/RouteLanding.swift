@@ -135,6 +135,16 @@ struct RouteLandingView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
+                    NavigationLink(destination: PerformanceMetricsView()) {
+                        VStack {
+                            Image(systemName: "ski.fill") // Represents Weather
+                                .foregroundColor(.black)
+                            Text("Metrics")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                     // Profile Button (Navigates to Profile View)
                     NavigationLink(destination: ProfileView()) {
                         VStack {
