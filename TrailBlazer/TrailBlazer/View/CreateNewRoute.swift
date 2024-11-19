@@ -1,204 +1,144 @@
 import SwiftUI
 
 struct CreateNewRouteView: View {
-    @State private var fontSize: CGFloat = 12
-    @State private var appliedDifficulties: Set<String> = [] // Keep track of applied difficulties
-    @State private var appliedDestinations: Set<String> = [] // Keep track of applied destinations
-    @State private var navigateToOnApplyRoute = false
-    @State private var isHomeActive = false
-    
-    let routeOptions = ["Blue", "Black Diamond", "Double Black Diamond", "South Base Lodge"]
+    @State private var selectedLift: String = ""
+    @State private var selectedDestination: String = ""
+    @State private var maxDifficulty: String = ""
+    @State private var availableRoutes: [String] = []
+    @State private var isLoading: Bool = false
+    @State private var showError: Bool = false
+    @State private var navigateToRoutes: Bool = false // Controls navigation
+
+    @State private var liftOptions: [String] = []
+    @State private var destinationOptions: [String] = []
+    @State private var difficultyLevels: [String] = []
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
-                // Title Bar
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .frame(width: 256, height: 36)
-                    .background(
-                        AsyncImage(url: URL(string: "https://via.placeholder.com/256x36"))
-                    )
+                // Title
+                Text("Set Your Route")
+                    .font(Font.custom("Inter", size: 20).weight(.bold))
+                    .foregroundColor(.black)
+                
+                // Lift Taken (required)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("What lift did you take?")
+                        .font(Font.custom("Inter", size: 16).weight(.bold))
+                        .foregroundColor(.black)
+                    
+                    Picker("Select a lift", selection: $selectedLift) {
+                        Text("Select a lift").tag("")
+                        ForEach(liftOptions, id: \.self) { lift in
+                            Text(lift).tag(lift)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
                     .padding()
-                
-                // Route Selection Text
-                Text("Difficulty")
-                    .font(Font.custom("Inter", size: 16).weight(.bold))
-                    .foregroundColor(.black)
-                
-                // Difficulty Section
-                VStack(spacing: 0) {
-                    difficultyRow(title: "Green")
-                    difficultyRow(title: "Blue")
-                    difficultyRow(title: "Black Diamond")
-                    difficultyRow(title: "Double Black Diamond")
+                    .frame(maxWidth: 300)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+                    
+                    // Error message
+                    if showError && selectedLift.isEmpty {
+                        Text("Please make a selection")
+                            .font(Font.custom("Inter", size: 14))
+                            .foregroundColor(.red)
+                    }
                 }
                 
-                // Destination Section
-                Text("Destination")
-                    .font(Font.custom("Inter", size: 16).weight(.bold))
-                    .foregroundColor(.black)
-                
-                VStack(spacing: 0) {
-                    destinationRow(title: "South Base Lodge")
-                    destinationRow(title: "Activity Central")
+                // Destination (not required)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Where do you want to go?")
+                        .font(Font.custom("Inter", size: 16).weight(.bold))
+                        .foregroundColor(.black)
+                    
+                    Picker("Select a destination", selection: $selectedDestination) {
+                        Text("Any Destination").tag("")
+                        ForEach(destinationOptions, id: \.self) { destination in
+                            Text(destination).tag(destination)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    .padding()
+                    .frame(maxWidth: 300)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
                 }
                 
-                // Filter button at the bottom
-                NavigationLink(destination: OnApplyRouteView()) {
-//                    Button(action: {
-//                        print("Filter button tapped")
-//                        self.navigateToOnApplyRoute = true // Trigger navigation to OnApplyRoute view
-//                    }) {
-                        Text("Filter")
-                            .font(Font.custom("Inter", size: fontSize))
+                // Max Difficulty (not required)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Max Difficulty")
+                        .font(Font.custom("Inter", size: 16).weight(.bold))
+                        .foregroundColor(.black)
+                    
+                    Picker("Select difficulty", selection: $maxDifficulty) {
+                        Text("No Limit").tag("")
+                        ForEach(difficultyLevels, id: \.self) { difficulty in
+                            Text(difficulty).tag(difficulty)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    .padding()
+                    .frame(maxWidth: 300)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+                }
+                
+                // Apply Button
+                Button(action: fetchRoutes) {
+                    if isLoading {
+                        ProgressView()
+                    } else {
+                        Text("Apply")
+                            .font(Font.custom("Inter", size: 16).weight(.bold))
                             .foregroundColor(.white)
                             .padding()
                             .frame(maxWidth: .infinity)
                             .background(Color.blue)
                             .cornerRadius(8)
-//                    }
+                    }
                 }
-                .padding([.top, .bottom])
-                .onTapGesture {
-                    self.navigateToOnApplyRoute = true
-                }
-                
-                Spacer()
-                
-                // Navigation Bar at the Bottom
-                // Navigation Bar at the Bottom
-                HStack {
-//                    // Home Button
-                    NavigationLink(destination: HomeView()) {
-                        Button(action: {
-                            self.isHomeActive = true
-                        }) {
-                            VStack {
-                                Image(systemName: "house.fill")
-                                    .foregroundColor(.black)
-                                Text("Home")
-                                    .foregroundColor(.black)
-                                    .font(.caption)
-                           }
-                        }                        .frame(maxWidth: .infinity)
-                        
-                        // Friends Button
-                        NavigationLink(destination: FriendView()) {
-                            VStack {
-                                Image(systemName: "person.2.fill") // Represents friends
-                                    .foregroundColor(.black)
-                                Text("Friends")
-                                    .foregroundColor(.black)
-                                    .font(.caption)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        
-                        NavigationLink(destination: RouteLandingView()) {
-                            VStack {
-                                Image(systemName: "map.fill") // Represents Map
-                                    .foregroundColor(.black)
-                                Text("Map")
-                                    .foregroundColor(.black)
-                                    .font(.caption)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        // Weather Button
-                        NavigationLink(destination: WeatherView()) {
-                            VStack {
-                                Image(systemName: "cloud.sun.fill") // Represents Weather
-                                    .foregroundColor(.black)
-                                Text("Weather")
-                                    .foregroundColor(.black)
-                                    .font(.caption)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        // Profile Button (Navigates to Profile View)
-                        NavigationLink(destination: ProfileView()) {
-                            VStack {
-                                Image(systemName: "person.fill") // Represents Profile
-                                    .foregroundColor(.black)
-                                Text("Profile")
-                                    .foregroundColor(.black)
-                                    .font(.caption)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                   }
-//
-//
-//                    
-                }
-                .padding()
-                .background(Color.white)
-                .shadow(radius: 5)
+                .padding(.vertical)
+            }
+            .padding()
+            .onAppear(perform: fetchDropdownData)
+            .navigationDestination(isPresented: $navigateToRoutes) {
+                AvailableRoutesView(availableRoutes: availableRoutes)
             }
         }
     }
-    
-    private func difficultyRow(title: String) -> some View {
-        SwiftUICore.HStack(spacing: 20) {
-            Text(title)
-                .font(Font.custom("Inter", size: 17))
-                .lineSpacing(22)
-                .foregroundColor(.black)
-                .frame(maxWidth: .infinity, minHeight: 44, maxHeight: 44)
-            
-            Button(action: {
-                toggleSelection(for: title, in: &appliedDifficulties)
-            }) {
-                Image(systemName: appliedDifficulties.contains(title) ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(.blue)
-            }
+
+    // Function to fetch routes from backend
+    private func fetchRoutes() {
+        guard !selectedLift.isEmpty else {
+            showError = true
+            return
         }
-        .frame(width: 400, height: 44)
-        .overlay(
-            Rectangle()
-                .inset(by: -0.17)
-                .stroke(Color(red: 0.33, green: 0.33, blue: 0.34).opacity(0.34), lineWidth: 0.17)
-        )
-    }
-    
-    private func destinationRow(title: String) -> some View {
-        SwiftUICore.HStack(spacing: 0) {
-            Text(title)
-                .font(Font.custom("Inter", size: 17))
-                .lineSpacing(22)
-                .foregroundColor(.black)
-                .frame(maxWidth: .infinity, minHeight: 44, maxHeight: 44)
-            
-            Button(action: {
-                toggleSelection(for: title, in: &appliedDestinations)
-            }) {
-                Image(systemName: appliedDestinations.contains(title) ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(.blue)
-            }
-        }
-        .frame(width: 402, height: 44)
-        .overlay(
-            Rectangle()
-                .inset(by: -0.17)
-                .stroke(Color(red: 0.33, green: 0.33, blue: 0.34).opacity(0.34), lineWidth: 0.17)
-        )
-    }
-    
-    private func toggleSelection(for title: String, in set: inout Set<String>) {
-        if set.contains(title) {
-            set.remove(title)
-        } else {
-            set.insert(title)
+
+        showError = false
+        isLoading = true
+
+        // Simulate API call
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            availableRoutes = ["Route 1", "Route 2", "Route 3"] // Mocked response
+            isLoading = false
+            navigateToRoutes = true // Trigger navigation
         }
     }
-    
-    struct CreateNewRouteView_Previews: PreviewProvider {
-        static var previews: some View {
-            CreateNewRouteView()
+
+    // Function to fetch dropdown options from backend
+    private func fetchDropdownData() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            liftOptions = ["Lift A", "Lift B", "Lift C"]
+            destinationOptions = ["South Base Lodge", "Activity Central"]
+            difficultyLevels = ["Green", "Blue", "Black Diamond", "Double Black Diamond"]
         }
-        }
-    
+    }
 }
 
-
+struct CreateNewRouteView_Previews: PreviewProvider {
+    static var previews: some View {
+        CreateNewRouteView()
+    }
+}

@@ -22,6 +22,7 @@ struct RouteLandingView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
+                Spacer()
                 Rectangle()
                     .foregroundColor(.clear)
                     .frame(width: 256, height: 36)
@@ -50,28 +51,28 @@ struct RouteLandingView: View {
                     .cornerRadius(5)
                 
                 // Set New Route Button with NavigationLink
-                NavigationLink(destination: SetNewRouteView()) {
-                    HStack(spacing: 8) {
-                        Text("Set New Route")
-                            .font(Font.custom("Inter", size: 16))
-                            .lineSpacing(16)
-                            .foregroundColor(Color(red: 0.96, green: 0.96, blue: 0.96))
-                    }
-                    .padding(12)
-                    .frame(width: 144, height: 42)
-                    .background(Color(red: 0.17, green: 0.17, blue: 0.17))
-                    .cornerRadius(8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .inset(by: 0.50)
-                            .stroke(Color(red: 0.17, green: 0.17, blue: 0.17), lineWidth: 0.50)
-                    )
-                }
+//                NavigationLink(destination: SetNewRouteView()) {
+//                    HStack(spacing: 8) {
+//                        Text("Set New Route")
+//                            .font(Font.custom("Inter", size: 16))
+//                            .lineSpacing(16)
+//                            .foregroundColor(Color(red: 0.96, green: 0.96, blue: 0.96))
+//                    }
+//                    .padding(12)
+//                    .frame(width: 144, height: 42)
+//                    .background(Color(red: 0.17, green: 0.17, blue: 0.17))
+//                    .cornerRadius(8)
+//                    .overlay(
+//                        RoundedRectangle(cornerRadius: 8)
+//                            .inset(by: 0.50)
+//                            .stroke(Color(red: 0.17, green: 0.17, blue: 0.17), lineWidth: 0.50)
+//                    )
+//                }
                 
                 // Create New Route Button with NavigationLink
                 NavigationLink(destination: CreateNewRouteView()) {
                     HStack(spacing: 8) {
-                        Text("Create New Route")
+                        Text("New Route")
                             .font(Font.custom("Inter", size: 16))
                             .lineSpacing(16)
                             .foregroundColor(Color(red: 0.96, green: 0.96, blue: 0.96))

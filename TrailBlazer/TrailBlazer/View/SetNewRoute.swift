@@ -18,9 +18,6 @@ struct SetNewRouteView: View {
                 .background(
                     AsyncImage(url: URL(string: "https://via.placeholder.com/256x36"))
                 )
-     
-
-            
             
             Rectangle()
                 .foregroundColor(.clear)
