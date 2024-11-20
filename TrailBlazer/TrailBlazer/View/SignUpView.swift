@@ -11,6 +11,10 @@ struct SignUpView: View {
 
     var body: some View {
         VStack(spacing: 20) {
+            Text("Sign Up")
+                .font(Font.custom("Inter", size: 25).weight(.bold))
+                .foregroundColor(.black)
+                .padding()
             TextField("First Name", text: $firstName)
                 .padding()
                 .background(Color.gray.opacity(0.2))
@@ -56,7 +60,7 @@ struct SignUpView: View {
     }
 
     private func signUp() {
-        guard let url = URL(string: "http://localhost:3000/register") else { return }
+        guard let url = URL(string: "https://localhost:3000/register") else { return }
 
         // Generate a random userID (UUID)
         let userID = UUID().uuidString

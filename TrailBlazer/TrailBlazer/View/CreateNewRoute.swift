@@ -18,8 +18,9 @@ struct CreateNewRouteView: View {
             VStack(spacing: 20) {
                 // Title
                 Text("Set Your Route")
-                    .font(Font.custom("Inter", size: 20).weight(.bold))
+                    .font(Font.custom("Inter", size: 25).weight(.bold))
                     .foregroundColor(.black)
+                    .padding()
                 
                 // Lift Taken (required)
                 VStack(alignment: .leading, spacing: 8) {

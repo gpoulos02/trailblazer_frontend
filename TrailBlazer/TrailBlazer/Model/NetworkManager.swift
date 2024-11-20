@@ -1,10 +1,3 @@
-//
-//  NetworkManager.swift
-//  TrailBlazer
-//
-//  Created by Sadie Smyth on 2024-11-20.
-//
-
 import Foundation
 
 class NetworkManager {
@@ -24,7 +17,11 @@ class NetworkManager {
             return
         }
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        // Use URLSession with default configuration
+        let session = URLSession.shared
+
+        // Send the request
+        session.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(error))
                 return
@@ -36,4 +33,3 @@ class NetworkManager {
         }.resume()
     }
 }
-

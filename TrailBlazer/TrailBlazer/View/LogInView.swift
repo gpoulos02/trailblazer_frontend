@@ -11,8 +11,9 @@ struct LogInView: View {
         NavigationView {
             VStack(spacing: 20) {
                 Text("Log In")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+                    .font(Font.custom("Inter", size: 25).weight(.bold))
+                    .foregroundColor(.black)
+                    .padding()
                 
                 TextField("Username", text: $username)
                     .padding()
@@ -57,7 +58,7 @@ struct LogInView: View {
             return
         }
         
-        let loginURL = URL(string: "http://localhost:3000/login")!
+        let loginURL = URL(string: "https://localhost:3000/login")!
         let body = ["username": username, "password": password]
 
         NetworkManager.shared.postData(url: loginURL, body: body) { result in
@@ -87,6 +88,6 @@ struct LogInView: View {
 struct LogInView_Previews: PreviewProvider {
     static var previews: some View {
         LogInView()
-             // Ensure to provide an AppState in the preview
+             
     }
 }

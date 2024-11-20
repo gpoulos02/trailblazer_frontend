@@ -16,8 +16,9 @@ struct FriendView: View {
             
             // Add placeholder content for connecting with friends, performance metrics, and location sharing
             VStack {
-                Text("Connect with friends")
-                    .font(.title2)
+                Text("Connect with Friends")
+                    .font(Font.custom("Inter", size: 25).weight(.bold))
+                    .foregroundColor(.black)
                     .padding()
                 
                 // Add buttons or features related to adding/viewing friends
@@ -103,16 +104,7 @@ struct FriendView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                // Weather Button
-                NavigationLink(destination: WeatherView()) {
-                    VStack {
-                        Image(systemName: "cloud.sun.fill") // Represents Weather
-                            .foregroundColor(.black)
-                        Text("Weather")
-                            .foregroundColor(.black)
-                            .font(.caption)
-                    }
-                }
+
                 .frame(maxWidth: .infinity)
                 NavigationLink(destination: PerformanceMetricsView()) {
                     VStack {

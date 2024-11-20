@@ -120,7 +120,7 @@ struct WeatherView: View {
                 .shadow(radius: 5)
             }
             //.edgesIgnoringSafeArea(.bottom)
-            .padding()
+            //.padding()
             .onAppear {
                 fetchWeather()
             }

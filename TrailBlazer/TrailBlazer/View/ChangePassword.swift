@@ -3,12 +3,11 @@ import SwiftUI
 struct ChangePasswordView: View {
     var body: some View {
         VStack(spacing: 20) {
-            AsyncImage(url: URL(string: "https://via.placeholder.com/314x290"))
-                .frame(width: 314, height: 290)
-                .padding(.top, 16)
+            
             Text("Change Password")
-                .font(.largeTitle)
-                .bold()
+                .font(Font.custom("Inter", size: 25).weight(.bold))
+                .foregroundColor(.black)
+                .padding()
             
             // Password Fields
             SecureField("Enter your current password", text: .constant(""))

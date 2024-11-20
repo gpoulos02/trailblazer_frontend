@@ -14,7 +14,7 @@ struct AvailableRoutesView: View {
         VStack(spacing: 20) {
             // Title
             Text("Available Routes")
-                .font(Font.custom("Inter", size: 20).weight(.bold))
+                .font(Font.custom("Inter", size: 25).weight(.bold))
                 .foregroundColor(.black)
                 .padding()
 

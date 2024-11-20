@@ -15,9 +15,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                AsyncImage(url: URL(string: "https://via.placeholder.com/314x290"))
-                    .frame(width: 314, height: 290)
-                    .padding(.top, 16)
+
                 
                 // Header
                 Text("Welcome, \(userName)")
@@ -119,8 +117,8 @@ struct HomeView: View {
                 .background(Color.white)
                 .shadow(radius: 5)
             }
-            .edgesIgnoringSafeArea(.bottom) // Ensures bottom navigation bar is not obstructed by safe area
-            .padding()
+            //.edgesIgnoringSafeArea(.bottom) // Ensures bottom navigation bar is not obstructed by safe area
+            //.padding()
             .navigationBarBackButtonHidden(true)
         }
     }
@@ -150,6 +148,6 @@ struct HomeButton: View {
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView()
-            .previewDevice("iPhone 14") // You can specify a device here for better testing
+             // You can specify a device here for better testing
     }
 }

@@ -16,7 +16,7 @@ struct PerformanceMetricsView: View {
     var body: some View {
         VStack {
             Text("Performance Metrics")
-                .font(Font.custom("Inter", size: 20).weight(.bold))
+                .font(Font.custom("Inter", size: 25).weight(.bold))
                 .foregroundColor(.black)
                 .padding()
 
