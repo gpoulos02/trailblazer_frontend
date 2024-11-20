@@ -41,6 +41,26 @@ struct HomeView: View {
                     }
                 }
                 .padding()
+                // Weather Widget
+                NavigationLink(destination: WeatherView()) {
+                    VStack {
+                        HStack {
+                            Image(systemName: "cloud.sun.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.blue)
+                            
+                            Text("Weather")
+                                .font(.headline)
+                                .foregroundColor(.black)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.white)
+                        .cornerRadius(10)
+                        .shadow(radius: 5)
+                    }
+                }
+                .padding(.top, 20)
                 
                 Spacer() // Pushes content upwards so the bottom navigation stays at the bottom
                 
@@ -81,17 +101,8 @@ struct HomeView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    // Weather Button
-                    NavigationLink(destination: WeatherView()) {
-                        VStack {
-                            Image(systemName: "cloud.sun.fill") // Represents Weather
-                                .foregroundColor(.black)
-                            Text("Weather")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
+                
+                    
                     // Profile Button (Navigates to Profile View)
                     NavigationLink(destination: ProfileView()) {
                         VStack {

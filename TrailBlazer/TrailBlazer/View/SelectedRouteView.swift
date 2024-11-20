@@ -13,6 +13,7 @@ struct SelectedRouteView: View {
     @State private var finalSpeed: Double = 0.0 // Store final speed
     @State private var finalElevation: Double = 0.0 // Store final elevation
     @State private var finalTime: TimeInterval = 0.0 // Store final time
+    @State private var endRouteDate: String = ""
 
     var body: some View {
         NavigationView {
@@ -137,8 +138,11 @@ struct SelectedRouteView: View {
 
     // Save Metrics to Backend (Placeholder)
     private func saveMetrics() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        endRouteDate = formatter.string(from: Date())
         // Simulate saving metrics to backend
-        print("Saving metrics: \(elapsedTime) seconds, Speed: \(locationManager.currentSpeed), Elevation: \(locationManager.currentElevation)")
+        print("Saving metrics: \(elapsedTime) seconds, Speed: \(locationManager.currentSpeed), Elevation: \(locationManager.currentElevation), Date: \(endRouteDate)")
         finalTime = elapsedTime
         finalSpeed = locationManager.currentSpeed
         finalElevation = locationManager.currentElevation

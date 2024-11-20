@@ -137,7 +137,7 @@ struct RouteLandingView: View {
                     .frame(maxWidth: .infinity)
                     NavigationLink(destination: PerformanceMetricsView()) {
                         VStack {
-                            Image(systemName: "ski.fill") // Represents Weather
+                            Image(systemName: "chart.bar.fill") // Represents Weather
                                 .foregroundColor(.black)
                             Text("Metrics")
                                 .foregroundColor(.black)

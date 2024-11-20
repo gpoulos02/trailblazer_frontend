@@ -14,16 +14,10 @@ struct LogInView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .frame(width: 256, height: 36)
-                    .background(
-                        AsyncImage(url: URL(string: "https://via.placeholder.com/256x36"))
-                    )
-                    .padding()
+ 
                 AsyncImage(url: URL(string: "https://via.placeholder.com/314x290"))
                     .frame(width: 314, height: 290)
-                    .padding(.top, 16)
+                    .padding()
                 
                 TextField("Username", text: $viewModel.username)
                     .padding()

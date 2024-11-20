@@ -1,75 +1,98 @@
 import SwiftUI
 
 struct SignUpView: View {
-    @State private var viewModel = SignUpViewModel()
-    private let controller: SignUpController
-
-    init() {
-        let userController = UserController()
-        controller = SignUpController(userController: userController)
-    }
+    @State private var username = ""
+    @State private var password = ""
+    @State private var firstName = ""
+    @State private var lastName = ""
+    @State private var email = ""
+    @State private var errorMessage: String?
+    @State private var successMessage: String?
 
     var body: some View {
         VStack(spacing: 20) {
-            Rectangle()
-                .foregroundColor(.clear)
-                .frame(width: 256, height: 36)
-                .background(
-                    AsyncImage(url: URL(string: "https://via.placeholder.com/256x36"))
-                )
-                
-            TextField("First Name", text: $viewModel.firstName)
+            TextField("First Name", text: $firstName)
                 .padding()
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(8)
 
-            TextField("Last Name", text: $viewModel.lastName)
+            TextField("Last Name", text: $lastName)
                 .padding()
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(8)
 
-            TextField("Email", text: $viewModel.email)
+            TextField("Email", text: $email)
                 .padding()
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(8)
 
-            TextField("Username", text: $viewModel.username)
+            TextField("Username", text: $username)
                 .padding()
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(8)
 
-            SecureField("Password", text: $viewModel.password)
+            SecureField("Password", text: $password)
                 .padding()
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(8)
 
-            if let errorMessage = viewModel.errorMessage {
+            if let errorMessage = errorMessage {
                 Text(errorMessage).foregroundColor(.red)
             }
 
-            Button("Sign Up") {
-                let success = controller.signUp(
-                    firstName: viewModel.firstName,
-                    lastName: viewModel.lastName,
-                    email: viewModel.email,
-                    username: viewModel.username,
-                    password: viewModel.password
-                )
-                viewModel.errorMessage = success ? nil : "Username or email already exists"
+            if let successMessage = successMessage {
+                Text(successMessage).foregroundColor(.green)
             }
-            .frame(width: 287, height: 50)
+
+            Button("Sign Up") {
+                signUp()
+            }
+            .padding()
             .background(Color.blue)
             .foregroundColor(.white)
-            .cornerRadius(5)
+            .cornerRadius(8)
         }
         .padding()
     }
-}
 
+    private func signUp() {
+        guard let url = URL(string: "http://localhost:3000/register") else { return }
+
+        // Generate a random userID (UUID)
+        let userID = UUID().uuidString
+
+        let body: [String: String] = [
+            "username": username,
+            "password": password,
+            "firstName": firstName,
+            "lastName": lastName,
+            "email": email,
+            "userID": userID
+        ]
+
+        // Send the request
+        NetworkManager.shared.postData(url: url, body: body) { result in
+            switch result {
+            case .success(let data):
+                if let response = try? JSONDecoder().decode([String: String].self, from: data),
+                   let message = response["message"] {
+                    DispatchQueue.main.async {
+                        errorMessage = nil
+                        successMessage = message
+                    }
+                }
+            case .failure:
+                DispatchQueue.main.async {
+                    successMessage = nil
+                    errorMessage = "Failed to register. Please try again."
+                }
+            }
+        }
+    }
+}
 
 struct SignUpView_Previews: PreviewProvider {
     static var previews: some View {
         SignUpView()
-            .environmentObject(AppState())
     }
 }
