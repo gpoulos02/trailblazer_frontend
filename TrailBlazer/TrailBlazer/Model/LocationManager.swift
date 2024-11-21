@@ -1,22 +1,21 @@
-//
-//  LocationManager.swift
-//  TrailBlazer
-//
-//  Created by Sadie Smyth on 2024-11-19.
-//
-
-import Foundation
 import CoreLocation
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
-    @Published var currentSpeed: Double = 0.0
-    @Published var currentElevation: Double = 0.0
+
+    @Published var currentLocation: CLLocation? // User's current location
+    @Published var currentSpeed: Double = 0.0   // Speed in m/s
+    @Published var currentElevation: Double = 0.0 // Elevation in meters
 
     override init() {
         super.init()
         locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+    }
+
+    func startUpdatingLocation() {
         locationManager.startUpdatingLocation()
     }
 
@@ -26,14 +25,12 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-        DispatchQueue.main.async {
-            self.currentSpeed = location.speed > 0 ? location.speed : 0
-            self.currentElevation = location.altitude
-        }
+        currentLocation = location
+        currentSpeed = location.speed >= 0 ? location.speed : 0 // Ensure non-negative speed
+        currentElevation = location.altitude
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Location update failed: \(error.localizedDescription)")
+        print("Failed to get location: \(error.localizedDescription)")
     }
 }
-

@@ -1,14 +1,25 @@
 import SwiftUI
+import CoreLocation
 
 struct WeatherView: View {
+    @ObservedObject private var locationManager = LocationManager()
     @State private var weatherInfo: String = "Fetching..."
     @State private var condition: String = "Loading..."
+    @State private var locationName: String = "Your Location"
     @State private var notifications: [String] = ["Snowstorm warning", "High wind alert", "Clear skies today"]
+    @State private var forecast: [ForecastWeather] = []
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                // Weather Info Section
+                // Location Name at the Top
+                Text(locationName)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.blue)
+                    .padding(.top, 20)
+                
+                // Current Weather Information
                 VStack {
                     Image(systemName: conditionIcon(for: condition))
                         .font(.system(size: 70))
@@ -24,110 +35,40 @@ struct WeatherView: View {
                 .background(Color.white)
                 .cornerRadius(10)
                 .shadow(radius: 5)
-                .padding(.top, 40)
+                .padding(.top, 10)
                 
-                // Notifications Section
+                // Forecast Section
                 VStack(alignment: .leading) {
-                    Text("Recent Notifications")
+                    Text("Weather Forecast")
                         .font(.headline)
                         .padding(.leading, 16)
                     
-                    ForEach(notifications, id: \.self) { notification in
-                        HStack {
-                            Text(notification)
-                                .padding()
-                                .foregroundColor(.black)
-                            Spacer()
-                            Button(action: {
-                                // Remove notification
-                                if let index = notifications.firstIndex(of: notification) {
-                                    notifications.remove(at: index)
-                                }
-                            }) {
-                                Image(systemName: "trash.fill")
-                                    .foregroundColor(.red)
+                    ScrollView {
+                        ForEach(forecast) { weather in
+                            HStack {
+                                Text("\(weather.time): \(Int(weather.temperature))°C, \(weather.condition.capitalized)")
+                                    .padding()
+                                    .foregroundColor(.black)
+                                Spacer()
                             }
+                            .background(Color.white)
+                            .cornerRadius(8)
+                            .shadow(radius: 3)
+                            .padding(.horizontal)
                         }
-                        .background(Color.white)
-                        .cornerRadius(8)
-                        .shadow(radius: 3)
-                        .padding(.horizontal)
                     }
                 }
                 .padding(.top, 20)
                 
                 Spacer()
-                
-                // Navigation Bar at the Bottom
-                HStack {
-                    NavigationLink(destination: HomeView()) {
-                        VStack {
-                            Image(systemName: "house.fill")
-                                .foregroundColor(.black)
-                            Text("Home")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    NavigationLink(destination: FriendView()) {
-                        VStack {
-                            Image(systemName: "person.2.fill")
-                                .foregroundColor(.black)
-                            Text("Friends")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    NavigationLink(destination: RouteLandingView()) {
-                        VStack {
-                            Image(systemName: "map.fill")
-                                .foregroundColor(.black)
-                            Text("Map")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    NavigationLink(destination: PerformanceMetricsView()) {
-                        VStack {
-                            Image(systemName: "chart.bar.fill")
-                                .foregroundColor(.black)
-                            Text("Metrics")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    NavigationLink(destination: ProfileView()) {
-                        VStack {
-                            Image(systemName: "person.fill")
-                                .foregroundColor(.black)
-                            Text("Profile")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .padding()
-                .background(Color.white)
-                .shadow(radius: 5)
             }
-            //.edgesIgnoringSafeArea(.bottom)
-            //.padding()
             .onAppear {
                 fetchWeather()
+                fetchLocationName()
             }
         }
     }
     
-    // Helper function to determine the weather icon
     func conditionIcon(for condition: String) -> String {
         switch condition.lowercased() {
         case "clear": return "sun.max.fill"
@@ -138,31 +79,93 @@ struct WeatherView: View {
         }
     }
     
-    // Fetch weather data from the backend
     func fetchWeather() {
-        guard let url = URL(string: "http://localhost:3000/weather?latitude=44.5&longitude=-80.2") else {
+        guard let location = locationManager.currentLocation else {
+            weatherInfo = "Unable to get location"
+            print("Debug: Location is nil")
             return
         }
         
+        let latitude = location.coordinate.latitude
+        let longitude = location.coordinate.longitude
+        
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/weather?latitude=\(latitude)&longitude=\(longitude)") else {
+            print("Debug: URL creation failed")
+            return
+        }
+        
+        print("Debug: Fetching weather data from \(url)")
+        
         URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else { return }
+            if let error = error {
+                print("Debug: Error occurred - \(error.localizedDescription)")
+                return
+            }
             
-            if let weatherData = try? JSONDecoder().decode(WeatherData.self, from: data) {
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Debug: No HTTP response")
+                return
+            }
+            print("Debug: HTTP Response Code - \(httpResponse.statusCode)")
+            
+            guard let data = data else {
+                print("Debug: Data is nil")
+                return
+            }
+            
+            do {
+                let weatherData = try JSONDecoder().decode(WeatherData.self, from: data)
                 DispatchQueue.main.async {
-                    self.weatherInfo = "\(weatherData.temperature)°C, \(weatherData.description.capitalized)"
-                    self.condition = weatherData.condition
+                    let current = weatherData.current
+                    self.weatherInfo = "\(Int(current.temperature))°C, \(current.description.capitalized)"
+                    self.condition = current.condition
+                    self.forecast = weatherData.forecast
                 }
+            } catch {
+                print("Debug: JSON Decoding failed - \(error)")
             }
         }.resume()
+    }
+    
+    func fetchLocationName() {
+        guard let location = locationManager.currentLocation else {
+            locationName = "Unknown Location"
+            return
+        }
+        
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(location) { placemarks, error in
+            if let error = error {
+                print("Debug: Reverse geocoding failed - \(error.localizedDescription)")
+                return
+            }
+            
+            if let placemark = placemarks?.first {
+                DispatchQueue.main.async {
+                    self.locationName = placemark.locality ?? "Unknown Location"
+                }
+            }
+        }
     }
 }
 
 struct WeatherData: Codable {
-    let temperature: Double
-    let condition: String
-    let description: String
+    let current: CurrentWeather
+    let forecast: [ForecastWeather]
+    
+    struct CurrentWeather: Codable {
+        let temperature: Double
+        let condition: String
+        let description: String
+    }
 }
 
+struct ForecastWeather: Codable, Identifiable {
+    let id = UUID()
+    let time: String
+    let temperature: Double
+    let condition: String
+}
 
 struct WeatherView_Previews: PreviewProvider {
     static var previews: some View {
