@@ -60,7 +60,7 @@ struct SignUpView: View {
     }
 
     private func signUp() {
-        guard let url = URL(string: "https://localhost:3000/register") else { return }
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/auth/register") else { return }
 
         // Generate a random userID (UUID)
         let userID = UUID().uuidString
@@ -73,11 +73,13 @@ struct SignUpView: View {
             "email": email,
             "userID": userID
         ]
+        print("Attempting to sign up with data: \(body)")
 
         // Send the request
         NetworkManager.shared.postData(url: url, body: body) { result in
             switch result {
             case .success(let data):
+                print("Sign up successful, received response: \(data)")
                 if let response = try? JSONDecoder().decode([String: String].self, from: data),
                    let message = response["message"] {
                     DispatchQueue.main.async {

@@ -19,7 +19,7 @@ struct LogInView: View {
                     .padding()
                     .background(Color.gray.opacity(0.2))
                     .cornerRadius(8)
-                    .autocapitalization(.none)
+                    //.autocapitalization(.none)
                     .disableAutocorrection(true)
 
                 SecureField("Password", text: $password)

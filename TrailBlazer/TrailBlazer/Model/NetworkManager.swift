@@ -16,6 +16,7 @@ class NetworkManager {
             completion(.failure(error))
             return
         }
+        print("Sending request to \(url)")
 
         // Use URLSession with default configuration
         let session = URLSession.shared
