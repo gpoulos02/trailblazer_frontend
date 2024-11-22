@@ -1,22 +1,13 @@
-// HomeView.swift
-// TrailBlazer
-//
-// Created by Sadie Smyth on 2024-11-15.
-//
-
 import SwiftUI
 
 struct HomeView: View {
-    // Sample data - Replace with actual user data when connected to a database
-    @State private var userName = "John Doe"
+    var userName: String // Accepts the logged-in user's name as a parameter
     @State private var currentRoute = "None"
     @State private var isHomeActive = false
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-
-                
                 // Header
                 Text("Welcome, \(userName)")
                     .font(.title)
@@ -31,14 +22,15 @@ struct HomeView: View {
                 
                 // Quick Access Buttons (Create New Route and Set New Route)
                 HStack {
-                    NavigationLink(destination: CreateNewRouteView()) {
+                    NavigationLink(destination: CreateNewRouteView(userName: userName)) { // Pass userName
                         HomeButton(title: "Create New Route", imageName: "plus.circle.fill")
                     }
-                    NavigationLink(destination: SetNewRouteView()) {
+                    NavigationLink(destination: SetNewRouteView(userName: userName)) { // Pass userName
                         HomeButton(title: "Set New Route", imageName: "map.fill")
                     }
                 }
                 .padding()
+                
                 // Weather Widget
                 NavigationLink(destination: WeatherView()) {
                     VStack {
@@ -65,7 +57,7 @@ struct HomeView: View {
                 // Navigation Bar at the Bottom
                 HStack {
                     // Home Button
-                    NavigationLink(destination: HomeView()) {
+                    NavigationLink(destination: HomeView(userName: userName)) { // Pass userName
                         VStack {
                             Image(systemName: "house.fill")
                                 .foregroundColor(.black)
@@ -77,9 +69,9 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity)
                     
                     // Friends Button
-                    NavigationLink(destination: FriendView()) {
+                    NavigationLink(destination: FriendView(userName: userName)) { // Pass userName
                         VStack {
-                            Image(systemName: "person.2.fill") // Represents friends
+                            Image(systemName: "person.2.fill")
                                 .foregroundColor(.black)
                             Text("Friends")
                                 .foregroundColor(.black)
@@ -88,10 +80,10 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity)
                     
-                    // Map Button (New addition)
-                    NavigationLink(destination: RouteLandingView()) {
+                    // Map Button
+                    NavigationLink(destination: SetNewRouteView(userName: userName)) { // Pass userName
                         VStack {
-                            Image(systemName: "map.fill") // Represents Map
+                            Image(systemName: "map.fill")
                                 .foregroundColor(.black)
                             Text("Map")
                                 .foregroundColor(.black)
@@ -99,12 +91,11 @@ struct HomeView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                
                     
-                    // Profile Button (Navigates to Profile View)
-                    NavigationLink(destination: ProfileView()) {
+                    // Profile Button
+                    NavigationLink(destination: ProfileView(userName: userName)) { // Pass userName
                         VStack {
-                            Image(systemName: "person.fill") // Represents Profile
+                            Image(systemName: "person.fill")
                                 .foregroundColor(.black)
                             Text("Profile")
                                 .foregroundColor(.black)
@@ -117,8 +108,6 @@ struct HomeView: View {
                 .background(Color.white)
                 .shadow(radius: 5)
             }
-            //.edgesIgnoringSafeArea(.bottom) // Ensures bottom navigation bar is not obstructed by safe area
-            //.padding()
             .navigationBarBackButtonHidden(true)
         }
     }
@@ -147,7 +136,6 @@ struct HomeButton: View {
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeView()
-             // You can specify a device here for better testing
+        HomeView(userName: "John Doe") // Provide a sample username for preview
     }
 }

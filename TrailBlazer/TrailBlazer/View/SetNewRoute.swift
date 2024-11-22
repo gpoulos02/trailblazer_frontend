@@ -1,17 +1,11 @@
-//
-//  RouteLanding.swift
-//  TrailBlazer
-//
-//  Created by Sadie Smyth on 2024-11-13.
-//
-
 import SwiftUI
 
 struct SetNewRouteView: View {
+    var userName: String // Accept the user's name as a parameter
+
     var body: some View {
-        VStack( spacing: 20) {
-            
-            
+        VStack(spacing: 20) {
+            // Placeholder for a title or logo
             Rectangle()
                 .foregroundColor(.clear)
                 .frame(width: 256, height: 36)
@@ -19,6 +13,7 @@ struct SetNewRouteView: View {
                     AsyncImage(url: URL(string: "https://via.placeholder.com/256x36"))
                 )
             
+            // Placeholder for map or saved routes section
             Rectangle()
                 .foregroundColor(.clear)
                 .frame(width: 343, height: 362)
@@ -27,7 +22,7 @@ struct SetNewRouteView: View {
                 )
                 .cornerRadius(5)
             
-            
+            // "Set New Route" Button
             HStack(spacing: 8) {
                 Text("Set New Route")
                     .font(Font.custom("Inter", size: 16))
@@ -44,6 +39,7 @@ struct SetNewRouteView: View {
                     .stroke(Color(red: 0.17, green: 0.17, blue: 0.17), lineWidth: 0.50)
             )
             
+            // "Saved Routes" Button
             HStack(spacing: 8) {
                 Text("Saved Routes")
                     .font(Font.custom("Inter", size: 16))
@@ -65,7 +61,7 @@ struct SetNewRouteView: View {
             // Navigation Bar at the Bottom
             HStack {
                 // Home Button
-                NavigationLink(destination: HomeView()) {
+                NavigationLink(destination: HomeView(userName: userName)) { // Pass `userName` to HomeView
                     VStack {
                         Image(systemName: "house.fill")
                             .foregroundColor(.black)
@@ -77,7 +73,7 @@ struct SetNewRouteView: View {
                 .frame(maxWidth: .infinity)
                 
                 // Friends Button
-                NavigationLink(destination: FriendView()) {
+                NavigationLink(destination: FriendView(userName: userName)) { // Pass `userName` to FriendView
                     VStack {
                         Image(systemName: "person.2.fill") // Represents friends
                             .foregroundColor(.black)
@@ -88,8 +84,8 @@ struct SetNewRouteView: View {
                 }
                 .frame(maxWidth: .infinity)
                 
-                // Map Button (New addition)
-                NavigationLink(destination: RouteLandingView()) {
+                // Map Button
+                NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass `userName` to RouteLandingView
                     VStack {
                         Image(systemName: "map.fill") // Represents Map
                             .foregroundColor(.black)
@@ -99,6 +95,7 @@ struct SetNewRouteView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
+                
                 // Weather Button
                 NavigationLink(destination: WeatherView()) {
                     VStack {
@@ -110,8 +107,9 @@ struct SetNewRouteView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                // Profile Button (Navigates to Profile View)
-                NavigationLink(destination: ProfileView()) {
+                
+                // Profile Button
+                NavigationLink(destination: ProfileView(userName: userName)) { // Pass `userName` to ProfileView
                     VStack {
                         Image(systemName: "person.fill") // Represents Profile
                             .foregroundColor(.black)
@@ -128,9 +126,9 @@ struct SetNewRouteView: View {
         }
     }
 }
+
 struct SetNewRouteView_Previews: PreviewProvider {
     static var previews: some View {
-        SetNewRouteView()
+        SetNewRouteView(userName: "John Doe") // Provide a sample `userName` for preview
     }
 }
-

@@ -1,14 +1,14 @@
 import SwiftUI
 
 struct ProfileView: View {
+    var userName: String // Accept the userName parameter
+
     @State private var userFirstName = "John"
     @State private var userLastName = "Doe"
     @State private var email = "john.doe@example.com"
     @State private var notificationsEnabled = true
-    @State private var isEditingProfile = false
     @State private var isOfflineMapEnabled = false
     @State private var isDarkModeEnabled = false
-    @State private var isImagePicked = false
     @State private var profileImage: Image? = nil
 
     var body: some View {
@@ -21,7 +21,8 @@ struct ProfileView: View {
                         .foregroundColor(.blue)
                     
                     Button(action: {
-                        // Add action for selecting or taking a profile picture
+                        // Action for changing the profile picture
+                        print("Change Profile Picture tapped")
                     }) {
                         Text("Change Profile Picture")
                             .font(.subheadline)
@@ -30,10 +31,11 @@ struct ProfileView: View {
                 }
 
                 // Profile Info Section
-                VStack {
+                VStack(spacing: 10) {
                     TextField("First Name", text: $userFirstName)
                         .padding()
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
                     TextField("Last Name", text: $userLastName)
                         .padding()
                         .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -76,15 +78,13 @@ struct ProfileView: View {
                 .padding()
                 
                 // Account Management Section
-                VStack(alignment: .leading) {
-                    NavigationLink(destination: ChangePasswordView()) {
-                        Text("Change Password")
-                            .font(.subheadline)
-                            .foregroundColor(.blue)
-                            .padding(.horizontal, 16)
-                    }
+                NavigationLink(destination: ChangePasswordView()) {
+                    Text("Change Password")
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                        .padding(.horizontal, 16)
                 }
-                
+
                 Divider()
                 
                 // Log Out Button
@@ -101,10 +101,11 @@ struct ProfileView: View {
                 Spacer()
             }
             .padding()
-            
+
+            // Bottom Navigation Bar
             HStack {
                 // Home Button
-                NavigationLink(destination: HomeView()) {
+                NavigationLink(destination: HomeView(userName: userName)) { // Pass userName to HomeView
                     VStack {
                         Image(systemName: "house.fill")
                             .foregroundColor(.black)
@@ -112,11 +113,13 @@ struct ProfileView: View {
                             .foregroundColor(.black)
                             .font(.caption)
                     }
-                    .frame(maxWidth: .infinity)
                 }
-                NavigationLink(destination: FriendView()) {
+                .frame(maxWidth: .infinity)
+                
+                // Friends Button
+                NavigationLink(destination: FriendView(userName: userName)) { // Pass userName to FriendView
                     VStack {
-                        Image(systemName: "person.2.fill") // Represents friends
+                        Image(systemName: "person.2.fill")
                             .foregroundColor(.black)
                         Text("Friends")
                             .foregroundColor(.black)
@@ -125,9 +128,10 @@ struct ProfileView: View {
                 }
                 .frame(maxWidth: .infinity)
                 
-                NavigationLink(destination: RouteLandingView()) {
+                // Map Button
+                NavigationLink(destination: SetNewRouteView(userName: userName)) { // Pass userName to SetNewRouteView
                     VStack {
-                        Image(systemName: "map.fill") // Represents Map
+                        Image(systemName: "map.fill")
                             .foregroundColor(.black)
                         Text("Map")
                             .foregroundColor(.black)
@@ -136,10 +140,10 @@ struct ProfileView: View {
                 }
                 .frame(maxWidth: .infinity)
 
-                //performance metrics button
+                // Performance Metrics Button
                 NavigationLink(destination: PerformanceMetricsView()) {
                     VStack {
-                        Image(systemName: "chart.bar.fill") // Represents Weather
+                        Image(systemName: "chart.bar.fill") // Represents Metrics
                             .foregroundColor(.black)
                         Text("Metrics")
                             .foregroundColor(.black)
@@ -147,10 +151,11 @@ struct ProfileView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                // Profile Button (Navigates to Profile View)
-                NavigationLink(destination: ProfileView()) {
+                
+                // Profile Button
+                NavigationLink(destination: ProfileView(userName: userName)) { // Pass userName to ProfileView
                     VStack {
-                        Image(systemName: "person.fill") // Represents Profile
+                        Image(systemName: "person.fill")
                             .foregroundColor(.black)
                         Text("Profile")
                             .foregroundColor(.black)
@@ -158,15 +163,15 @@ struct ProfileView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                
-                // Placeholder for other buttons if needed, e.g. Friends, Map, Weather, Profile...
             }
+            .padding()
+            .background(Color.white)
+            .shadow(radius: 5)
         }
     }
 
     // Save name changes to the backend (placeholder logic)
     func saveNameChanges() {
-        // Save first and last name
         print("Name updated to \(userFirstName) \(userLastName)")
     }
 
@@ -176,10 +181,8 @@ struct ProfileView: View {
     }
 }
 
-
 struct ProfileView_Previews: PreviewProvider {
     static var previews: some View {
-        ProfileView()
-            
+        ProfileView(userName: "John Doe") // Provide a sample userName for preview
     }
 }

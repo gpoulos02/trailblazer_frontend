@@ -1,28 +1,21 @@
-//  RouteLanding.swift
-//  TrailBlazer
-//
-//  Created by Sadie Smyth on 2024-11-13.
-//
-
 import SwiftUI
 
 struct RouteLandingView: View {
-    
+    var userName: String // Accept the logged-in user's name as a parameter
+
     // Add a navigation state for each tab
     @State private var isHomeActive = false
     @State private var isFriendsActive = false
     @State private var isMapActive = false
     @State private var isWeatherActive = false
     @State private var isProfileActive = false
-    
-    // Add states for the new route buttons
-    @State private var isSetNewRouteActive = false
-    @State private var isCreateNewRouteActive = false
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
                 Spacer()
+                
+                // Placeholder for a logo or title
                 Rectangle()
                     .foregroundColor(.clear)
                     .frame(width: 256, height: 36)
@@ -30,6 +23,7 @@ struct RouteLandingView: View {
                         AsyncImage(url: URL(string: "https://via.placeholder.com/256x36"))
                     )
                 
+                // Current Location Section
                 HStack {
                     Text("Your Current Location")
                         .font(Font.custom("Inter", size: 12).weight(.medium))
@@ -42,6 +36,7 @@ struct RouteLandingView: View {
                 .frame(maxWidth: .infinity, alignment: .leading) // Ensure the HStack stretches to the width of the screen
                 .padding(.leading, 16) // Add space on the left side of the screen
                 
+                // Placeholder Map Section
                 Rectangle()
                     .foregroundColor(.clear)
                     .frame(width: 343, height: 362)
@@ -50,27 +45,8 @@ struct RouteLandingView: View {
                     )
                     .cornerRadius(5)
                 
-                // Set New Route Button with NavigationLink
-//                NavigationLink(destination: SetNewRouteView()) {
-//                    HStack(spacing: 8) {
-//                        Text("Set New Route")
-//                            .font(Font.custom("Inter", size: 16))
-//                            .lineSpacing(16)
-//                            .foregroundColor(Color(red: 0.96, green: 0.96, blue: 0.96))
-//                    }
-//                    .padding(12)
-//                    .frame(width: 144, height: 42)
-//                    .background(Color(red: 0.17, green: 0.17, blue: 0.17))
-//                    .cornerRadius(8)
-//                    .overlay(
-//                        RoundedRectangle(cornerRadius: 8)
-//                            .inset(by: 0.50)
-//                            .stroke(Color(red: 0.17, green: 0.17, blue: 0.17), lineWidth: 0.50)
-//                    )
-//                }
-                
                 // Create New Route Button with NavigationLink
-                NavigationLink(destination: CreateNewRouteView()) {
+                NavigationLink(destination: CreateNewRouteView(userName: userName)) { // Pass `userName` to CreateNewRouteView
                     HStack(spacing: 8) {
                         Text("New Route")
                             .font(Font.custom("Inter", size: 16))
@@ -93,7 +69,7 @@ struct RouteLandingView: View {
                 // Navigation Bar at the Bottom
                 HStack {
                     // Home Button
-                    NavigationLink(destination: HomeView()) {
+                    NavigationLink(destination: HomeView(userName: userName)) { // Pass `userName` to HomeView
                         VStack {
                             Image(systemName: "house.fill")
                                 .foregroundColor(.black)
@@ -103,7 +79,9 @@ struct RouteLandingView: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
-                    NavigationLink(destination: FriendView()) {
+                    
+                    // Friends Button
+                    NavigationLink(destination: FriendView(userName: userName)) { // Pass `userName` to FriendView
                         VStack {
                             Image(systemName: "person.2.fill") // Represents friends
                                 .foregroundColor(.black)
@@ -114,7 +92,8 @@ struct RouteLandingView: View {
                     }
                     .frame(maxWidth: .infinity)
                     
-                    NavigationLink(destination: RouteLandingView()) {
+                    // Map Button
+                    NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass `userName` to RouteLandingView
                         VStack {
                             Image(systemName: "map.fill") // Represents Map
                                 .foregroundColor(.black)
@@ -124,6 +103,7 @@ struct RouteLandingView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
+                    
                     // Weather Button
                     NavigationLink(destination: WeatherView()) {
                         VStack {
@@ -135,18 +115,9 @@ struct RouteLandingView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    NavigationLink(destination: PerformanceMetricsView()) {
-                        VStack {
-                            Image(systemName: "chart.bar.fill") // Represents Weather
-                                .foregroundColor(.black)
-                            Text("Metrics")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    // Profile Button (Navigates to Profile View)
-                    NavigationLink(destination: ProfileView()) {
+                    
+                    // Profile Button
+                    NavigationLink(destination: ProfileView(userName: userName)) { // Pass `userName` to ProfileView
                         VStack {
                             Image(systemName: "person.fill") // Represents Profile
                                 .foregroundColor(.black)
@@ -156,8 +127,6 @@ struct RouteLandingView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    
-                    // Placeholder for other buttons if needed, e.g. Friends, Map, Weather, Profile...
                 }
                 .padding()
                 .background(Color.white)
@@ -170,6 +139,6 @@ struct RouteLandingView: View {
 
 struct RouteLandingView_Previews: PreviewProvider {
     static var previews: some View {
-        RouteLandingView()
+        RouteLandingView(userName: "John Doe") // Provide a sample `userName` for preview
     }
 }

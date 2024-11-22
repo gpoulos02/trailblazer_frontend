@@ -10,6 +10,7 @@ struct LandingView: View {
                     .multilineTextAlignment(.center)
                     .foregroundColor(.black)
                     .padding(.horizontal, 16)
+                
                 Text("Your all-in-one ski and snowboarding companion")
                     .multilineTextAlignment(.center)
                 
@@ -19,7 +20,7 @@ struct LandingView: View {
                     .clipShape(Rectangle())
                 
                 // Log In Button
-                NavigationLink(destination: LogInView()) {
+                NavigationLink(destination: LogInView()) { // Navigates to LogInView
                     ZStack {
                         RoundedRectangle(cornerRadius: 5)
                             .fill(Color(red: 0.55, green: 0.74, blue: 0.96))
@@ -32,7 +33,7 @@ struct LandingView: View {
                 }
                 
                 // Sign Up Button
-                NavigationLink(destination: SignUpView()) {
+                NavigationLink(destination: SignUpView()) { // Navigates to SignUpView
                     ZStack {
                         RoundedRectangle(cornerRadius: 5)
                             .fill(Color(red: 0.84, green: 0.84, blue: 0.84))
@@ -43,15 +44,6 @@ struct LandingView: View {
                             .foregroundColor(.black)
                     }
                 }
-
-                // Bottom Bar
-               
-                .padding(.top, 21)
-                .padding(.horizontal, 128)
-                .frame(width: 400, height: 34)
-                
-                
-                
             }
             .padding()
             .navigationBarBackButtonHidden(true)

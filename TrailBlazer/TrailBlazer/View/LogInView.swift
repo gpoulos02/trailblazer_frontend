@@ -6,32 +6,39 @@ struct LogInView: View {
     @State private var errorMessage: String?
     @State private var isLoggedIn = false
     @State private var token: String?
+    @State private var userName: String?
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
+                // Title
                 Text("Log In")
                     .font(Font.custom("Inter", size: 25).weight(.bold))
                     .foregroundColor(.black)
                     .padding()
                 
+                // Username Input
                 TextField("Username", text: $username)
                     .padding()
                     .background(Color.gray.opacity(0.2))
                     .cornerRadius(8)
                     .disableAutocorrection(true)
 
+                // Password Input
                 SecureField("Password", text: $password)
                     .padding()
                     .background(Color.gray.opacity(0.2))
                     .cornerRadius(8)
 
+                // Error Message Display
                 if let errorMessage = errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                         .multilineTextAlignment(.center)
+                        .padding([.horizontal])
                 }
 
+                // Log In Button
                 Button(action: logIn) {
                     Text("Log In")
                         .frame(width: 287, height: 50)
@@ -40,8 +47,9 @@ struct LogInView: View {
                         .cornerRadius(5)
                 }
                 
+                // Navigation to HomeView
                 NavigationLink(
-                    destination: HomeView(),
+                    destination: HomeView(userName: userName ?? "User"),
                     isActive: $isLoggedIn
                 ) {
                     EmptyView()
@@ -51,17 +59,21 @@ struct LogInView: View {
         }
     }
 
+    // Log In Functionality
     private func logIn() {
+        // Ensure fields are filled
         guard !username.isEmpty, !password.isEmpty else {
             errorMessage = "Please fill in all fields."
             return
         }
         
+        // API Endpoint
         let loginURL = URL(string: "https://TrailBlazer33:5001/api/auth/login")!
         var request = URLRequest(url: loginURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        // Request Body
         let body: [String: String] = [
             "username": username,
             "password": password
@@ -73,30 +85,36 @@ struct LogInView: View {
         }
         request.httpBody = httpBody
 
+        // Send Request
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
+                // Handle Errors
                 if let error = error {
                     errorMessage = "Request failed: \(error.localizedDescription)"
                     return
                 }
                 
+                // Validate Response
                 guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    errorMessage = "Invalid response from server."
+                    errorMessage = "Invalid credentials. Please try again."
                     return
                 }
                 
+                // Validate Data
                 guard let data = data else {
                     errorMessage = "No data received from server."
                     return
                 }
                 
+                // Parse Response
                 do {
                     if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                        let token = json["token"] as? String {
                         self.token = token
+                        self.userName = username // Use the entered username
                         self.isLoggedIn = true
                     } else {
-                        errorMessage = "Invalid credentials."
+                        errorMessage = "Invalid response from server."
                     }
                 } catch {
                     errorMessage = "Failed to parse server response."

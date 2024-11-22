@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct CreateNewRouteView: View {
+    var userName: String // Accept the logged-in user's name as a parameter
+
     @State private var selectedLift: String = ""
     @State private var selectedDestination: String = ""
     @State private var maxDifficulty: String = ""
@@ -107,6 +109,58 @@ struct CreateNewRouteView: View {
             .navigationDestination(isPresented: $navigateToRoutes) {
                 AvailableRoutesView(availableRoutes: availableRoutes)
             }
+
+            Spacer()
+
+            // Navigation Bar
+            HStack {
+                NavigationLink(destination: HomeView(userName: userName)) { // Pass userName
+                    VStack {
+                        Image(systemName: "house.fill")
+                            .foregroundColor(.black)
+                        Text("Home")
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+
+                NavigationLink(destination: FriendView(userName: userName)) { // Pass userName
+                    VStack {
+                        Image(systemName: "person.2.fill")
+                            .foregroundColor(.black)
+                        Text("Friends")
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+
+                NavigationLink(destination: SetNewRouteView(userName: userName)) { // Pass userName
+                    VStack {
+                        Image(systemName: "map.fill")
+                            .foregroundColor(.black)
+                        Text("Map")
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+
+                NavigationLink(destination: ProfileView(userName: userName)) { // Pass userName
+                    VStack {
+                        Image(systemName: "person.fill")
+                            .foregroundColor(.black)
+                        Text("Profile")
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .padding()
+            .background(Color.white)
+            .shadow(radius: 5)
         }
     }
 
@@ -140,6 +194,6 @@ struct CreateNewRouteView: View {
 
 struct CreateNewRouteView_Previews: PreviewProvider {
     static var previews: some View {
-        CreateNewRouteView()
+        CreateNewRouteView(userName: "John Doe") // Provide sample userName
     }
 }
