@@ -161,7 +161,7 @@ struct WeatherData: Codable {
 }
 
 struct ForecastWeather: Codable, Identifiable {
-    let id = UUID()
+    var id = UUID()
     let time: String
     let temperature: Double
     let condition: String
