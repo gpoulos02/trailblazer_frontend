@@ -19,7 +19,6 @@ struct LogInView: View {
                     .padding()
                     .background(Color.gray.opacity(0.2))
                     .cornerRadius(8)
-                    //.autocapitalization(.none)
                     .disableAutocorrection(true)
 
                 SecureField("Password", text: $password)
@@ -42,13 +41,13 @@ struct LogInView: View {
                 }
                 
                 NavigationLink(
-                    destination: HomeView()
+                    destination: HomeView(),
+                    isActive: $isLoggedIn
                 ) {
                     EmptyView()
                 }
             }
             .padding()
-            
         }
     }
 
@@ -58,36 +57,57 @@ struct LogInView: View {
             return
         }
         
-        let loginURL = URL(string: "https://localhost:3000/login")!
-        let body = ["username": username, "password": password]
+        let loginURL = URL(string: "https://TrailBlazer33:5001/api/auth/login")!
+        var request = URLRequest(url: loginURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: String] = [
+            "username": username,
+            "password": password
+        ]
+        
+        guard let httpBody = try? JSONSerialization.data(withJSONObject: body) else {
+            errorMessage = "Failed to encode request body."
+            return
+        }
+        request.httpBody = httpBody
 
-        NetworkManager.shared.postData(url: loginURL, body: body) { result in
+        URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
-                switch result {
-                case .success(let data):
-                    do {
-                        if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                           let token = json["token"] as? String {
-                            self.token = token
-                            self.isLoggedIn = true
-                        } else {
-                            self.errorMessage = "Invalid response from server."
-                        }
-                    } catch {
-                        self.errorMessage = "Failed to parse response."
+                if let error = error {
+                    errorMessage = "Request failed: \(error.localizedDescription)"
+                    return
+                }
+                
+                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                    errorMessage = "Invalid response from server."
+                    return
+                }
+                
+                guard let data = data else {
+                    errorMessage = "No data received from server."
+                    return
+                }
+                
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                       let token = json["token"] as? String {
+                        self.token = token
+                        self.isLoggedIn = true
+                    } else {
+                        errorMessage = "Invalid credentials."
                     }
-                case .failure(let error):
-                    self.errorMessage = error.localizedDescription
+                } catch {
+                    errorMessage = "Failed to parse server response."
                 }
             }
-        }
+        }.resume()
     }
 }
-
 
 struct LogInView_Previews: PreviewProvider {
     static var previews: some View {
         LogInView()
-             
     }
 }
