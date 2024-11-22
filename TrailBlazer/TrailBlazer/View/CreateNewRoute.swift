@@ -13,6 +13,7 @@ struct CreateNewRouteView: View {
 
     @State private var liftOptions: [String] = []
     @State private var destinationOptions: [String] = []
+    
     @State private var difficultyLevels: [String] = []
 
     var body: some View {
@@ -68,6 +69,7 @@ struct CreateNewRouteView: View {
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(8)
                 }
+
                 
                 // Max Difficulty (not required)
                 VStack(alignment: .leading, spacing: 8) {
@@ -183,38 +185,76 @@ struct CreateNewRouteView: View {
     }
 
     private func fetchDropdownData() {
-        guard let url = URL(string: "https://TrailBlazer33:5001/api/chairlifts/lift-names") else { return }
+        // Fetching Chairlifts
+        guard let liftUrl = URL(string: "https://TrailBlazer33:5001/api/chairlifts/lift-names") else { return }
+        var liftRequest = URLRequest(url: liftUrl)
+        liftRequest.httpMethod = "GET"
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        // Fetching POIs
+        guard let poiUrl = URL(string: "https://TrailBlazer33:5001/api/pois/get-pois") else { return }
+        var poiRequest = URLRequest(url: poiUrl)
+        poiRequest.httpMethod = "GET"
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        // Fetch POIs
+        URLSession.shared.dataTask(with: poiRequest) { data, response, error in
             if let error = error {
-                print("Error fetching dropdown data: \(error.localizedDescription)")
+                print("Error fetching POIs: \(error.localizedDescription)")
                 return
             }
             
             guard let data = data else {
-                print("No data received")
+                print("No data received for POIs")
+                return
+            }
+            
+            // Log raw POI data for debugging
+            
+            
+            do {
+                // Decode POI response
+                let pois = try JSONDecoder().decode([PointOfInterest].self, from: data)
+                DispatchQueue.main.async {
+                    self.destinationOptions = pois.map { $0.POI_name } // Extract POI names for the dropdown
+                }
+            } catch {
+                print("Error decoding POI response: \(error.localizedDescription)")
+            }
+        }.resume()
+        
+        // Fetch Chairlifts
+        URLSession.shared.dataTask(with: liftRequest) { data, response, error in
+            if let error = error {
+                print("Error fetching lifts: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = data else {
+                print("No data received for lifts")
                 return
             }
             
             do {
-                // Decode the JSON response
+                // Decode the JSON response for lifts
                 let response = try JSONDecoder().decode(LiftResponse.self, from: data)
                 DispatchQueue.main.async {
                     self.liftOptions = response.lifts
                 }
             } catch {
-                print("Error decoding response: \(error.localizedDescription)")
+                print("Error decoding lift response: \(error.localizedDescription)")
             }
         }.resume()
     }
+
 
     // Define the response model
     struct LiftResponse: Codable {
         let message: String
         let lifts: [String]
+    }
+    struct PointOfInterest: Codable {
+        let POI_id: Int
+        let POI_name: String
+        let type: String
     }
 
 }
