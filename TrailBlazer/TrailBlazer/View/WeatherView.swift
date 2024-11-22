@@ -161,10 +161,12 @@ struct WeatherData: Codable {
 }
 
 struct ForecastWeather: Codable, Identifiable {
-    var id = UUID()
     let time: String
     let temperature: Double
     let condition: String
+
+    // Automatically generate a unique ID for each item
+    var id: UUID { UUID() }
 }
 
 struct WeatherView_Previews: PreviewProvider {

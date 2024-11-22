@@ -49,8 +49,7 @@ struct LogInView: View {
                 
                 // Navigation to HomeView
                 NavigationLink(
-                    destination: HomeView(userName: userName ?? "User"),
-                    isActive: $isLoggedIn
+                    destination: HomeView(userName: userName ?? "User")
                 ) {
                     EmptyView()
                 }

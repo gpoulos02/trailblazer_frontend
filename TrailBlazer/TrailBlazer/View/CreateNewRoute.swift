@@ -182,14 +182,41 @@ struct CreateNewRouteView: View {
         }
     }
 
-    // Function to fetch dropdown options from backend
     private func fetchDropdownData() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            liftOptions = ["Lift A", "Lift B", "Lift C"]
-            destinationOptions = ["South Base Lodge", "Activity Central"]
-            difficultyLevels = ["Green", "Blue", "Black Diamond", "Double Black Diamond"]
-        }
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/chairlifts/lift-names") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error fetching dropdown data: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+            
+            do {
+                // Decode the JSON response
+                let response = try JSONDecoder().decode(LiftResponse.self, from: data)
+                DispatchQueue.main.async {
+                    self.liftOptions = response.lifts
+                }
+            } catch {
+                print("Error decoding response: \(error.localizedDescription)")
+            }
+        }.resume()
     }
+
+    // Define the response model
+    struct LiftResponse: Codable {
+        let message: String
+        let lifts: [String]
+    }
+
 }
 
 struct CreateNewRouteView_Previews: PreviewProvider {
