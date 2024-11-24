@@ -25,14 +25,14 @@ struct HomeView: View {
                     NavigationLink(destination: CreateNewRouteView(userName: userName)) { // Pass userName
                         HomeButton(title: "Create New Route", imageName: "plus.circle.fill")
                     }
-                    NavigationLink(destination: SetNewRouteView(userName: userName)) { // Pass userName
-                        HomeButton(title: "Set New Route", imageName: "map.fill")
+                    NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass userName
+                        HomeButton(title: "Map", imageName: "map.fill")
                     }
                 }
                 .padding()
                 
                 // Weather Widget
-                NavigationLink(destination: WeatherView()) {
+                NavigationLink(destination: WeatherView(userName: userName )) {
                     VStack {
                         HStack {
                             Image(systemName: "cloud.sun.fill")
@@ -81,11 +81,22 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity)
                     
                     // Map Button
-                    NavigationLink(destination: SetNewRouteView(userName: userName)) { // Pass userName
+                    NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass userName
                         VStack {
                             Image(systemName: "map.fill")
                                 .foregroundColor(.black)
                             Text("Map")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    // Performance Metrics Button
+                    NavigationLink(destination: PerformanceMetricsView()) {
+                        VStack {
+                            Image(systemName: "chart.bar.fill") // Represents Metrics
+                                .foregroundColor(.black)
+                            Text("Metrics")
                                 .foregroundColor(.black)
                                 .font(.caption)
                         }

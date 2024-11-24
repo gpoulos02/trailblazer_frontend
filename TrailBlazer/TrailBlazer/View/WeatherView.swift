@@ -9,6 +9,8 @@ struct WeatherView: View {
     @State private var notifications: [String] = ["Snowstorm warning", "High wind alert", "Clear skies today"]
     @State private var forecast: [ForecastWeather] = []
     
+    var userName: String
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
@@ -16,7 +18,7 @@ struct WeatherView: View {
                 Text(locationName)
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .foregroundColor(.blue)
+                    .foregroundColor(.black)
                     .padding(.top, 20)
                 
                 // Current Weather Information
@@ -28,7 +30,7 @@ struct WeatherView: View {
                     Text(weatherInfo)
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.black)
                         .padding(.top, 10)
                 }
                 .padding()
@@ -37,8 +39,8 @@ struct WeatherView: View {
                 .shadow(radius: 5)
                 .padding(.top, 10)
                 
-                // Forecast Section
-                VStack(alignment: .leading) {
+                // Forecast Section with Modern Styling
+                VStack(alignment: .leading, spacing: 10) {
                     Text("Weather Forecast")
                         .font(.headline)
                         .padding(.leading, 16)
@@ -46,21 +48,104 @@ struct WeatherView: View {
                     ScrollView {
                         ForEach(forecast) { weather in
                             HStack {
-                                Text("\(weather.time): \(Int(weather.temperature))°C, \(weather.condition.capitalized)")
-                                    .padding()
-                                    .foregroundColor(.black)
+                                // Weather Icon
+                                Image(systemName: conditionIcon(for: weather.condition))
+                                    .font(.system(size: 30))
+                                    .foregroundColor(.blue)
+                                    .padding(.leading, 16)
+                                
+                                // Weather Details
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(weather.time)
+                                        .font(.headline)
+                                        .foregroundColor(.primary)
+                                    Text("\(Int(weather.temperature))°C, \(weather.condition.capitalized)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.leading, 10)
+                                
                                 Spacer()
                             }
-                            .background(Color.white)
-                            .cornerRadius(8)
-                            .shadow(radius: 3)
+                            .padding()
+                            .background(LinearGradient(
+                                gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.white]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ))
+                            .cornerRadius(12)
+                            .shadow(color: .gray.opacity(0.3), radius: 5, x: 2, y: 2)
                             .padding(.horizontal)
                         }
                     }
                 }
                 .padding(.top, 20)
+
                 
                 Spacer()
+                HStack {
+                    // Home Button
+                    NavigationLink(destination: HomeView(userName: userName)) { // Pass userName
+                        VStack {
+                            Image(systemName: "house.fill")
+                                .foregroundColor(.black)
+                            Text("Home")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    
+                    // Friends Button
+                    NavigationLink(destination: FriendView(userName: userName)) { // Pass userName
+                        VStack {
+                            Image(systemName: "person.2.fill")
+                                .foregroundColor(.black)
+                            Text("Friends")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    
+                    // Map Button
+                    NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass userName
+                        VStack {
+                            Image(systemName: "map.fill")
+                                .foregroundColor(.black)
+                            Text("Map")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    // Performance Metrics Button
+                    NavigationLink(destination: PerformanceMetricsView()) {
+                        VStack {
+                            Image(systemName: "chart.bar.fill") // Represents Metrics
+                                .foregroundColor(.black)
+                            Text("Metrics")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    
+                    // Profile Button
+                    NavigationLink(destination: ProfileView(userName: userName)) { // Pass userName
+                        VStack {
+                            Image(systemName: "person.fill")
+                                .foregroundColor(.black)
+                            Text("Profile")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .padding()
+                .background(Color.white)
+                .shadow(radius: 5)
             }
             .onAppear {
                 fetchWeather()
@@ -171,6 +256,6 @@ struct ForecastWeather: Codable, Identifiable {
 
 struct WeatherView_Previews: PreviewProvider {
     static var previews: some View {
-        WeatherView()
+        WeatherView(userName: "john doe")
     }
 }

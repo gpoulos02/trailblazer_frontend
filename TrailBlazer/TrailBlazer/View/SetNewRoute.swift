@@ -97,7 +97,7 @@ struct SetNewRouteView: View {
                 .frame(maxWidth: .infinity)
                 
                 // Weather Button
-                NavigationLink(destination: WeatherView()) {
+                NavigationLink(destination: WeatherView(userName: userName)) {
                     VStack {
                         Image(systemName: "cloud.sun.fill") // Represents Weather
                             .foregroundColor(.black)

@@ -104,12 +104,12 @@ struct RouteLandingView: View {
                     }
                     .frame(maxWidth: .infinity)
                     
-                    // Weather Button
-                    NavigationLink(destination: WeatherView()) {
+                    // Performance Metrics Button
+                    NavigationLink(destination: PerformanceMetricsView()) {
                         VStack {
-                            Image(systemName: "cloud.sun.fill") // Represents Weather
+                            Image(systemName: "chart.bar.fill") // Represents Metrics
                                 .foregroundColor(.black)
-                            Text("Weather")
+                            Text("Metrics")
                                 .foregroundColor(.black)
                                 .font(.caption)
                         }

@@ -88,7 +88,7 @@ struct FriendView: View {
                 .frame(maxWidth: .infinity)
                 
                 // Map Button
-                NavigationLink(destination: SetNewRouteView(userName: userName)) { // Pass `userName` to SetNewRouteView
+                NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass `userName` to SetNewRouteView
                     VStack {
                         Image(systemName: "map.fill") // Represents Map
                             .foregroundColor(.black)

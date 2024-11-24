@@ -138,11 +138,22 @@ struct CreateNewRouteView: View {
                 }
                 .frame(maxWidth: .infinity)
 
-                NavigationLink(destination: SetNewRouteView(userName: userName)) { // Pass userName
+                NavigationLink(destination: CreateNewRouteView(userName: userName)) { // Pass userName
                     VStack {
                         Image(systemName: "map.fill")
                             .foregroundColor(.black)
                         Text("Map")
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                // Performance Metrics Button
+                NavigationLink(destination: PerformanceMetricsView()) {
+                    VStack {
+                        Image(systemName: "chart.bar.fill") // Represents Metrics
+                            .foregroundColor(.black)
+                        Text("Metrics")
                             .foregroundColor(.black)
                             .font(.caption)
                     }

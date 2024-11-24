@@ -129,7 +129,7 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity)
                 
                 // Map Button
-                NavigationLink(destination: SetNewRouteView(userName: userName)) { // Pass userName to SetNewRouteView
+                NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass userName to SetNewRouteView
                     VStack {
                         Image(systemName: "map.fill")
                             .foregroundColor(.black)
