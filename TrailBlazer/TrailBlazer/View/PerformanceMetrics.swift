@@ -12,6 +12,8 @@ struct PerformanceMetric: Identifiable, Hashable, Codable {
 
 struct PerformanceMetricsView: View {
     @State private var performanceMetrics: [PerformanceMetric] = []
+    
+    var userName: String
 
     var body: some View {
         VStack {
@@ -45,6 +47,70 @@ struct PerformanceMetricsView: View {
             }
         }
         .padding()
+        HStack {
+            // Home Button
+            NavigationLink(destination: HomeView(userName: userName)) { // Pass userName to HomeView
+                VStack {
+                    Image(systemName: "house.fill")
+                        .foregroundColor(.black)
+                    Text("Home")
+                        .foregroundColor(.black)
+                        .font(.caption)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            // Friends Button
+            NavigationLink(destination: FriendView(userName: userName)) { // Pass userName to FriendView
+                VStack {
+                    Image(systemName: "person.2.fill")
+                        .foregroundColor(.black)
+                    Text("Friends")
+                        .foregroundColor(.black)
+                        .font(.caption)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            // Map Button
+            NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass userName to SetNewRouteView
+                VStack {
+                    Image(systemName: "map.fill")
+                        .foregroundColor(.black)
+                    Text("Map")
+                        .foregroundColor(.black)
+                        .font(.caption)
+                }
+            }
+            .frame(maxWidth: .infinity)
+
+            // Performance Metrics Button
+            NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
+                VStack {
+                    Image(systemName: "chart.bar.fill") // Represents Metrics
+                        .foregroundColor(.black)
+                    Text("Metrics")
+                        .foregroundColor(.black)
+                        .font(.caption)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            // Profile Button
+            NavigationLink(destination: ProfileView(userName: userName)) { // Pass userName to ProfileView
+                VStack {
+                    Image(systemName: "person.fill")
+                        .foregroundColor(.black)
+                    Text("Profile")
+                        .foregroundColor(.black)
+                        .font(.caption)
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding()
+        .background(Color.white)
+        .shadow(radius: 5)
         .onAppear {
             performanceMetrics = loadMetrics() // Load metrics when the view appears
         }
@@ -98,6 +164,6 @@ struct PerformanceMetricsView: View {
 
 struct PerformanceMetricsView_Previews: PreviewProvider {
     static var previews: some View {
-        PerformanceMetricsView()
+        PerformanceMetricsView(userName: "sampleUser")
     }
 }

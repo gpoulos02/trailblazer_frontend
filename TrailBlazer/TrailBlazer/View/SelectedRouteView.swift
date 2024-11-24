@@ -14,6 +14,8 @@ struct SelectedRouteView: View {
     @State private var finalElevation: Double = 0.0 // Store final elevation
     @State private var finalTime: TimeInterval = 0.0 // Store final time
     @State private var endRouteDate: String = ""
+    
+    var userName: String
 
     var body: some View {
         NavigationView {
@@ -74,7 +76,7 @@ struct SelectedRouteView: View {
 
                 // View Performance Button (Visible after route ends)
                 if showPerformanceButton {
-                    NavigationLink(destination: PerformanceMetricsView()) {
+                    NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
                         Text("View Performance")
                             .font(Font.custom("Inter", size: 16).weight(.bold))
                             .foregroundColor(.white)
@@ -151,6 +153,6 @@ struct SelectedRouteView: View {
 
 struct SelectedRouteView_Previews: PreviewProvider {
     static var previews: some View {
-        SelectedRouteView(routeName: "Route 1")
+        SelectedRouteView(routeName: "Route 1", userName: "sampleUser")
     }
 }

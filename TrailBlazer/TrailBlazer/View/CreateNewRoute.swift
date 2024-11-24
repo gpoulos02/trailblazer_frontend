@@ -109,7 +109,7 @@ struct CreateNewRouteView: View {
             .padding()
             .onAppear(perform: fetchDropdownData)
             .navigationDestination(isPresented: $navigateToRoutes) {
-                AvailableRoutesView(availableRoutes: availableRoutes)
+                AvailableRoutesView(availableRoutes: availableRoutes, userName: userName)
             }
 
             Spacer()
@@ -149,7 +149,7 @@ struct CreateNewRouteView: View {
                 }
                 .frame(maxWidth: .infinity)
                 // Performance Metrics Button
-                NavigationLink(destination: PerformanceMetricsView()) {
+                NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
                     VStack {
                         Image(systemName: "chart.bar.fill") // Represents Metrics
                             .foregroundColor(.black)

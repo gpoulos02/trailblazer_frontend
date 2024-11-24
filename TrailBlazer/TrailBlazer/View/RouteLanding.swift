@@ -105,7 +105,7 @@ struct RouteLandingView: View {
                     .frame(maxWidth: .infinity)
                     
                     // Performance Metrics Button
-                    NavigationLink(destination: PerformanceMetricsView()) {
+                    NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
                         VStack {
                             Image(systemName: "chart.bar.fill") // Represents Metrics
                                 .foregroundColor(.black)

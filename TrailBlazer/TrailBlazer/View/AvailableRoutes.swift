@@ -9,6 +9,8 @@ import SwiftUI
 
 struct AvailableRoutesView: View {
     let availableRoutes: [String]
+    
+    var userName: String
 
     var body: some View {
         VStack(spacing: 20) {
@@ -30,7 +32,7 @@ struct AvailableRoutesView: View {
                         ForEach(availableRoutes, id: \.self) { route in
                             // NavigationLink for each route
                             NavigationLink(
-                                destination: SelectedRouteView(routeName: route),
+                                destination: SelectedRouteView(routeName: route, userName: userName),
                                 label: {
                                     Text(route)
                                         .font(Font.custom("Inter", size: 16))
@@ -57,7 +59,7 @@ struct AvailableRoutesView: View {
 struct AvailableRoutesView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            AvailableRoutesView(availableRoutes: ["Route 1", "Route 2", "Route 3"])
+            AvailableRoutesView(availableRoutes: ["Route 1", "Route 2", "Route 3"], userName: "sampleUser")
         }
     }
 }

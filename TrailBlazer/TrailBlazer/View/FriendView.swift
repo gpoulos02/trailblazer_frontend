@@ -100,7 +100,7 @@ struct FriendView: View {
                 .frame(maxWidth: .infinity)
 
                 // Metrics Button
-                NavigationLink(destination: PerformanceMetricsView()) {
+                NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
                     VStack {
                         Image(systemName: "chart.bar.fill") // Represents Metrics
                             .foregroundColor(.black)

@@ -10,6 +10,8 @@ struct ProfileView: View {
     @State private var isOfflineMapEnabled = false
     @State private var isDarkModeEnabled = false
     @State private var profileImage: Image? = nil
+    
+    //var userName: String
 
     var body: some View {
         NavigationStack {
@@ -141,7 +143,7 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity)
 
                 // Performance Metrics Button
-                NavigationLink(destination: PerformanceMetricsView()) {
+                NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
                     VStack {
                         Image(systemName: "chart.bar.fill") // Represents Metrics
                             .foregroundColor(.black)
