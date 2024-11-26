@@ -14,7 +14,8 @@ struct CreateNewRouteView: View {
     @State private var liftOptions: [String] = []
     @State private var destinationOptions: [String] = []
     
-    @State private var difficultyLevels: [String] = []
+    
+    @State private var difficultyLevels: [String] = ["Green", "Blue", "Black", "Double Black"]
 
     var body: some View {
         NavigationStack {
@@ -45,7 +46,7 @@ struct CreateNewRouteView: View {
                     
                     // Error message
                     if showError && selectedLift.isEmpty {
-                        Text("Please make a selection")
+                        Text("Please make a Chairlift selection")
                             .font(Font.custom("Inter", size: 14))
                             .foregroundColor(.red)
                     }
@@ -88,6 +89,12 @@ struct CreateNewRouteView: View {
                     .frame(maxWidth: 300)
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(8)
+                    
+                    if showError && selectedLift.isEmpty {
+                        Text("Please make a Difficulty selection")
+                            .font(Font.custom("Inter", size: 14))
+                            .foregroundColor(.red)
+                    }
                 }
                 
                 // Apply Button
@@ -177,9 +184,12 @@ struct CreateNewRouteView: View {
         }
     }
 
-    // Function to fetch routes from backend
     private func fetchRoutes() {
         guard !selectedLift.isEmpty else {
+            showError = true
+            return
+        }
+        guard !maxDifficulty.isEmpty else {
             showError = true
             return
         }
@@ -187,13 +197,53 @@ struct CreateNewRouteView: View {
         showError = false
         isLoading = true
 
-        // Simulate API call
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            availableRoutes = ["Route 1", "Route 2", "Route 3"] // Mocked response
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/routes/find") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let requestBody: [String: Any] = [
+            "startingLiftName": selectedLift,
+            "maxDifficulty": maxDifficulty,
+            "destination": selectedDestination
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        } catch {
+            print("Error encoding request body: \(error.localizedDescription)")
             isLoading = false
-            navigateToRoutes = true // Trigger navigation
+            return
         }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                self.isLoading = false
+            }
+
+            if let error = error {
+                print("Error fetching routes: \(error.localizedDescription)")
+                return
+            }
+
+            guard let data = data else {
+                print("No data received for routes")
+                return
+            }
+
+            do {
+                let routes = try JSONDecoder().decode([Trail].self, from: data)
+                DispatchQueue.main.async {
+                    self.availableRoutes = routes.map { $0.runName }
+                    self.navigateToRoutes = true
+                }
+
+            } catch {
+                print("Error decoding routes: \(error.localizedDescription)")
+            }
+        }.resume()
     }
+
 
     private func fetchDropdownData() {
         // Fetching Chairlifts
@@ -266,6 +316,15 @@ struct CreateNewRouteView: View {
         let POI_id: Int
         let POI_name: String
         let type: String
+    }
+    struct Trail: Codable {
+        let runID: Int
+        let runName: String
+        let difficulty: String
+        let startingLift: Int
+        let endingPoints: [Int]
+        let isEnd: Bool
+        let mergesTo: [Int]
     }
 
 }

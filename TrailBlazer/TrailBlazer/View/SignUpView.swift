@@ -62,16 +62,14 @@ struct SignUpView: View {
     private func signUp() {
         guard let url = URL(string: "https://TrailBlazer33:5001/api/auth/register") else { return }
 
-        // Generate a random userID (UUID)
-        let userID = UUID().uuidString
+
 
         let body: [String: String] = [
             "username": username,
             "password": password,
             "firstName": firstName,
             "lastName": lastName,
-            "email": email,
-            "userID": userID
+            "email": email
         ]
         print("Attempting to sign up with data: \(body)")
 
