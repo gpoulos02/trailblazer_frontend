@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B88CECEB2CF4E40200B26381 /* MapboxMaps in Frameworks */ = {isa = PBXBuildFile; productRef = B88CECEA2CF4E40200B26381 /* MapboxMaps */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		4EAE89162CE3F2690086F310 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -29,9 +33,22 @@
 		4EAE891F2CE3F2690086F310 /* TrailBlazerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrailBlazerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B88CECA22CF4E0C100B26381 /* Exceptions for "TrailBlazer" folder in "TrailBlazer" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4EAE89032CE3F2670086F310 /* TrailBlazer */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4EAE89062CE3F2670086F310 /* TrailBlazer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B88CECA22CF4E0C100B26381 /* Exceptions for "TrailBlazer" folder in "TrailBlazer" target */,
+			);
 			path = TrailBlazer;
 			sourceTree = "<group>";
 		};
@@ -52,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B88CECEB2CF4E40200B26381 /* MapboxMaps in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +96,7 @@
 				4EAE89062CE3F2670086F310 /* TrailBlazer */,
 				4EAE89182CE3F2690086F310 /* TrailBlazerTests */,
 				4EAE89222CE3F2690086F310 /* TrailBlazerUITests */,
+				B88CECE92CF4E40200B26381 /* Frameworks */,
 				4EAE89052CE3F2670086F310 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +109,13 @@
 				4EAE891F2CE3F2690086F310 /* TrailBlazerUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B88CECE92CF4E40200B26381 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +138,7 @@
 			);
 			name = TrailBlazer;
 			packageProductDependencies = (
+				B88CECEA2CF4E40200B26381 /* MapboxMaps */,
 			);
 			productName = TrailBlazer;
 			productReference = 4EAE89042CE3F2670086F310 /* TrailBlazer.app */;
@@ -195,6 +222,9 @@
 			);
 			mainGroup = 4EAE88FB2CE3F2670086F310;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B88CECA32CF4E23900B26381 /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4EAE89052CE3F2670086F310 /* Products */;
 			projectDirPath = "";
@@ -396,6 +426,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TrailBlazer/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -435,6 +466,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TrailBlazer/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -587,6 +619,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B88CECA32CF4E23900B26381 /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mapbox/mapbox-maps-ios.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B88CECEA2CF4E40200B26381 /* MapboxMaps */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B88CECA32CF4E23900B26381 /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */;
+			productName = MapboxMaps;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4EAE88FC2CE3F2670086F310 /* Project object */;
 }

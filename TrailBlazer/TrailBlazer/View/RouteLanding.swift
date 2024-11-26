@@ -1,14 +1,11 @@
 import SwiftUI
+import MapboxMaps
 
 struct RouteLandingView: View {
     var userName: String // Accept the logged-in user's name as a parameter
 
-    // Add a navigation state for each tab
-    @State private var isHomeActive = false
-    @State private var isFriendsActive = false
-    @State private var isMapActive = false
-    @State private var isWeatherActive = false
-    @State private var isProfileActive = false
+    @State private var mapboxApiKey: String? // Store the fetched API key
+    @State private var isLoading = true      // Show loading state while fetching the key
 
     var body: some View {
         NavigationStack {
@@ -36,14 +33,21 @@ struct RouteLandingView: View {
                 .frame(maxWidth: .infinity, alignment: .leading) // Ensure the HStack stretches to the width of the screen
                 .padding(.leading, 16) // Add space on the left side of the screen
                 
-                // Placeholder Map Section
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .frame(width: 343, height: 362)
-                    .background(
-                        AsyncImage(url: URL(string: "https://via.placeholder.com/343x362"))
-                    )
-                    .cornerRadius(5)
+                // Map Section
+                if isLoading {
+                    ProgressView("Loading map...")
+                        .frame(width: 343, height: 362)
+                        .cornerRadius(5)
+                } else if let mapboxApiKey = mapboxApiKey {
+                    MapViewWrapper(apiKey: mapboxApiKey)
+                        .frame(width: 343, height: 362)
+                        .cornerRadius(5)
+                } else {
+                    Text("Failed to load map")
+                        .frame(width: 343, height: 362)
+                        .background(Color.red.opacity(0.2))
+                        .cornerRadius(5)
+                }
                 
                 // Create New Route Button with NavigationLink
                 NavigationLink(destination: CreateNewRouteView(userName: userName)) { // Pass `userName` to CreateNewRouteView
@@ -134,11 +138,66 @@ struct RouteLandingView: View {
                 .navigationBarBackButtonHidden(true)
             }
         }
+        .onAppear {
+            fetchMapboxApiKey()
+        }
+    }
+
+    // Function to fetch the Mapbox API key from the backend
+    func fetchMapboxApiKey() {
+        guard let url = URL(string: "https://your-backend.com/api/get-mapbox-key") else {
+            isLoading = false
+            return
+        }
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let data = data, let result = try? JSONDecoder().decode([String: String].self, from: data) {
+                mapboxApiKey = result["key"]
+            } else {
+                mapboxApiKey = nil
+            }
+            isLoading = false
+        }.resume()
     }
 }
 
-struct RouteLandingView_Previews: PreviewProvider {
-    static var previews: some View {
-        RouteLandingView(userName: "John Doe") // Provide a sample `userName` for preview
+struct MapViewWrapper: UIViewControllerRepresentable {
+    let apiKey: String
+
+    func makeUIViewController(context: Context) -> MapViewController {
+        return MapViewController(apiKey: apiKey)
+    }
+
+    func updateUIViewController(_ uiViewController: MapViewController, context: Context) {}
+}
+
+class MapViewController: UIViewController {
+    var mapView: MapView!
+    let apiKey: String
+
+    init(apiKey: String) {
+        self.apiKey = apiKey
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let resourceOptions = ResourceOptions(accessToken: apiKey)
+        let mapInitOptions = MapInitOptions(resourceOptions: resourceOptions)
+
+        mapView = MapView(frame: view.bounds, mapInitOptions: mapInitOptions)
+        mapView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(mapView)
+
+        NSLayoutConstraint.activate([
+            mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            mapView.topAnchor.constraint(equalTo: view.topAnchor),
+            mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
     }
 }
