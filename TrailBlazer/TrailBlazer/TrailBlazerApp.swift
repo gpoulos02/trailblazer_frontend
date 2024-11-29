@@ -14,7 +14,6 @@ struct TrailBlazerApp: App {
     var body: some Scene {
         WindowGroup {
             RouteLandingView(userName: "DefaultUser")
-                
         }
     }
 }
