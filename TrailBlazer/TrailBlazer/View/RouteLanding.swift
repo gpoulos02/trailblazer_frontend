@@ -1,14 +1,12 @@
 import SwiftUI
+import MapboxMaps
 
 struct RouteLandingView: View {
     var userName: String // Accept the logged-in user's name as a parameter
-
-    // Add a navigation state for each tab
-    @State private var isHomeActive = false
-    @State private var isFriendsActive = false
-    @State private var isMapActive = false
-    @State private var isWeatherActive = false
-    @State private var isProfileActive = false
+    
+    @State private var isLoading = true // Simulate loading state
+    @State private var apiKey: String? = nil // Store the API key
+    @State private var errorMessage: String? = nil // Store any error message
 
     var body: some View {
         NavigationStack {
@@ -28,25 +26,42 @@ struct RouteLandingView: View {
                     Text("Your Current Location")
                         .font(Font.custom("Inter", size: 12).weight(.medium))
                         .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
-                        .padding(.horizontal, 12) // Add padding on both sides of the text
-                        .padding(.vertical, 6) // Vertical padding for balance
-                        .background(Color(red: 0.94, green: 0.94, blue: 0.94)) // Rectangle background color
-                        .cornerRadius(5) // Rounded corners
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color(red: 0.94, green: 0.94, blue: 0.94))
+                        .cornerRadius(5)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading) // Ensure the HStack stretches to the width of the screen
-                .padding(.leading, 16) // Add space on the left side of the screen
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 16)
                 
-                // Placeholder Map Section
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .frame(width: 343, height: 362)
-                    .background(
-                        AsyncImage(url: URL(string: "https://via.placeholder.com/343x362"))
-                    )
-                    .cornerRadius(5)
+                // Map Section
+                if let errorMessage = errorMessage {
+                    Text("Error: \(errorMessage)")
+                        .foregroundColor(.red)
+                        .frame(width: 343, height: 362)
+                        .cornerRadius(5)
+                        .background(Color.red.opacity(0.2))
+                } else if isLoading {
+                    ProgressView("Loading map...")
+                        .frame(width: 343, height: 362)
+                        .cornerRadius(5)
+                        .onAppear {
+                            fetchApiKey() // Fetch the API key when view appears
+                        }
+                } else if let apiKey = apiKey {
+                    MapViewWrapper(apiKey: apiKey)
+                        .frame(width: 343, height: 362)
+                        .cornerRadius(5)
+                } else {
+                    Text("Failed to load map.")
+                        .foregroundColor(.gray)
+                        .frame(width: 343, height: 362)
+                        .cornerRadius(5)
+                        .background(Color.gray.opacity(0.2))
+                }
                 
-                // Create New Route Button with NavigationLink
-                NavigationLink(destination: CreateNewRouteView(userName: userName)) { // Pass `userName` to CreateNewRouteView
+                // Create New Route Button
+                NavigationLink(destination: CreateNewRouteView(userName: userName)) {
                     HStack(spacing: 8) {
                         Text("New Route")
                             .font(Font.custom("Inter", size: 16))
@@ -68,8 +83,7 @@ struct RouteLandingView: View {
                 
                 // Navigation Bar at the Bottom
                 HStack {
-                    // Home Button
-                    NavigationLink(destination: HomeView(userName: userName)) { // Pass `userName` to HomeView
+                    NavigationLink(destination: HomeView(userName: userName)) {
                         VStack {
                             Image(systemName: "house.fill")
                                 .foregroundColor(.black)
@@ -80,10 +94,9 @@ struct RouteLandingView: View {
                         .frame(maxWidth: .infinity)
                     }
                     
-                    // Friends Button
-                    NavigationLink(destination: FriendView(userName: userName)) { // Pass `userName` to FriendView
+                    NavigationLink(destination: FriendView(userName: userName)) {
                         VStack {
-                            Image(systemName: "person.2.fill") // Represents friends
+                            Image(systemName: "person.2.fill")
                                 .foregroundColor(.black)
                             Text("Friends")
                                 .foregroundColor(.black)
@@ -92,10 +105,9 @@ struct RouteLandingView: View {
                     }
                     .frame(maxWidth: .infinity)
                     
-                    // Map Button
-                    NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass `userName` to RouteLandingView
+                    NavigationLink(destination: RouteLandingView(userName: userName)) {
                         VStack {
-                            Image(systemName: "map.fill") // Represents Map
+                            Image(systemName: "map.fill")
                                 .foregroundColor(.black)
                             Text("Map")
                                 .foregroundColor(.black)
@@ -104,10 +116,9 @@ struct RouteLandingView: View {
                     }
                     .frame(maxWidth: .infinity)
                     
-                    // Performance Metrics Button
                     NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
                         VStack {
-                            Image(systemName: "chart.bar.fill") // Represents Metrics
+                            Image(systemName: "chart.bar.fill")
                                 .foregroundColor(.black)
                             Text("Metrics")
                                 .foregroundColor(.black)
@@ -116,10 +127,9 @@ struct RouteLandingView: View {
                     }
                     .frame(maxWidth: .infinity)
                     
-                    // Profile Button
-                    NavigationLink(destination: ProfileView(userName: userName)) { // Pass `userName` to ProfileView
+                    NavigationLink(destination: ProfileView(userName: userName)) {
                         VStack {
-                            Image(systemName: "person.fill") // Represents Profile
+                            Image(systemName: "person.fill")
                                 .foregroundColor(.black)
                             Text("Profile")
                                 .foregroundColor(.black)
@@ -135,10 +145,52 @@ struct RouteLandingView: View {
             }
         }
     }
+    
+    private func fetchApiKey() {
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/map/key") else {
+            errorMessage = "Invalid API URL"
+            isLoading = false
+            return
+        }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    errorMessage = error.localizedDescription
+                    isLoading = false
+                    return
+                }
+                
+                guard let data = data,
+                      let result = try? JSONDecoder().decode([String: String].self, from: data),
+                      let key = result["key"] else {
+                    errorMessage = "Failed to decode API response"
+                    isLoading = false
+                    return
+                }
+                
+                apiKey = key
+                isLoading = false
+            }
+        }.resume()
+    }
 }
 
-struct RouteLandingView_Previews: PreviewProvider {
-    static var previews: some View {
-        RouteLandingView(userName: "John Doe") // Provide a sample `userName` for preview
+struct MapViewWrapper: UIViewRepresentable {
+    var apiKey: String
+
+    func makeUIView(context: Context) -> MapView {
+        // Define resource options with the API key
+        let resourceOptions = ResourceOptions(accessToken: apiKey)
+
+        // Initialize the map options with the custom style URI
+        let mapInitOptions = MapInitOptions(
+            resourceOptions: resourceOptions,
+            styleURI: StyleURI(url: URL(string: "mapbox://styles/gpoulakos/streets-v11")!)
+        )
+
+        return MapView(frame: .zero, mapInitOptions: mapInitOptions)
     }
+
+    func updateUIView(_ uiView: MapView, context: Context) {}
 }

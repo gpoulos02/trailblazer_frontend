@@ -13,7 +13,7 @@ struct TrailBlazerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            LogInView()
+            RouteLandingView(userName: "DefaultUser")
                 
         }
     }
