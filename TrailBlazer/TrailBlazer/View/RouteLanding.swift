@@ -176,21 +176,29 @@ struct RouteLandingView: View {
     }
 }
 
+
+
+
+import MapboxMaps
+import SwiftUI
+
 struct MapViewWrapper: UIViewRepresentable {
     var apiKey: String
 
     func makeUIView(context: Context) -> MapView {
-        // Define resource options with the API key
-        let resourceOptions = ResourceOptions(accessToken: apiKey)
+        // Set the global access token
+        MapboxOptions.accessToken = apiKey
 
-        // Initialize the map options with the custom style URI
-        let mapInitOptions = MapInitOptions(
-            resourceOptions: resourceOptions,
-            styleURI: StyleURI(url: URL(string: "mapbox://styles/gpoulakos/streets-v11")!)
-        )
+        // Initialize MapInitOptions with the desired style URI
+        let options = MapInitOptions(styleURI: StyleURI(rawValue: "mapbox://styles/gpoulakos/cm3nt0prt00m801r25h8wajy5")) // Replace with your style URI
 
-        return MapView(frame: .zero, mapInitOptions: mapInitOptions)
+        // Create the MapView instance with the MapInitOptions
+        let mapView = MapView(frame: .zero, mapInitOptions: options)
+
+        return mapView
     }
 
-    func updateUIView(_ uiView: MapView, context: Context) {}
+    func updateUIView(_ uiView: MapView, context: Context) {
+        // Handle updates to the view if necessary
+    }
 }
