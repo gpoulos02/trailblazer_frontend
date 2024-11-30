@@ -54,7 +54,7 @@ struct CreateNewRouteView: View {
                 
                 // Destination (not required)
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Where do you want to go?")
+                    Text("Destination")
                         .font(Font.custom("Inter", size: 16).weight(.bold))
                         .foregroundColor(.black)
                     
@@ -202,10 +202,11 @@ struct CreateNewRouteView: View {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        // Correcting the request body to match the backend expectations
         let requestBody: [String: Any] = [
-            "startingLiftName": selectedLift,
+            "chairliftName": selectedLift, // Renamed to match backend
             "maxDifficulty": maxDifficulty,
-            "destination": selectedDestination
+            "destination": selectedDestination.isEmpty ? nil : selectedDestination as Any // Handle optional destination
         ]
         
         do {
@@ -232,9 +233,11 @@ struct CreateNewRouteView: View {
             }
 
             do {
-                let routes = try JSONDecoder().decode([Trail].self, from: data)
+                // The backend returns an array of routes, each containing an array of trails
+                let routeObjects = try JSONDecoder().decode([[Trail]].self, from: data)
                 DispatchQueue.main.async {
-                    self.availableRoutes = routes.map { $0.runName }
+                    // Flattening the routes to display just the trail names for now
+                    self.availableRoutes = routeObjects.flatMap { $0.map { $0.runName } }
                     self.navigateToRoutes = true
                 }
 
@@ -243,6 +246,7 @@ struct CreateNewRouteView: View {
             }
         }.resume()
     }
+
 
 
     private func fetchDropdownData() {
