@@ -33,9 +33,22 @@
 		4EAE891F2CE3F2690086F310 /* TrailBlazerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrailBlazerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B8AA30582CFCFDC0008C1373 /* Exceptions for "TrailBlazer" folder in "TrailBlazer" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4EAE89032CE3F2670086F310 /* TrailBlazer */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4EAE89062CE3F2670086F310 /* TrailBlazer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B8AA30582CFCFDC0008C1373 /* Exceptions for "TrailBlazer" folder in "TrailBlazer" target */,
+			);
 			path = TrailBlazer;
 			sourceTree = "<group>";
 		};

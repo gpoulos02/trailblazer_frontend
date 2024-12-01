@@ -49,7 +49,8 @@ struct LogInView: View {
                 
                 // Navigation to HomeView
                 NavigationLink(
-                    destination: HomeView(userName: userName ?? "User")
+                    destination: HomeView(userName: userName ?? "User"),
+                    isActive: $isLoggedIn
                 ) {
                     EmptyView()
                 }
@@ -111,7 +112,8 @@ struct LogInView: View {
                        let token = json["token"] as? String {
                         self.token = token
                         self.userName = username // Use the entered username
-                        self.isLoggedIn = true
+                        self.isLoggedIn = true // Trigger navigation to HomeView
+                        UserDefaults.standard.set(token, forKey: "authToken") // Store token for API calls
                     } else {
                         errorMessage = "Invalid response from server."
                     }

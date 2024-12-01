@@ -9,11 +9,9 @@ import SwiftUI
 
 @main
 struct TrailBlazerApp: App {
-    @StateObject private var appState = AppState()
-
     var body: some Scene {
         WindowGroup {
-            RouteLandingView(userName: "DefaultUser")
+            LogInView()
         }
     }
 }
