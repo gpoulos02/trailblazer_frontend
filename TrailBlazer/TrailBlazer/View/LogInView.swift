@@ -39,23 +39,26 @@ struct LogInView: View {
                 }
 
                 // Log In Button
-                Button(action: logIn) {
-                    Text("Log In")
-                        .frame(width: 287, height: 50)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(5)
+                Button(action: {
+                    logIn() // Trigger log in functionality
+                }) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(Color.blue)
+                            .frame(width: 287, height: 50)
+                        
+                        Text("Log In")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                    }
+
                 }
-                
-                // Navigation to HomeView
-                NavigationLink(
-                    destination: HomeView(userName: userName ?? "User"),
-                    isActive: $isLoggedIn
-                ) {
-                    EmptyView()
-                }
+                .padding()
             }
             .padding()
+            .navigationDestination(isPresented: $isLoggedIn) {
+                HomeView(userName: userName ?? "User")
+            }
         }
     }
 
@@ -78,6 +81,7 @@ struct LogInView: View {
             "username": username,
             "password": password
         ]
+        print("Request Body: \(body)")
         
         guard let httpBody = try? JSONSerialization.data(withJSONObject: body) else {
             errorMessage = "Failed to encode request body."
@@ -100,6 +104,8 @@ struct LogInView: View {
                     return
                 }
                 
+                print("HTTP Status Code: \(httpResponse.statusCode)")
+                
                 // Validate Data
                 guard let data = data else {
                     errorMessage = "No data received from server."
@@ -112,8 +118,10 @@ struct LogInView: View {
                        let token = json["token"] as? String {
                         self.token = token
                         self.userName = username // Use the entered username
-                        self.isLoggedIn = true // Trigger navigation to HomeView
-                        UserDefaults.standard.set(token, forKey: "authToken") // Store token for API calls
+                        self.isLoggedIn = true // This triggers navigation
+                        UserDefaults.standard.set(token, forKey: "authToken")
+                        print("Token saved: \(token)")
+
                     } else {
                         errorMessage = "Invalid response from server."
                     }

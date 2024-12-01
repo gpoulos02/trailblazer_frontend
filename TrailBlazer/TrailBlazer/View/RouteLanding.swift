@@ -189,16 +189,21 @@ struct MapViewWrapper: UIViewRepresentable {
         // Set the global access token
         MapboxOptions.accessToken = apiKey
 
-        // Initialize MapInitOptions with the desired style URI
-        let options = MapInitOptions(styleURI: StyleURI(rawValue: "mapbox://styles/gpoulakos/cm3nt0prt00m801r25h8wajy5")) // Replace with your style URI
+    func makeUIView(context: Context) -> MapView {
+        // Set the global access token
+        MapboxOptions.accessToken = apiKey
 
-        // Create the MapView instance with the MapInitOptions
-        let mapView = MapView(frame: .zero, mapInitOptions: options)
+        // Initialize MapInitOptions with the desired style URI
+        let options = MapInitOptions(styleURI: StyleURI(rawValue: "mapbox://styles/gpoulakos/cm3nt0prt00m801r25h8wajy5")) // Replace with your style URI
 
-        return mapView
-    }
+        // Create the MapView instance with the MapInitOptions
+        let mapView = MapView(frame: .zero, mapInitOptions: options)
 
-    func updateUIView(_ uiView: MapView, context: Context) {
-        // Handle updates to the view if necessary
-    }
+        return mapView
+    }
+
+    func updateUIView(_ uiView: MapView, context: Context) {
+        // Handle updates to the view if necessary
+    }
+
 }

@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct AvailableRoutesView: View {
-    let availableRoutes: [String]
-    
+    let availableRoutes: [[String]] // Updated to be an array of arrays of trail names
     var userName: String
 
     var body: some View {
@@ -29,12 +28,15 @@ struct AvailableRoutesView: View {
             } else {
                 ScrollView {
                     VStack(spacing: 10) {
-                        ForEach(availableRoutes, id: \.self) { route in
-                            // NavigationLink for each route
+                        ForEach(availableRoutes.indices, id: \.self) { index in
+                            let route = availableRoutes[index]
+                            let routeDisplay = route.joined(separator: " → ") // Join trail names with an arrow
+                            
+                            // NavigationLink for each consolidated route
                             NavigationLink(
-                                destination: SelectedRouteView(routeName: route, userName: userName),
+                                destination: SelectedRouteView(routeName: routeDisplay, userName: userName),
                                 label: {
-                                    Text(route)
+                                    Text(routeDisplay)
                                         .font(Font.custom("Inter", size: 16))
                                         .foregroundColor(.black)
                                         .padding()
@@ -52,14 +54,16 @@ struct AvailableRoutesView: View {
             Spacer()
         }
         .padding()
-        //.navigationBarTitle("Routes", displayMode: .inline)
     }
 }
 
 struct AvailableRoutesView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            AvailableRoutesView(availableRoutes: ["Route 1", "Route 2", "Route 3"], userName: "sampleUser")
+            AvailableRoutesView(
+                availableRoutes: [["Trail A", "Trail B"], ["Trail C", "Trail D", "Trail E"]],
+                userName: "sampleUser"
+            )
         }
     }
 }
