@@ -1,19 +1,23 @@
 import SwiftUI
 
-// Struct to represent a performance metric
-struct PerformanceMetric: Identifiable, Hashable, Codable {
-    var id = UUID()  // Unique identifier for each metric
-    var routeName: String
-    var elapsedTime: TimeInterval
-    var speed: Double
-    var elevation: Double
-    var date: Date
+// Struct to represent aggregated performance metrics
+struct MetricsOverview: Codable {
+    var averageSpeed: Double
+    var topSpeed: Double
+    var averageDistance: Double
+    var longestDistance: Double
+    var totalDistance: Double
+    var averageElevation: Double
+    var mostElevation: Double
+    var totalElevation: Double
 }
 
 struct PerformanceMetricsView: View {
-    @State private var performanceMetrics: [PerformanceMetric] = []
+    @State private var metricsOverview: MetricsOverview? = nil
+    @State private var isLoading: Bool = true
     
     var userName: String
+    let baseURL = "https://TrailBlazer33:5001/api" // Update this to your actual backend URL
 
     var body: some View {
         VStack {
@@ -22,34 +26,41 @@ struct PerformanceMetricsView: View {
                 .foregroundColor(.black)
                 .padding()
 
-            if performanceMetrics.isEmpty {
-                Text("No past runs available.")
+            if isLoading {
+                ProgressView("Loading Metrics...")
+            } else if let metrics = metricsOverview {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Average Speed: \(String(format: "%.2f", metrics.averageSpeed)) m/s")
+                    Text("Top Speed: \(String(format: "%.2f", metrics.topSpeed)) m/s")
+                    Text("Average Distance: \(String(format: "%.2f", metrics.averageDistance)) m")
+                    Text("Longest Distance: \(String(format: "%.2f", metrics.longestDistance)) m")
+                    Text("Total Distance: \(String(format: "%.2f", metrics.totalDistance)) m")
+                    Text("Average Elevation: \(String(format: "%.2f", metrics.averageElevation)) m")
+                    Text("Most Elevation: \(String(format: "%.2f", metrics.mostElevation)) m")
+                    Text("Total Elevation: \(String(format: "%.2f", metrics.totalElevation)) m")
+                }
+                .font(Font.custom("Inter", size: 16))
+                .padding()
+            } else {
+                Text("No metrics available.")
                     .font(Font.custom("Inter", size: 16))
                     .foregroundColor(.gray)
                     .padding()
-            } else {
-                List(performanceMetrics) { metric in
-                    VStack(alignment: .leading) {
-                        Text("Route: \(metric.routeName)")
-                            .font(Font.custom("Inter", size: 16).weight(.bold))
-                        Text("Elapsed Time: \(formatTime(metric.elapsedTime))")
-                            .font(Font.custom("Inter", size: 14))
-                        Text("Speed: \(String(format: "%.1f", metric.speed)) m/s")
-                            .font(Font.custom("Inter", size: 14))
-                        Text("Elevation: \(String(format: "%.1f", metric.elevation)) m")
-                            .font(Font.custom("Inter", size: 14))
-                        Text("Date: \(formatDate(metric.date))")
-                            .font(Font.custom("Inter", size: 14))
-                            .foregroundColor(.gray)
-                    }
-                    .padding()
-                }
             }
         }
         .padding()
+        .onAppear {
+            fetchMetricsOverview { overview in
+                DispatchQueue.main.async {
+                    self.metricsOverview = overview
+                    self.isLoading = false
+                }
+            }
+        }
+        
+        // Navigation Buttons
         HStack {
-            // Home Button
-            NavigationLink(destination: HomeView(userName: userName)) { // Pass userName to HomeView
+            NavigationLink(destination: HomeView(userName: userName)) {
                 VStack {
                     Image(systemName: "house.fill")
                         .foregroundColor(.black)
@@ -60,8 +71,7 @@ struct PerformanceMetricsView: View {
             }
             .frame(maxWidth: .infinity)
             
-            // Friends Button
-            NavigationLink(destination: FriendView(userName: userName)) { // Pass userName to FriendView
+            NavigationLink(destination: FriendView(userName: userName)) {
                 VStack {
                     Image(systemName: "person.2.fill")
                         .foregroundColor(.black)
@@ -71,9 +81,8 @@ struct PerformanceMetricsView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            
-            // Map Button
-            NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass userName to SetNewRouteView
+
+            NavigationLink(destination: RouteLandingView(userName: userName)) {
                 VStack {
                     Image(systemName: "map.fill")
                         .foregroundColor(.black)
@@ -83,11 +92,10 @@ struct PerformanceMetricsView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-
-            // Performance Metrics Button
+            
             NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
                 VStack {
-                    Image(systemName: "chart.bar.fill") // Represents Metrics
+                    Image(systemName: "chart.bar.fill")
                         .foregroundColor(.black)
                     Text("Metrics")
                         .foregroundColor(.black)
@@ -96,8 +104,7 @@ struct PerformanceMetricsView: View {
             }
             .frame(maxWidth: .infinity)
             
-            // Profile Button
-            NavigationLink(destination: ProfileView(userName: userName)) { // Pass userName to ProfileView
+            NavigationLink(destination: ProfileView(userName: userName)) {
                 VStack {
                     Image(systemName: "person.fill")
                         .foregroundColor(.black)
@@ -111,59 +118,42 @@ struct PerformanceMetricsView: View {
         .padding()
         .background(Color.white)
         .shadow(radius: 5)
-        .onAppear {
-            performanceMetrics = loadMetrics() // Load metrics when the view appears
+    }
+
+    // Fetch metrics overview from the backend
+    private func fetchMetricsOverview(completion: @escaping (MetricsOverview?) -> Void) {
+        guard let url = URL(string: "\(baseURL)/metrics/overview") else {
+            print("Invalid URL")
+            completion(nil)
+            return
         }
-    }
 
-    // Format elapsed time into hours, minutes, seconds
-    private func formatTime(_ time: TimeInterval) -> String {
-        let seconds = Int(time) % 60
-        let minutes = (Int(time) / 60) % 60
-        let hours = Int(time) / 3600
-        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-    }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("Bearer \(UserDefaults.standard.string(forKey: "authToken") ?? "")", forHTTPHeaderField: "Authorization")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error fetching metrics: \(error.localizedDescription)")
+                completion(nil)
+                return
+            }
 
-    // Format date into readable format
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
-    }
+            guard let data = data else {
+                print("No data received")
+                completion(nil)
+                return
+            }
 
-    // Save metrics directly to UserDefaults
-    func saveMetrics(routeName: String, elapsedTime: TimeInterval, speed: Double, elevation: Double) {
-        let metric = PerformanceMetric(
-            routeName: routeName,
-            elapsedTime: elapsedTime,
-            speed: speed,
-            elevation: elevation,
-            date: Date()
-        )
-
-        var savedMetrics = loadMetrics() // Load existing metrics
-        savedMetrics.append(metric) // Add the new metric
-
-        // Save the updated list of metrics
-        if let encodedMetrics = try? JSONEncoder().encode(savedMetrics) {
-            UserDefaults.standard.set(encodedMetrics, forKey: "performanceMetrics")
-            print("Saved metrics: \(metric)")
-        }
-    }
-
-    // Load metrics from UserDefaults
-    private func loadMetrics() -> [PerformanceMetric] {
-        guard let data = UserDefaults.standard.data(forKey: "performanceMetrics"),
-              let savedMetrics = try? JSONDecoder().decode([PerformanceMetric].self, from: data) else {
-            return [] // Return an empty array if no data is available
-        }
-        return savedMetrics
-    }
-}
-
-struct PerformanceMetricsView_Previews: PreviewProvider {
-    static var previews: some View {
-        PerformanceMetricsView(userName: "sampleUser")
+            do {
+                let decoder = JSONDecoder()
+                let overview = try decoder.decode(MetricsOverview.self, from: data)
+                completion(overview)
+            } catch {
+                print("Error decoding metrics: \(error.localizedDescription)")
+                completion(nil)
+            }
+        }.resume()
     }
 }
