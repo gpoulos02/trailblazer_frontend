@@ -51,6 +51,7 @@ struct LogInView: View {
                             .font(.title2)
                             .foregroundColor(.white)
                     }
+
                 }
                 .padding()
             }
@@ -120,6 +121,7 @@ struct LogInView: View {
                         self.isLoggedIn = true // This triggers navigation
                         UserDefaults.standard.set(token, forKey: "authToken")
                         print("Token saved: \(token)")
+
                     } else {
                         errorMessage = "Invalid response from server."
                     }
