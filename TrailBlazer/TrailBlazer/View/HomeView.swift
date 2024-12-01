@@ -143,6 +143,7 @@ struct HomeButton: View {
         .cornerRadius(10)
         .shadow(radius: 5)
     }
+
 }
 
 struct HomeView_Previews: PreviewProvider {

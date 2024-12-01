@@ -39,22 +39,43 @@ struct LogInView: View {
                 }
 
                 // Log In Button
-                Button(action: logIn) {
-                    Text("Log In")
-                        .frame(width: 287, height: 50)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(5)
-                }
-                
-                // Navigation to HomeView
-                NavigationLink(
-                    destination: HomeView(userName: userName ?? "User")
-                ) {
-                    EmptyView()
-                }
-            }
-            .padding()
+                // Log In Button
+                // NavigationLink wrapping the Log In Button
+                Button(action: {
+                                    logIn() // Trigger log in functionality
+                                }) {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 5)
+                                            .fill(Color.blue)
+                                            .frame(width: 287, height: 50)
+                                        
+                                        Text("Log In")
+                                            .font(.title2)
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                                .padding()
+
+                                // Show "Go to Home" button after login is successful
+                                if isLoggedIn {
+                                    NavigationLink(
+                                        destination: HomeView(userName: userName ?? "User")
+                                    ) {
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 5)
+                                                .fill(Color.green)
+                                                .frame(width: 287, height: 50)
+                                            
+                                            Text("Go to Home")
+                                                .font(.title2)
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+                                    .padding()
+                                }
+
+                            }
+                            .padding()
         }
     }
 
@@ -77,6 +98,7 @@ struct LogInView: View {
             "username": username,
             "password": password
         ]
+        print("Request Body: \(body)")
         
         guard let httpBody = try? JSONSerialization.data(withJSONObject: body) else {
             errorMessage = "Failed to encode request body."
@@ -99,6 +121,8 @@ struct LogInView: View {
                     return
                 }
                 
+                print("HTTP Status Code: \(httpResponse.statusCode)")
+                
                 // Validate Data
                 guard let data = data else {
                     errorMessage = "No data received from server."
@@ -111,7 +135,9 @@ struct LogInView: View {
                        let token = json["token"] as? String {
                         self.token = token
                         self.userName = username // Use the entered username
-                        self.isLoggedIn = true
+                        self.isLoggedIn = true // This triggers the NavigationLink
+                        UserDefaults.standard.set(token, forKey: "authToken")
+                        print("Token saved: \(token)")
                     } else {
                         errorMessage = "Invalid response from server."
                     }

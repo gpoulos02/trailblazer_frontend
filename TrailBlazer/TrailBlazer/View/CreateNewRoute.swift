@@ -6,16 +6,17 @@ struct CreateNewRouteView: View {
     @State private var selectedLift: String = ""
     @State private var selectedDestination: String = ""
     @State private var maxDifficulty: String = ""
-    @State private var availableRoutes: [String] = []
     @State private var isLoading: Bool = false
     @State private var showError: Bool = false
     @State private var navigateToRoutes: Bool = false // Controls navigation
 
     @State private var liftOptions: [String] = []
     @State private var destinationOptions: [String] = []
-    
-    
+
     @State private var difficultyLevels: [String] = ["Green", "Blue", "Black", "Double Black"]
+    @State var errorMessage: String = ""
+    @State var routes: [[Trail]] = []
+    @State private var availableRoutes: [[String]] = []
 
     var body: some View {
         NavigationStack {
@@ -112,18 +113,26 @@ struct CreateNewRouteView: View {
                     }
                 }
                 .padding(.vertical)
+                
+                // Show error message if there is one
+                if showError {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(Font.custom("Inter", size: 14))
+                        .padding()
+                }
             }
             .padding()
             .onAppear(perform: fetchDropdownData)
             .navigationDestination(isPresented: $navigateToRoutes) {
-                AvailableRoutesView(availableRoutes: availableRoutes, userName: userName)
+                AvailableRoutesView(availableRoutes: availableRoutes.flatMap { $0 }, userName: userName)
             }
 
             Spacer()
 
             // Navigation Bar
             HStack {
-                NavigationLink(destination: HomeView(userName: userName)) { // Pass userName
+                NavigationLink(destination: HomeView(userName: userName)) {
                     VStack {
                         Image(systemName: "house.fill")
                             .foregroundColor(.black)
@@ -134,7 +143,7 @@ struct CreateNewRouteView: View {
                 }
                 .frame(maxWidth: .infinity)
 
-                NavigationLink(destination: FriendView(userName: userName)) { // Pass userName
+                NavigationLink(destination: FriendView(userName: userName)) {
                     VStack {
                         Image(systemName: "person.2.fill")
                             .foregroundColor(.black)
@@ -145,7 +154,7 @@ struct CreateNewRouteView: View {
                 }
                 .frame(maxWidth: .infinity)
 
-                NavigationLink(destination: CreateNewRouteView(userName: userName)) { // Pass userName
+                NavigationLink(destination: CreateNewRouteView(userName: userName)) {
                     VStack {
                         Image(systemName: "map.fill")
                             .foregroundColor(.black)
@@ -155,10 +164,10 @@ struct CreateNewRouteView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                // Performance Metrics Button
+                
                 NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
                     VStack {
-                        Image(systemName: "chart.bar.fill") // Represents Metrics
+                        Image(systemName: "chart.bar.fill")
                             .foregroundColor(.black)
                         Text("Metrics")
                             .foregroundColor(.black)
@@ -167,7 +176,7 @@ struct CreateNewRouteView: View {
                 }
                 .frame(maxWidth: .infinity)
 
-                NavigationLink(destination: ProfileView(userName: userName)) { // Pass userName
+                NavigationLink(destination: ProfileView(userName: userName)) {
                     VStack {
                         Image(systemName: "person.fill")
                             .foregroundColor(.black)
@@ -185,66 +194,96 @@ struct CreateNewRouteView: View {
     }
 
     private func fetchRoutes() {
+        print("Fetch Routes triggered")
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            print("Token found: \(token)")
+        } else {
+            print("No Auth Token Found")
+        }
+
         guard !selectedLift.isEmpty else {
             showError = true
+            errorMessage = "Please select a lift."
             return
         }
-        guard !maxDifficulty.isEmpty else {
+
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/routes/find") else {
             showError = true
+            errorMessage = "Invalid URL."
             return
         }
 
-        showError = false
-        isLoading = true
-
-        guard let url = URL(string: "https://TrailBlazer33:5001/api/routes/find") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Correcting the request body to match the backend expectations
-        let requestBody: [String: Any] = [
-            "chairliftName": selectedLift, // Renamed to match backend
-            "maxDifficulty": maxDifficulty,
-            "destination": selectedDestination.isEmpty ? nil : selectedDestination as Any // Handle optional destination
-        ]
-        
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-        } catch {
-            print("Error encoding request body: \(error.localizedDescription)")
-            isLoading = false
+
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            print("Token found: \(token)")
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            print("No Auth Token Found")
+            showError = true
+            errorMessage = "Authentication token missing."
             return
         }
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        let requestBody: [String: Any] = [
+            "chairliftName": selectedLift,
+            "maxDifficulty": maxDifficulty,
+            "destination": selectedDestination
+        ]
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody, options: [])
+            print("Request Body: \(requestBody)")
+        } catch {
+            showError = true
+            errorMessage = "Failed to encode request body."
+            return
+        }
+
+        isLoading = true
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
-                self.isLoading = false
-            }
-
-            if let error = error {
-                print("Error fetching routes: \(error.localizedDescription)")
-                return
-            }
-
-            guard let data = data else {
-                print("No data received for routes")
-                return
-            }
-
-            do {
-                // The backend returns an array of routes, each containing an array of trails
-                let routeObjects = try JSONDecoder().decode([[Trail]].self, from: data)
-                DispatchQueue.main.async {
-                    // Flattening the routes to display just the trail names for now
-                    self.availableRoutes = routeObjects.flatMap { $0.map { $0.runName } }
-                    self.navigateToRoutes = true
+                isLoading = false
+                if let error = error {
+                    print("Error: \(error.localizedDescription)")
+                    self.showError = true
+                    self.errorMessage = "Request failed: \(error.localizedDescription)"
+                    return
                 }
 
-            } catch {
-                print("Error decoding routes: \(error.localizedDescription)")
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    print("Invalid Response")
+                    self.showError = true
+                    return
+                }
+
+                print("Response Status Code: \(httpResponse.statusCode)")
+
+                guard let data = data else {
+                    print("No Data")
+                    self.showError = true
+                    return
+                }
+
+                print("Response Body: \(String(data: data, encoding: .utf8) ?? "Invalid Data")")
+
+                do {
+                    let routes = try JSONDecoder().decode([[Trail]].self, from: data)
+                    print("Parsed Routes: \(routes)")
+                    self.routes = routes
+                    self.availableRoutes = routes.compactMap { $0.map { $0.runName } }
+                    self.navigateToRoutes = true
+                } catch {
+                    print("Error decoding response data: \(error.localizedDescription)")
+                    self.showError = true
+                    self.errorMessage = "Failed to decode response."
+                }
             }
-        }.resume()
+        }
+
+        task.resume()
     }
 
 
@@ -321,14 +360,19 @@ struct CreateNewRouteView: View {
         let POI_name: String
         let type: String
     }
-    struct Trail: Codable {
+//    struct Trail: Codable {
+//        let runID: Int
+//        let runName: String
+//        let difficulty: String
+//        let startingLift: Int
+//        let endingPoints: [Int]
+//        let isEnd: Bool
+//        let mergesTo: [Int]
+//    }
+    struct Trail: Decodable {
         let runID: Int
         let runName: String
         let difficulty: String
-        let startingLift: Int
-        let endingPoints: [Int]
-        let isEnd: Bool
-        let mergesTo: [Int]
     }
 
 }
