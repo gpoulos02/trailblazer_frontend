@@ -2,21 +2,21 @@ import SwiftUI
 import MapboxMaps
 
 struct RouteLandingView: View {
-    var userName: String // Accept the logged-in user's name as a parameter
-    
-    @State private var isLoading = true // Simulate loading state
-    @State private var apiKey: String? = nil // Store the API key
-    @State private var errorMessage: String? = nil // Store any error message
+    var userName: String // Accept the logged-in user's name as a parameter
+    
+    @State private var isLoading = true // Simulate loading state
+    @State private var apiKey: String? = nil // Store the API key
+    @State private var errorMessage: String? = nil // Store any error message
 
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Spacer()
-                
-                // Placeholder for a logo or title
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .frame(width: 256, height: 36)
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Spacer()
+                
+                // Placeholder for a logo or title
+                Rectangle()
+                    .foregroundColor(.clear)
+                    .frame(width: 256, height: 36)
                     .background(
                         AsyncImage(url: URL(string: "https://via.placeholder.com/256x36"))
                     )
