@@ -39,43 +39,25 @@ struct LogInView: View {
                 }
 
                 // Log In Button
-                // Log In Button
-                // NavigationLink wrapping the Log In Button
                 Button(action: {
-                                    logIn() // Trigger log in functionality
-                                }) {
-                                    ZStack {
-                                        RoundedRectangle(cornerRadius: 5)
-                                            .fill(Color.blue)
-                                            .frame(width: 287, height: 50)
-                                        
-                                        Text("Log In")
-                                            .font(.title2)
-                                            .foregroundColor(.white)
-                                    }
-                                }
-                                .padding()
-
-                                // Show "Go to Home" button after login is successful
-                                if isLoggedIn {
-                                    NavigationLink(
-                                        destination: HomeView(userName: userName ?? "User")
-                                    ) {
-                                        ZStack {
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .fill(Color.green)
-                                                .frame(width: 287, height: 50)
-                                            
-                                            Text("Go to Home")
-                                                .font(.title2)
-                                                .foregroundColor(.white)
-                                        }
-                                    }
-                                    .padding()
-                                }
-
-                            }
-                            .padding()
+                    logIn() // Trigger log in functionality
+                }) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(Color.blue)
+                            .frame(width: 287, height: 50)
+                        
+                        Text("Log In")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                    }
+                }
+                .padding()
+            }
+            .padding()
+            .navigationDestination(isPresented: $isLoggedIn) {
+                HomeView(userName: userName ?? "User")
+            }
         }
     }
 
@@ -135,7 +117,7 @@ struct LogInView: View {
                        let token = json["token"] as? String {
                         self.token = token
                         self.userName = username // Use the entered username
-                        self.isLoggedIn = true // This triggers the NavigationLink
+                        self.isLoggedIn = true // This triggers navigation
                         UserDefaults.standard.set(token, forKey: "authToken")
                         print("Token saved: \(token)")
                     } else {

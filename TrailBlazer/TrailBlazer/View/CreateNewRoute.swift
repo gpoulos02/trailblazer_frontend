@@ -226,6 +226,8 @@ struct CreateNewRouteView: View {
             errorMessage = "Authentication token missing."
             return
         }
+        
+        let finalMaxDifficulty = maxDifficulty.isEmpty ? "Double Black" : maxDifficulty
 
         let requestBody: [String: Any] = [
             "chairliftName": selectedLift,
