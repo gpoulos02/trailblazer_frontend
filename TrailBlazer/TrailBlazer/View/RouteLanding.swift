@@ -1,13 +1,19 @@
 import SwiftUI
 import MapboxMaps
 import CoreLocation
+import Turf
+
+
 struct RouteLandingView: View {
     var userName: String // Accept the logged-in user's name as a parameter
     
     @State private var isLoading = true // Simulate loading state
     @State private var apiKey: String? = nil // Store the API key
     @State private var errorMessage: String? = nil // Store any error message
-
+    @State private var isDownloadInProgress = false
+    @State private var isDownloadComplete = false
+    @State private var isMapCleared = false
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
@@ -59,6 +65,8 @@ struct RouteLandingView: View {
                         .background(Color.gray.opacity(0.2))
                 }
                 
+
+                
                 // Create New Route Button
                 NavigationLink(destination: CreateNewRouteView(userName: userName)) {
                     HStack(spacing: 8) {
@@ -77,6 +85,48 @@ struct RouteLandingView: View {
                             .stroke(Color(red: 0.25, green: 0.61, blue: 1), lineWidth: 0.50)
                     )
                 }
+                
+                // Download Offline Map Button
+                Button(action: {
+                    startDownloadOfflineMap()
+                }) {
+                    Text(isDownloadInProgress ? "Downloading..." : "Download Map")
+                        .font(Font.custom("Inter", size: 16))
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(width: 144, height: 42)
+                        .background(isDownloadInProgress ? Color.gray : Color.blue)
+                        .cornerRadius(8)
+                }
+                .disabled(isDownloadInProgress || isDownloadComplete)
+                
+                // Adding the "Map downloaded" text
+                if isDownloadComplete {
+                    Text("Map downloaded")
+                        .font(Font.custom("Inter", size: 14))
+                        .foregroundColor(.green)
+                        .padding(.top, 8)
+                }
+                // Clear Map Data Button (visible after download completion)
+//                if isDownloadComplete  {
+//                    Button(action: {
+//                        clearDownloadedMapData()
+//                    }) {
+//                        Text("Clear Map Data")
+//                            .font(Font.custom("Inter", size: 12))
+//                            .foregroundColor(.gray)
+//                            .padding()
+//                            .frame(width: 144, height: 42)
+//                            .background(Color.white)
+//                            .cornerRadius(8)
+//                            .overlay(
+//                                RoundedRectangle(cornerRadius: 8)
+//                                    .inset(by: 0.50)
+//                                    .stroke(Color.gray, lineWidth: 0.50)
+//                            )
+//                    }
+//                    .padding(.top, 10)
+//                }
                 
                 Spacer()
                 
@@ -174,12 +224,140 @@ struct RouteLandingView: View {
             }
         }.resume()
     }
-}
+    
+    
+    private func startDownloadOfflineMap() {
+        isDownloadInProgress = true
+        let offlineManager = OfflineRegionManager()
+        
+        // Define the region to download (example with a 10 km radius around a coordinate)
+        let centerCoordinate = CLLocationCoordinate2D(latitude: 44.4280, longitude: -80.3020) // Change to your target region
+        let zoomLevel = 10.0
+        let radius = 10000.0 // Radius in meters (optional, can be omitted for default)
+        
+        // Define the bounding box using the BoundingBox structure
+        // Define the geometry directly using the coordinates (you can modify this depending on the SDK's expected geometry format)
+        // Define the bounding box using the BoundingBox structure
+        let southWest = CLLocationCoordinate2D(latitude: centerCoordinate.latitude - 0.05, longitude: centerCoordinate.longitude - 0.05)
+        let northEast = CLLocationCoordinate2D(latitude: centerCoordinate.latitude + 0.05, longitude: centerCoordinate.longitude + 0.05)
 
+        // Create the four corners of the polygon
+        let polygonCoordinates: [[CLLocationCoordinate2D]] = [
+            [southWest, CLLocationCoordinate2D(latitude: southWest.latitude, longitude: northEast.longitude)], // Bottom-left to top-left
+            [CLLocationCoordinate2D(latitude: southWest.latitude, longitude: northEast.longitude), northEast], // Top-left to top-right
+            [northEast, CLLocationCoordinate2D(latitude: northEast.latitude, longitude: southWest.longitude)], // Top-right to bottom-right
+            [CLLocationCoordinate2D(latitude: northEast.latitude, longitude: southWest.longitude), southWest] // Bottom-right to bottom-left (closing the polygon)
+        ]
+        
+        do {
+            // Create the polygon as before
+            let closedPolygonCoordinates = polygonCoordinates.flatMap { $0 }
+            let polygon = try Polygon([closedPolygonCoordinates])
+            
+            // Manually create a Geometry from the Polygon (if needed by the SDK)
+            let geometry = Geometry(polygon)  // Assuming you have this conversion available
+            
+            let styleURL = "mapbox://styles/gpoulakos/cm3nt0prt00m801r25h8wajy5"
+            
+            // Create the OfflineRegionGeometryDefinition
+            let offlineRegionGeometry = OfflineRegionGeometryDefinition(
+                styleURL: styleURL,
+                geometry: geometry,  // This is now a valid Geometry type
+                minZoom: zoomLevel,
+                maxZoom: zoomLevel,
+                pixelRatio: 1.0,
+                glyphsRasterizationMode: .ideographsRasterizedLocally
+            )
+            
+            offlineManager.createOfflineRegion(for: offlineRegionGeometry) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success:
+                        isDownloadComplete = true
+                        isDownloadInProgress = false
+                        print("Offline map download completed successfully.")
+                    case .failure(let error):
+                        errorMessage = error.localizedDescription
+                        isDownloadInProgress = false
+                        print("Error downloading offline map: \(error.localizedDescription)")
+
+                        // Log the error type to better understand it
+                        print("Error type: \(type(of: error))")
+                        
+                     
+                            print("Unexpected error: \(error.localizedDescription)")
+                        if let mapboxError = error as? MapboxMaps.MapError {
+                                        print("Mapbox Error Code: \(mapboxError.localizedDescription)")
+                                    } else {
+                                        // If the error is not a Mapbox error, print it
+                                        print("Unexpected error: \(error.localizedDescription)")
+                                    }
+                        
+                    }
+                }
+            }
+
+        } catch {
+            print("Error creating polygon: \(error.localizedDescription)")
+            isDownloadInProgress = false
+        }
+    }
+    private func fetchOfflineRegions(completion: @escaping ([OfflineRegion]) -> Void) {
+        let offlineManager = OfflineRegionManager()
+        
+        offlineManager.offlineRegions { result in
+            switch result {
+            case .success(let regions):
+                completion(regions)
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    self.errorMessage = "Failed to fetch offline regions: \(error.localizedDescription)"
+                }
+            }
+        }
+    }
+    
+
+    
+
+//    private func clearDownloadedMapData() {
+//        fetchOfflineRegions { regions in
+//            if regions.isEmpty {
+//                DispatchQueue.main.async {
+//                    self.errorMessage = "No offline regions found to delete."
+//                }
+//                return
+//            }
+//
+//            for region in regions {
+//                region.delete { result in
+//                    switch result {
+//                    case .success:
+//                        DispatchQueue.main.async {
+//                            print("Offline region deleted successfully.")
+//                        }
+//                    case .failure(let error):
+//                        DispatchQueue.main.async {
+//                            self.errorMessage = "Error deleting offline region: \(error.localizedDescription)"
+//                        }
+//                    }
+//                }
+//            }
+//
+//            // Optionally, you can reset state after deleting all regions:
+//            DispatchQueue.main.async {
+//                self.isDownloadComplete = false
+//                self.isMapCleared = true
+//            }
+//        }
+//    }
+
+
+
+    
+}
 struct MapViewWrapper: UIViewRepresentable {
     var apiKey: String
-    
-    
     
 
     func makeUIView(context: Context) -> MapView {
