@@ -1,6 +1,7 @@
 import SwiftUI
 import MapboxMaps
 import CoreLocation
+
 struct RouteLandingView: View {
     var userName: String // Accept the logged-in user's name as a parameter
     
@@ -175,75 +176,78 @@ struct RouteLandingView: View {
     }
 }
 
+import SwiftUI
+import MapboxMaps
+import CoreLocation
+
 struct MapViewWrapper: UIViewRepresentable {
     var apiKey: String
-    
-    
-    
+    @ObservedObject var locationManager = LocationManager()
 
     func makeUIView(context: Context) -> MapView {
         // Set the Mapbox access token
         MapboxOptions.accessToken = apiKey
 
-        // Create MapView with specified style URI
+        // Initialize the map with style
         let options = MapInitOptions(styleURI: StyleURI(rawValue: "mapbox://styles/gpoulakos/cm3nt0prt00m801r25h8wajy5"))
         let mapView = MapView(frame: .zero, mapInitOptions: options)
 
-        let locationManager = LocationManager()
-
-        // Set the location manager as the delegate to receive location updates
-        locationManager.delegate = context.coordinator
-        
-
-        // Start location updates
-        locationManager.startUpdatingLocation()// Enable user location tracking on the MapView
-        mapView.location.options = LocationOptions(
-            // Use the appropriate tracking mode, followWithHeading is now set differently
-            
-            puckType: .puck2D()
-            //locationProvider: locationManager
-        
+        // Set initial camera options (Bird's-eye view with zoom and pitch)
+        let cameraOptions = CameraOptions(
+            zoom: 14.0, // Initial zoom level
+            bearing: 0.0,
+            pitch: 45.0
         )
-        
+        mapView.mapboxMap.setCamera(to: cameraOptions)
+
+        // Enable camera movement (rotation, zooming)
+//        mapView.mapboxMap.on(MapboxMapCameraChangedEvent.self).observeNext { _ in
+//            // Handle any changes in camera (rotation, zoom) dynamically
+//            let cameraState = mapView.mapboxMap.cameraState
+//            print("Camera moved: \(cameraState)")
+//        }
+
+        // Assign Coordinator to listen for location updates
+        context.coordinator.mapView = mapView
+        locationManager.delegate = context.coordinator
+
+        // Enable the location puck with custom styling
+        let locationOptions = LocationOptions(
+            puckType: .puck2D(),
+            puckBearing: .heading
+        )
+        mapView.location.options = locationOptions
 
         return mapView
     }
 
     func updateUIView(_ uiView: MapView, context: Context) {
-        // Handle updates to the map view if necessary
+        // Handle any updates when the location changes
     }
 
     func makeCoordinator() -> Coordinator {
-        // No need to call makeUIView directly here
         return Coordinator()
     }
-    
+
     class Coordinator: NSObject, LocationManagerDelegate {
         var mapView: MapView?
 
-        // This is where mapView is passed in from the context
-        override init() {
-            super.init()
-        }
         func didUpdateLocation(_ location: CLLocation) {
-            // Update MapView with the new location
+            guard let mapView = mapView else { return }
+
+            // Update the map's camera to center around the new location
             let coordinate = location.coordinate
             let cameraOptions = CameraOptions(
                 center: CLLocationCoordinate2D(latitude: coordinate.latitude, longitude: coordinate.longitude),
-                zoom: 14.0, // Set the zoom level
-                bearing: 0.0, // Set bearing (orientation) if needed
-                pitch: 45.0  // Set pitch (tilt) if needed
+                zoom: 14.0,
+                bearing: 0.0,
+                pitch: 45.0
             )
-            
-            mapView?.mapboxMap.setCamera(to: cameraOptions)
-            // Set the camera without animation (direct change)
-            //mapView.setCamera(to: cameraOptions)
 
-            // Optional: Print the location to the console for debugging
+            mapView.mapboxMap.setCamera(to: cameraOptions)
+
+            // The puck is automatically updated with the CLLocationManager updates
             print("Updated location: \(coordinate.latitude), \(coordinate.longitude)")
         }
-        func setMapView(_ mapView: MapView) {
-                    self.mapView = mapView
-                }
     }
 }
