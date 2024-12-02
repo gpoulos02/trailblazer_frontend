@@ -15,9 +15,11 @@ struct LandingView: View {
                     .multilineTextAlignment(.center)
                 
                 // Image Placeholder
-                AsyncImage(url: URL(string: "https://via.placeholder.com/389x368"))
-                    .frame(width: 389, height: 360)
-                    .clipShape(Rectangle())
+                Image("FullLogo") // Reference the image in the Assets folder
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 360, height: 360) // Adjust size to fit
+                                    .clipShape(Rectangle())
                 
                 // Log In Button
                 NavigationLink(destination: LogInView()) { // Navigates to LogInView

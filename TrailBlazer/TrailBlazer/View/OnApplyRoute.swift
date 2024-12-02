@@ -9,14 +9,12 @@ struct OnApplyRouteView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            // Header Image
-            Rectangle()
-                .foregroundColor(.clear)
-                .frame(width: 256, height: 36)
-                .background(
-                    AsyncImage(url: URL(string: "https://via.placeholder.com/256x36"))
-                )
-                .padding()
+            // Logo at the top
+            Image("TextLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 40)
+                .padding(.top, 20)
 
             // Main Image
             Rectangle()

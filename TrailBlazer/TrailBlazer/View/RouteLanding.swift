@@ -11,15 +11,14 @@ struct RouteLandingView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Spacer()
+                Spacer().frame(height: 20)
                 
-                // Placeholder for a logo or title
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .frame(width: 256, height: 36)
-                    .background(
-                        AsyncImage(url: URL(string: "https://via.placeholder.com/256x36"))
-                    )
+                // Logo at the top
+                Image("TextLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 40)
+                    .padding(.top, 20)
                 
                 // Current Location Section
                 HStack {
@@ -175,12 +174,6 @@ struct RouteLandingView: View {
         }.resume()
     }
 }
-
-
-
-import SwiftUI
-import MapboxMaps
-import CoreLocation
 
 struct MapViewWrapper: UIViewRepresentable {
     var apiKey: String
