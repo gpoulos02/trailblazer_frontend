@@ -139,7 +139,7 @@ struct PerformanceMetricsView: View {
             .background(Color.white)
             .shadow(radius: 5)
         }
-        .padding()
+        .padding(.horizontal, 20)
         .onAppear {
             fetchMetricsOverview { overview in
                 DispatchQueue.main.async {

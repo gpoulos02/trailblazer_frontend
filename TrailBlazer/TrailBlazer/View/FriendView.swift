@@ -128,6 +128,7 @@ struct FriendView: View {
             .background(Color.white)
             .shadow(radius: 5)
         }
+        .padding(.horizontal, 20)
     }
 }
 
