@@ -76,6 +76,7 @@ struct PerformanceMetricsView: View {
             }
 
             Spacer() // Push content upwards
+            .navigationBarBackButtonHidden(true)
 
             // Navigation Bar at the Bottom
             HStack {
@@ -138,7 +139,7 @@ struct PerformanceMetricsView: View {
             .background(Color.white)
             .shadow(radius: 5)
         }
-        .padding()
+        .padding(.horizontal, 20)
         .onAppear {
             fetchMetricsOverview { overview in
                 DispatchQueue.main.async {

@@ -5,7 +5,7 @@ struct HomeView: View {
     @State private var currentRoute = "None"
     
     var body: some View {
-        NavigationStack {
+        
             VStack(spacing: 20) {
                 // Text Logo at the top
                 Image("TextLogo") // Replace with the name of your text logo asset
@@ -29,6 +29,7 @@ struct HomeView: View {
                     // View Map Button with the map image
                     NavigationLink(destination: RouteLandingView(userName: userName)) {
                         MapButton()
+                            .navigationBarBackButtonHidden(false)
                     }
                     
                     // Create Route Button
@@ -38,12 +39,13 @@ struct HomeView: View {
                     
                     // View Weather Button
                     NavigationLink(destination: WeatherView(userName: userName)) {
-                        HomeButton(title: "View Weather", imageName: "cloud.sun.fill")
+                        HomeButton(title: "Weather", imageName: "cloud.sun.fill")
                     }
                 }
                 .padding(.top, 20)
                 
                 Spacer()
+                .navigationBarHidden(true)
                 
                 // Navigation Bar at the Bottom
                 HStack {
@@ -66,8 +68,10 @@ struct HomeView: View {
                                 .foregroundColor(.black)
                                 .font(.caption)
                         }
+                        .navigationBarBackButtonHidden(true)
                     }
                     .frame(maxWidth: .infinity)
+                    
                     
                     NavigationLink(destination: RouteLandingView(userName: userName)) {
                         VStack {
@@ -88,8 +92,10 @@ struct HomeView: View {
                                 .foregroundColor(.black)
                                 .font(.caption)
                         }
+                        .navigationBarBackButtonHidden(true)
                     }
                     .frame(maxWidth: .infinity)
+                    
                     
                     NavigationLink(destination: ProfileView(userName: userName)) {
                         VStack {
@@ -110,7 +116,7 @@ struct HomeView: View {
             .navigationBarBackButtonHidden(true)
         }
     }
-}
+
 
 struct HomeButton: View {
     var title: String

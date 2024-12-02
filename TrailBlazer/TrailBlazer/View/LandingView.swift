@@ -2,7 +2,7 @@ import SwiftUI
 
 struct LandingView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 // Welcome Text
                 Text("Welcome to TrailBlazer")

@@ -140,9 +140,10 @@ struct RouteLandingView: View {
                 }
                 .padding()
                 .background(Color.white)
-                .shadow(radius: 5)
-                .navigationBarBackButtonHidden(true)
+                
             }
+            .padding(.horizontal, 20)
+            .navigationBarBackButtonHidden(true)
         }
     }
     
