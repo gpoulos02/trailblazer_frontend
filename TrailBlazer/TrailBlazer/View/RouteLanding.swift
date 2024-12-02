@@ -1,6 +1,6 @@
 import SwiftUI
 import MapboxMaps
-
+import CoreLocation
 struct RouteLandingView: View {
     var userName: String // Accept the logged-in user's name as a parameter
     
@@ -178,27 +178,79 @@ struct RouteLandingView: View {
 
 
 
-
-import MapboxMaps
 import SwiftUI
+import MapboxMaps
+import CoreLocation
 
 struct MapViewWrapper: UIViewRepresentable {
     var apiKey: String
+    
+    
+    
 
     func makeUIView(context: Context) -> MapView {
-        // Set the global access token
+        // Set the Mapbox access token
         MapboxOptions.accessToken = apiKey
 
-        // Initialize MapInitOptions with the desired style URI
-        let options = MapInitOptions(styleURI: StyleURI(rawValue: "mapbox://styles/gpoulakos/cm3nt0prt00m801r25h8wajy5")) // Replace with your style URI
-
-        // Create the MapView instance with the MapInitOptions
+        // Create MapView with specified style URI
+        let options = MapInitOptions(styleURI: StyleURI(rawValue: "mapbox://styles/gpoulakos/cm3nt0prt00m801r25h8wajy5"))
         let mapView = MapView(frame: .zero, mapInitOptions: options)
+
+        let locationManager = LocationManager()
+
+        // Set the location manager as the delegate to receive location updates
+        locationManager.delegate = context.coordinator
+        
+
+        // Start location updates
+        locationManager.startUpdatingLocation()// Enable user location tracking on the MapView
+        mapView.location.options = LocationOptions(
+            // Use the appropriate tracking mode, followWithHeading is now set differently
+            
+            puckType: .puck2D()
+            //locationProvider: locationManager
+        
+        )
+        
 
         return mapView
     }
 
     func updateUIView(_ uiView: MapView, context: Context) {
-        // Handle updates to the view if necessary
+        // Handle updates to the map view if necessary
+    }
+
+    func makeCoordinator() -> Coordinator {
+        // No need to call makeUIView directly here
+        return Coordinator()
+    }
+    
+    class Coordinator: NSObject, LocationManagerDelegate {
+        var mapView: MapView?
+
+        // This is where mapView is passed in from the context
+        override init() {
+            super.init()
+        }
+        func didUpdateLocation(_ location: CLLocation) {
+            // Update MapView with the new location
+            let coordinate = location.coordinate
+            let cameraOptions = CameraOptions(
+                center: CLLocationCoordinate2D(latitude: coordinate.latitude, longitude: coordinate.longitude),
+                zoom: 14.0, // Set the zoom level
+                bearing: 0.0, // Set bearing (orientation) if needed
+                pitch: 45.0  // Set pitch (tilt) if needed
+            )
+            
+            mapView?.mapboxMap.setCamera(to: cameraOptions)
+            // Set the camera without animation (direct change)
+            //mapView.setCamera(to: cameraOptions)
+
+            // Optional: Print the location to the console for debugging
+            print("Updated location: \(coordinate.latitude), \(coordinate.longitude)")
+        }
+        func setMapView(_ mapView: MapView) {
+                    self.mapView = mapView
+                }
     }
 }
