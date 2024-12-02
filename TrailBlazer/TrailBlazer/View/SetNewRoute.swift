@@ -6,12 +6,13 @@ struct SetNewRouteView: View {
     var body: some View {
         VStack(spacing: 20) {
             // Placeholder for a title or logo
-            Rectangle()
-                .foregroundColor(.clear)
-                .frame(width: 256, height: 36)
-                .background(
-                    AsyncImage(url: URL(string: "https://via.placeholder.com/256x36"))
-                )
+            
+            // Logo at the top
+            Image("TextLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 40)
+                .padding(.top, 20)
             
             // Placeholder for map or saved routes section
             Rectangle()

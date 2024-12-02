@@ -14,6 +14,13 @@ struct AvailableRoutesView: View {
     var body: some View {
         VStack(spacing: 20) {
             // Title
+            // Logo at the top
+            Image("TextLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 40)
+                .padding(.top, 20)
+            
             Text("Available Routes")
                 .font(Font.custom("Inter", size: 25).weight(.bold))
                 .foregroundColor(.black)

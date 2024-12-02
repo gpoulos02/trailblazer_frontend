@@ -11,7 +11,7 @@ struct HomeView: View {
                 Image("TextLogo") // Replace with the name of your text logo asset
                     .resizable()
                     .scaledToFit()
-                    .frame(height: 60)
+                    .frame(height: 40)
                     .padding(.top, 20)
                 
                 // Welcome message
