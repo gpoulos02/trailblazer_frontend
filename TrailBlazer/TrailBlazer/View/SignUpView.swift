@@ -29,16 +29,19 @@ struct SignUpView: View {
                 .padding()
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(8)
+                .autocapitalization(.none)
 
             TextField("Username", text: $username)
                 .padding()
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(8)
+                .autocapitalization(.none)
 
             SecureField("Password", text: $password)
                 .padding()
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(8)
+                .autocapitalization(.none)
 
             if let errorMessage = errorMessage {
                 Text(errorMessage).foregroundColor(.red)
