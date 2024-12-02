@@ -3,61 +3,51 @@ import SwiftUI
 struct HomeView: View {
     var userName: String // Accepts the logged-in user's name as a parameter
     @State private var currentRoute = "None"
-    @State private var isHomeActive = false
-
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                // Header
+                // Text Logo at the top
+                Image("TextLogo") // Replace with the name of your text logo asset
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 60)
+                    .padding(.top, 20)
+                
+                // Welcome message
                 Text("Welcome, \(userName)")
                     .font(.title)
                     .fontWeight(.bold)
-                    .padding(.top, 40)
                 
                 // Current Route Status
                 Text("Current Route: \(currentRoute)")
                     .font(.subheadline)
                     .foregroundColor(.gray)
-                    .padding(.bottom, 40)
                 
-                // Quick Access Buttons (Create New Route and Set New Route)
-                HStack {
-                    NavigationLink(destination: CreateNewRouteView(userName: userName)) { // Pass userName
-                        HomeButton(title: "Create New Route", imageName: "plus.circle.fill")
+                // Buttons (same size and vertically stacked)
+                VStack(spacing: 15) {
+                    // View Map Button with the map image
+                    NavigationLink(destination: RouteLandingView(userName: userName)) {
+                        MapButton()
                     }
-                    NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass userName
-                        HomeButton(title: "Map", imageName: "map.fill")
+                    
+                    // Create Route Button
+                    NavigationLink(destination: CreateNewRouteView(userName: userName)) {
+                        HomeButton(title: "Create Route", imageName: "plus.circle.fill")
                     }
-                }
-                .padding()
-                
-                // Weather Widget
-                NavigationLink(destination: WeatherView(userName: userName )) {
-                    VStack {
-                        HStack {
-                            Image(systemName: "cloud.sun.fill")
-                                .font(.system(size: 40))
-                                .foregroundColor(.blue)
-                            
-                            Text("Weather")
-                                .font(.headline)
-                                .foregroundColor(.black)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        .shadow(radius: 5)
+                    
+                    // View Weather Button
+                    NavigationLink(destination: WeatherView(userName: userName)) {
+                        HomeButton(title: "View Weather", imageName: "cloud.sun.fill")
                     }
                 }
                 .padding(.top, 20)
                 
-                Spacer() // Pushes content upwards so the bottom navigation stays at the bottom
+                Spacer()
                 
                 // Navigation Bar at the Bottom
                 HStack {
-                    // Home Button
-                    NavigationLink(destination: HomeView(userName: userName)) { // Pass userName
+                    NavigationLink(destination: HomeView(userName: userName)) {
                         VStack {
                             Image(systemName: "house.fill")
                                 .foregroundColor(.black)
@@ -68,8 +58,7 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity)
                     
-                    // Friends Button
-                    NavigationLink(destination: FriendView(userName: userName)) { // Pass userName
+                    NavigationLink(destination: FriendView(userName: userName)) {
                         VStack {
                             Image(systemName: "person.2.fill")
                                 .foregroundColor(.black)
@@ -80,8 +69,7 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity)
                     
-                    // Map Button
-                    NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass userName
+                    NavigationLink(destination: RouteLandingView(userName: userName)) {
                         VStack {
                             Image(systemName: "map.fill")
                                 .foregroundColor(.black)
@@ -91,7 +79,7 @@ struct HomeView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    // Performance Metrics Button
+                    
                     NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
                         VStack {
                             Image(systemName: "chart.bar.fill") // Represents Metrics
@@ -103,8 +91,7 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity)
                     
-                    // Profile Button
-                    NavigationLink(destination: ProfileView(userName: userName)) { // Pass userName
+                    NavigationLink(destination: ProfileView(userName: userName)) {
                         VStack {
                             Image(systemName: "person.fill")
                                 .foregroundColor(.black)
@@ -119,6 +106,7 @@ struct HomeView: View {
                 .background(Color.white)
                 .shadow(radius: 5)
             }
+            .padding(.horizontal, 20)
             .navigationBarBackButtonHidden(true)
         }
     }
@@ -138,13 +126,42 @@ struct HomeButton: View {
                 .foregroundColor(.black)
         }
         .padding()
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 60) // Ensures all buttons are the same size
         .background(Color.white)
         .cornerRadius(10)
         .shadow(radius: 5)
     }
-
 }
+
+struct MapButton: View {
+    var body: some View {
+        VStack {
+            // Map Image
+            Image("map")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 150) // Increased height to make the map bigger
+                .cornerRadius(10)
+            
+            // Icon and Text Side by Side
+            HStack {
+                Image(systemName: "map.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.blue)
+                Text("View Map")
+                    .font(.headline)
+                    .foregroundColor(.black)
+            }
+            .padding(.top, 5) // Adds some space between the image and the label
+        }
+        .padding()
+        .frame(maxWidth: .infinity, minHeight: 160) // Ensures the button is large enough
+        .background(Color.white)
+        .cornerRadius(10)
+        .shadow(radius: 5)
+    }
+}
+
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
