@@ -12,6 +12,8 @@ struct ProfileView: View {
     @State private var showLogoutConfirmation = false // State for showing alert
     @State private var navigateToLandingView = false  // State for navigation
     @State private var showSOSConfirmation = false // State for showing SOS confirmation alert
+    @State private var showSaveConfirmation = false // State for showing save confirmation alert
+    @State private var isEditMode = false // Tracks if the user is in edit mode
 
     var body: some View {
         NavigationStack {
@@ -20,46 +22,103 @@ struct ProfileView: View {
                     // Profile Picture Section
                     VStack {
                         Image("profile")
-                            .resizable() // Make the image resizable
-                            .scaledToFill() // Scale the image to completely fill the frame
-                            .frame(width: 185, height: 185) // Set the size of the image
-                            .clipShape(Circle()) // Clip the image into a circular shape
-
-
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 150, height: 150)
+                            .clipShape(Circle())
                     }
                     .padding(.top, 20)
 
-                    // Profile Info Section (Card Style)
+                    // Profile Info Section
                     VStack(alignment: .leading, spacing: 15) {
-                        Text("Profile Information")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .padding(.bottom, 10)
-
+                        // Title and Edit Button
                         HStack {
-                            Text("First Name:")
-                                .fontWeight(.bold)
+                            Text("Profile Information")
+                                .font(.title2)
+                                .fontWeight(.semibold)
                             Spacer()
-                            Text(userFirstName)
-                                .foregroundColor(.secondary)
+                            Button(action: {
+                                isEditMode.toggle() // Toggle edit mode
+                            }) {
+                                Text(isEditMode ? "Cancel" : "Update Profile")
+                                    .foregroundColor(.blue)
+                                    .padding(8)
+                                    .background(Color(UIColor.systemGray5))
+                                    .cornerRadius(8)
+                            }
                         }
-                        Divider()
 
-                        HStack {
-                            Text("Last Name:")
-                                .fontWeight(.bold)
-                            Spacer()
-                            Text(userLastName)
-                                .foregroundColor(.secondary)
+                        // Fields (Editable or Non-editable)
+                        VStack(spacing: 10) {
+                            // First Name
+                            HStack {
+                                Text("First Name:")
+                                    .fontWeight(.bold)
+                                Spacer()
+                                if isEditMode {
+                                    TextField("Enter First Name", text: $userFirstName)
+                                        .padding(8)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(Color.white)
+                                                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                        )
+                                        .frame(maxWidth: 200) // Adjust width for better alignment
+                                        .foregroundColor(.primary)
+                                } else {
+                                    Text(userFirstName)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            Divider()
+
+                            // Last Name
+                            HStack {
+                                Text("Last Name:")
+                                    .fontWeight(.bold)
+                                Spacer()
+                                if isEditMode {
+                                    TextField("Enter Last Name", text: $userLastName)
+                                        .padding(8)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(Color.white)
+                                                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                        )
+                                        .frame(maxWidth: 200)
+                                        .foregroundColor(.primary)
+                                } else {
+                                    Text(userLastName)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            Divider()
+
+                            // Email (Static)
+                            HStack {
+                                Text("Email:")
+                                    .fontWeight(.bold)
+                                Spacer()
+                                Text(email)
+                                    .foregroundColor(.secondary)
+                            }
                         }
-                        Divider()
 
-                        HStack {
-                            Text("Email:")
-                                .fontWeight(.bold)
-                            Spacer()
-                            Text(email)
-                                .foregroundColor(.secondary)
+                        // Save Changes Button (Only in Edit Mode)
+                        if isEditMode {
+                            Button(action: {
+                                saveProfileChanges()
+                                isEditMode = false // Exit edit mode after saving
+                            }) {
+                                Text("Save Changes")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                            }
+                            .padding(.top)
                         }
                     }
                     .padding()
@@ -112,7 +171,6 @@ struct ProfileView: View {
                                 .background(Color.red)
                                 .cornerRadius(8)
                         }
-                        .padding()
                         .alert(isPresented: $showSOSConfirmation) {
                             Alert(
                                 title: Text("Are you sure?"),
@@ -138,7 +196,6 @@ struct ProfileView: View {
                                 .background(Color(UIColor.secondarySystemBackground))
                                 .cornerRadius(8)
                         }
-                        .padding()
                         .alert(isPresented: $showLogoutConfirmation) {
                             Alert(
                                 title: Text("Log Out"),
@@ -161,7 +218,7 @@ struct ProfileView: View {
 
                     Spacer()
                 }
-                .padding(.bottom, 40) // Extra padding at the bottom
+                .padding(.bottom, 40)
             }
             .onAppear {
                 fetchProfileData()
@@ -171,8 +228,6 @@ struct ProfileView: View {
             .preferredColorScheme(isDarkModeEnabled ? .dark : .light)
         }
     }
-
-    // Save the dark mode preference to UserDefaults
     private func toggleDarkMode(value: Bool) {
         UserDefaults.standard.set(value, forKey: "isDarkModeEnabled")
     }
@@ -205,7 +260,6 @@ struct ProfileView: View {
                     self.userFirstName = profile.firstName
                     self.userLastName = profile.lastName
                     self.email = profile.email
-                    print("Profile fetched successfully")
                 }
             } catch {
                 print("Failed to decode profile data:", error.localizedDescription)
@@ -239,13 +293,48 @@ struct ProfileView: View {
                     return
                 }
 
-                print("Logged out successfully")
                 UserDefaults.standard.removeObject(forKey: "authToken") // Clear token
                 self.navigateToLandingView = true // Trigger navigation to LandingView
             }
         }.resume()
     }
+
+    func saveProfileChanges() {
+        guard let token = UserDefaults.standard.string(forKey: "authToken"),
+              let url = URL(string: "https://TrailBlazer33:5001/api/auth/update-profile") else {
+            print("Invalid URL or missing token")
+            return
+        }
+
+        let body: [String: Any] = [
+            "firstName": userFirstName,
+            "lastName": userLastName
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Error updating profile:", error.localizedDescription)
+                    return
+                }
+
+                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                    print("Update failed with response:", response.debugDescription)
+                    return
+                }
+
+                self.showSaveConfirmation = true
+            }
+        }.resume()
+    }
 }
+
 
 // Profile Model
 struct Profile: Codable {
