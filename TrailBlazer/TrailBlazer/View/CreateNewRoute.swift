@@ -21,6 +21,13 @@ struct CreateNewRouteView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
+                
+                // Logo at the top
+                Image("TextLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 40)
+                    .padding(.top, 20)
                 // Title
                 Text("Set Your Route")
                     .font(Font.custom("Inter", size: 25).weight(.bold))
