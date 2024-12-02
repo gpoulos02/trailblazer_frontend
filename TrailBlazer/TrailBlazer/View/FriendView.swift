@@ -58,6 +58,7 @@ struct FriendView: View {
                 }
             }
             .padding()
+            .navigationBarBackButtonHidden(true)
             
             Spacer()
 

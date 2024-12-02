@@ -59,6 +59,7 @@ struct LogInView: View {
             .padding()
             .navigationDestination(isPresented: $isLoggedIn) {
                 HomeView(userName: userName ?? "User")
+                    .navigationBarBackButtonHidden(true)
             }
         }
     }

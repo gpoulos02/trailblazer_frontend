@@ -76,6 +76,7 @@ struct PerformanceMetricsView: View {
             }
 
             Spacer() // Push content upwards
+            .navigationBarBackButtonHidden(true)
 
             // Navigation Bar at the Bottom
             HStack {
