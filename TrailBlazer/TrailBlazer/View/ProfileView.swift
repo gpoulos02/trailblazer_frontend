@@ -11,7 +11,9 @@ struct ProfileView: View {
     @State private var isDarkModeEnabled = false
     @State private var profileImage: Image? = nil
     
-    //var userName: String
+    @State private var showLogoutConfirmation = false // State for showing alert
+    @State private var navigateToLandingView = false  // State for navigation
+    @State private var showSOSConfirmation = false // State for showing SOS confirmation alert
 
     var body: some View {
         NavigationStack {
@@ -42,12 +44,14 @@ struct ProfileView: View {
                         .padding()
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     
-                    Button(action: saveNameChanges) {
+                    // Disabled button for saving name changes (no functionality for now)
+                    Button(action: {}) {
                         Text("Save Changes")
                             .font(.headline)
                             .foregroundColor(.blue)
                             .padding()
                     }
+                    .disabled(true) // Disable the button for now
                 }
 
                 Divider()
@@ -68,7 +72,9 @@ struct ProfileView: View {
                 Divider()
                 
                 // SOS Button
-                Button(action: triggerSOS) {
+                Button(action: {
+                    showSOSConfirmation = true // Show SOS confirmation alert
+                }) {
                     Text("Emergency SOS")
                         .font(.headline)
                         .foregroundColor(.white)
@@ -78,6 +84,17 @@ struct ProfileView: View {
                         .cornerRadius(8)
                 }
                 .padding()
+                .alert(isPresented: $showSOSConfirmation) {
+                    Alert(
+                        title: Text("Are you sure?"),
+                        message: Text("Are you sure you want to trigger Emergency SOS? Doing so will alert local authorities and your location will be sent to Mountain Ski Patrol, along with your TrailBlazer Friends."),
+                        primaryButton: .destructive(Text("Proceed")) {
+                            // Add the actual SOS trigger code here
+                            print("SOS triggered")
+                        },
+                        secondaryButton: .cancel()
+                    )
+                }
                 
                 // Account Management Section
                 NavigationLink(destination: ChangePasswordView()) {
@@ -91,100 +108,75 @@ struct ProfileView: View {
                 
                 // Log Out Button
                 Button(action: {
-                    print("Logging out...")
+                    showLogoutConfirmation = true // Show confirmation alert
                 }) {
                     Text("Log Out")
                         .font(.headline)
                         .foregroundColor(.red)
                         .padding(.top, 20)
                 }
-                .padding(.horizontal, 16)
-                
+                .alert(isPresented: $showLogoutConfirmation) {
+                    Alert(
+                        title: Text("Log Out"),
+                        message: Text("Are you sure you want to log out?"),
+                        primaryButton: .destructive(Text("Log Out")) {
+                            performLogout()
+                        },
+                        secondaryButton: .cancel()
+                    )
+                }
+
                 Spacer()
             }
             .padding()
-
-            // Bottom Navigation Bar
-            HStack {
-                // Home Button
-                NavigationLink(destination: HomeView(userName: userName)) { // Pass userName to HomeView
-                    VStack {
-                        Image(systemName: "house.fill")
-                            .foregroundColor(.black)
-                        Text("Home")
-                            .foregroundColor(.black)
-                            .font(.caption)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                
-                // Friends Button
-                NavigationLink(destination: FriendView(userName: userName)) { // Pass userName to FriendView
-                    VStack {
-                        Image(systemName: "person.2.fill")
-                            .foregroundColor(.black)
-                        Text("Friends")
-                            .foregroundColor(.black)
-                            .font(.caption)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                
-                // Map Button
-                NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass userName to SetNewRouteView
-                    VStack {
-                        Image(systemName: "map.fill")
-                            .foregroundColor(.black)
-                        Text("Map")
-                            .foregroundColor(.black)
-                            .font(.caption)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-
-                // Performance Metrics Button
-                NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
-                    VStack {
-                        Image(systemName: "chart.bar.fill") // Represents Metrics
-                            .foregroundColor(.black)
-                        Text("Metrics")
-                            .foregroundColor(.black)
-                            .font(.caption)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                
-                // Profile Button
-                NavigationLink(destination: ProfileView(userName: userName)) { // Pass userName to ProfileView
-                    VStack {
-                        Image(systemName: "person.fill")
-                            .foregroundColor(.black)
-                        Text("Profile")
-                            .foregroundColor(.black)
-                            .font(.caption)
-                    }
-                }
-                .frame(maxWidth: .infinity)
+            .navigationDestination(isPresented: $navigateToLandingView) {
+                LandingView()
             }
-            .padding()
-            .background(Color.white)
-            .shadow(radius: 5)
         }
     }
 
-    // Save name changes to the backend (placeholder logic)
-    func saveNameChanges() {
-        print("Name updated to \(userFirstName) \(userLastName)")
+    func performLogout() {
+        
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            print("Token: \(token)") // Debugging step
+        } else {
+            print("No token found")
+        }
+        
+        guard let token = UserDefaults.standard.string(forKey: "authToken") else {
+            print("No token found")
+            return
+        }
+
+        // API endpoint for logout
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/auth/logout") else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Logout failed: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                    print("Logout failed with response: \(response.debugDescription)")
+                    return
+                }
+
+                // Handle successful logout
+                print("Logged out successfully")
+                
+                navigateToLandingView = true
+
+            }
+        }.resume()
     }
 
-    // Trigger SOS action (placeholder logic)
-    func triggerSOS() {
-        print("SOS triggered")
-    }
-}
-
-struct ProfileView_Previews: PreviewProvider {
-    static var previews: some View {
-        ProfileView(userName: "John Doe") // Provide a sample userName for preview
-    }
 }
