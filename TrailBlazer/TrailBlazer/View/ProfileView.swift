@@ -19,22 +19,15 @@ struct ProfileView: View {
                 VStack(spacing: 30) {
                     // Profile Picture Section
                     VStack {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 120))
-                            .foregroundColor(.blue)
-                            .padding()
-                            .background(
-                                Circle()
-                                    .fill(Color.blue.opacity(0.2))
-                                    .frame(width: 150, height: 150)
-                            )
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.blue, lineWidth: 2)
-                                    .frame(width: 150, height: 150)
-                            )
+                        Image("profile")
+                            .resizable() // Make the image resizable
+                            .scaledToFill() // Scale the image to completely fill the frame
+                            .frame(width: 185, height: 185) // Set the size of the image
+                            .clipShape(Circle()) // Clip the image into a circular shape
+
+
                     }
-                    .padding(.top, 40)
+                    .padding(.top, 20)
 
                     // Profile Info Section (Card Style)
                     VStack(alignment: .leading, spacing: 15) {
