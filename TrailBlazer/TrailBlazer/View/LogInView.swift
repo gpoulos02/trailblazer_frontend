@@ -23,12 +23,14 @@ struct LogInView: View {
                     .background(Color.gray.opacity(0.2))
                     .cornerRadius(8)
                     .disableAutocorrection(true)
+                    .autocapitalization(.none)
 
                 // Password Input
                 SecureField("Password", text: $password)
                     .padding()
                     .background(Color.gray.opacity(0.2))
                     .cornerRadius(8)
+                    .autocapitalization(.none)
 
                 // Error Message Display
                 if let errorMessage = errorMessage {
