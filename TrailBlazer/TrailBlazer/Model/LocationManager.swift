@@ -1,17 +1,23 @@
 import CoreLocation
 
+protocol LocationManagerDelegate: AnyObject {
+    func didUpdateLocation(_ location: CLLocation)
+}
+
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
+    weak var delegate: LocationManagerDelegate?
 
-    @Published var currentLocation: CLLocation? // User's current location
-    @Published var currentSpeed: Double = 0.0   // Speed in m/s
-    @Published var currentElevation: Double = 0.0 // Elevation in meters
+    @Published var currentLocation: CLLocation?
+    @Published var currentSpeed: Double = 0.0
+    @Published var currentElevation: Double = 0.0
 
     override init() {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestWhenInUseAuthorization()
+        locationManager.requestAlwaysAuthorization()
         locationManager.startUpdatingLocation()
     }
 
@@ -26,8 +32,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         currentLocation = location
-        currentSpeed = location.speed >= 0 ? location.speed : 0 // Ensure non-negative speed
+        currentSpeed = location.speed >= 0 ? location.speed : 0
         currentElevation = location.altitude
+
+        // Inform delegate of the updated location
+        delegate?.didUpdateLocation(location)
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
