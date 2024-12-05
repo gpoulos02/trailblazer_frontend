@@ -182,77 +182,75 @@ import MapboxMaps
 import CoreLocation
 
 struct MapViewWrapper: UIViewRepresentable {
-    var apiKey: String
-
-    func makeUIView(context: Context) -> MapView {
-        // Set the global access token
-        MapboxOptions.accessToken = apiKey
-
-    func makeUIView(context: Context) -> MapView {
-        // Set the Mapbox access token
-        MapboxOptions.accessToken = apiKey
-
-        // Initialize the map with style
-        let options = MapInitOptions(styleURI: StyleURI(rawValue: "mapbox://styles/gpoulakos/cm3nt0prt00m801r25h8wajy5"))
-        let mapView = MapView(frame: .zero, mapInitOptions: options)
-
-        // Set initial camera options (Bird's-eye view with zoom and pitch)
-        let cameraOptions = CameraOptions(
-            zoom: 14.0, // Initial zoom level
-            bearing: 0.0,
-            pitch: 45.0
-        )
-        mapView.mapboxMap.setCamera(to: cameraOptions)
-
-        // Enable camera movement (rotation, zooming)
-//        mapView.mapboxMap.on(MapboxMapCameraChangedEvent.self).observeNext { _ in
-//            // Handle any changes in camera (rotation, zoom) dynamically
-//            let cameraState = mapView.mapboxMap.cameraState
-//            print("Camera moved: \(cameraState)")
-//        }
-
-        // Assign Coordinator to listen for location updates
-        context.coordinator.mapView = mapView
-        locationManager.delegate = context.coordinator
-
-        // Enable the location puck with custom styling
-        let locationOptions = LocationOptions(
-            puckType: .puck2D(),
-            puckBearing: .heading
-        )
-        mapView.location.options = locationOptions
-
-        return mapView
-    }
-
-    func updateUIView(_ uiView: MapView, context: Context) {
-        // Handle any updates when the location changes
-    }
-
-    func makeCoordinator() -> Coordinator {
-        return Coordinator()
-    }
-
-    class Coordinator: NSObject, LocationManagerDelegate {
-        var mapView: MapView?
-
-        func didUpdateLocation(_ location: CLLocation) {
-            guard let mapView = mapView else { return }
-
-            // Update the map's camera to center around the new location
-            let coordinate = location.coordinate
+        var apiKey: String
+    
+        
+        func makeUIView(context: Context) -> MapView {
+            // Set the Mapbox access token
+            MapboxOptions.accessToken = apiKey
+            
+            // Initialize the map with style
+            let options = MapInitOptions(styleURI: StyleURI(rawValue: "mapbox://styles/gpoulakos/cm3nt0prt00m801r25h8wajy5"))
+            let mapView = MapView(frame: .zero, mapInitOptions: options)
+            
+            // Set initial camera options (Bird's-eye view with zoom and pitch)
             let cameraOptions = CameraOptions(
-                center: CLLocationCoordinate2D(latitude: coordinate.latitude, longitude: coordinate.longitude),
-                zoom: 14.0,
+                zoom: 14.0, // Initial zoom level
                 bearing: 0.0,
                 pitch: 45.0
             )
-
             mapView.mapboxMap.setCamera(to: cameraOptions)
-
-            // The puck is automatically updated with the CLLocationManager updates
-            print("Updated location: \(coordinate.latitude), \(coordinate.longitude)")
+            
+            // Enable camera movement (rotation, zooming)
+            //        mapView.mapboxMap.on(MapboxMapCameraChangedEvent.self).observeNext { _ in
+            //            // Handle any changes in camera (rotation, zoom) dynamically
+            //            let cameraState = mapView.mapboxMap.cameraState
+            //            print("Camera moved: \(cameraState)")
+            //        }
+            
+            // Assign Coordinator to listen for location updates
+            context.coordinator.mapView = mapView
+            locationManager.delegate = context.coordinator
+            
+            // Enable the location puck with custom styling
+            let locationOptions = LocationOptions(
+                puckType: .puck2D(),
+                puckBearing: .heading
+            )
+            mapView.location.options = locationOptions
+            
+            return mapView
         }
+        
+        func updateUIView(_ uiView: MapView, context: Context) {
+            // Handle any updates when the location changes
+        }
+        
+        func makeCoordinator() -> Coordinator {
+            return Coordinator()
+        }
+        
+        class Coordinator: NSObject, LocationManagerDelegate {
+            var mapView: MapView?
+            
+            func didUpdateLocation(_ location: CLLocation) {
+                guard let mapView = mapView else { return }
+                
+                // Update the map's camera to center around the new location
+                let coordinate = location.coordinate
+                let cameraOptions = CameraOptions(
+                    center: CLLocationCoordinate2D(latitude: coordinate.latitude, longitude: coordinate.longitude),
+                    zoom: 14.0,
+                    bearing: 0.0,
+                    pitch: 45.0
+                )
+                
+                mapView.mapboxMap.setCamera(to: cameraOptions)
+                
+                // The puck is automatically updated with the CLLocationManager updates
+                print("Updated location: \(coordinate.latitude), \(coordinate.longitude)")
+            }
+        }
+        
     }
 
-}
