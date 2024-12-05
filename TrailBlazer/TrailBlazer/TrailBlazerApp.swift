@@ -12,7 +12,6 @@ struct TrailBlazerApp: App {
     var body: some Scene {
         WindowGroup {
             LandingView()
-
         }
     }
 }
