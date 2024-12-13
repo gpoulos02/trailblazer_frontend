@@ -35,7 +35,6 @@
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		4E1CA5A02CF950F5001A54B4 /* Exceptions for "TrailBlazer" folder in "TrailBlazer" target */ = {
-
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -48,9 +47,7 @@
 		4EAE89062CE3F2670086F310 /* TrailBlazer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-
 				4E1CA5A02CF950F5001A54B4 /* Exceptions for "TrailBlazer" folder in "TrailBlazer" target */,
-
 			);
 			path = TrailBlazer;
 			sourceTree = "<group>";
