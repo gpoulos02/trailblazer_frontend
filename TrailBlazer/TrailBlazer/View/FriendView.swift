@@ -73,8 +73,9 @@ struct FriendView: View {
                             .foregroundColor(.black)
                             .font(.caption)
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                
                 
                 // Friends Button
                 NavigationLink(destination: FriendView(userName: userName)) { // Pass `userName` to FriendView
@@ -85,8 +86,9 @@ struct FriendView: View {
                             .foregroundColor(.black)
                             .font(.caption)
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                
                 
                 // Map Button
                 NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass `userName` to SetNewRouteView
@@ -97,8 +99,9 @@ struct FriendView: View {
                             .foregroundColor(.black)
                             .font(.caption)
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                
 
                 // Metrics Button
                 NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
@@ -109,8 +112,9 @@ struct FriendView: View {
                             .foregroundColor(.black)
                             .font(.caption)
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                
                 
                 // Profile Button
                 NavigationLink(destination: ProfileView(userName: userName)) { // Pass `userName` to ProfileView
@@ -121,12 +125,13 @@ struct FriendView: View {
                             .foregroundColor(.black)
                             .font(.caption)
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                
             }
             .padding()
             .background(Color.white)
-            .shadow(radius: 5)
+            //.shadow(radius: 5)
         }
         .padding(.horizontal, 20)
     }

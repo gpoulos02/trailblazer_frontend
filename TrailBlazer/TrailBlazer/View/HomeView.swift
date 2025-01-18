@@ -57,8 +57,9 @@ struct HomeView: View {
                                 .foregroundColor(.black)
                                 .font(.caption)
                         }
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
+                    
                     
                     NavigationLink(destination: FriendView(userName: userName)) {
                         VStack {
@@ -69,8 +70,9 @@ struct HomeView: View {
                                 .font(.caption)
                         }
                         .navigationBarBackButtonHidden(true)
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
+                    
                     
                     
                     NavigationLink(destination: RouteLandingView(userName: userName)) {
@@ -81,8 +83,9 @@ struct HomeView: View {
                                 .foregroundColor(.black)
                                 .font(.caption)
                         }
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
+                    
                     
                     NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
                         VStack {
@@ -93,8 +96,9 @@ struct HomeView: View {
                                 .font(.caption)
                         }
                         .navigationBarBackButtonHidden(true)
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
+                    
                     
                     
                     NavigationLink(destination: ProfileView(userName: userName)) {
@@ -105,14 +109,15 @@ struct HomeView: View {
                                 .foregroundColor(.black)
                                 .font(.caption)
                         }
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
+                    
                 }
                 .padding()
                 .background(Color.white)
-                .shadow(radius: 5)
+                //.shadow(radius: 5)
             }
-            .padding(.horizontal, 20)
+            //.padding(.horizontal, 20)
             .navigationBarBackButtonHidden(true)
         }
     }
