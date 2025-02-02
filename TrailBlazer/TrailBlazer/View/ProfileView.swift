@@ -6,7 +6,8 @@ struct ProfileView: View {
     @State private var userFirstName = ""
     @State private var userLastName = ""
     @State private var email = ""
-
+    @State private var bio = ""
+    
     @State private var isOfflineMapEnabled = false
     @State private var isDarkModeEnabled = UserDefaults.standard.bool(forKey: "isDarkModeEnabled")
     @State private var showLogoutConfirmation = false // State for showing alert
@@ -101,6 +102,29 @@ struct ProfileView: View {
                                 Spacer()
                                 Text(email)
                                     .foregroundColor(.secondary)
+                            }
+                            Divider()
+                            
+                            // Bio Section (New)
+                            HStack {
+                                Text("Bio:")
+                                    .fontWeight(.bold)
+                                Spacer()
+                                if isEditMode {
+                                    TextField("Enter Bio", text: $bio)
+                                        .padding(8)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(Color.white)
+                                                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                        )
+                                        .frame(maxWidth: 200)
+                                        .foregroundColor(.primary)
+                                        .lineLimit(4) // Limit number of lines for the bio
+                                } else {
+                                    Text(bio.isEmpty ? "No bio provided" : bio)
+                                        .foregroundColor(.secondary)
+                                }
                             }
                         }
 
@@ -215,8 +239,68 @@ struct ProfileView: View {
                     ) {
                         EmptyView()
                     }
-
                     Spacer()
+                    
+                    
+                    HStack {
+                        NavigationLink(destination: HomeView(userName: userName)) {
+                            VStack {
+                                Image(systemName: "house.fill")
+                                    .foregroundColor(.black)
+                                Text("Home")
+                                    .foregroundColor(.black)
+                                    .font(.caption)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+
+                        NavigationLink(destination: FriendView(userName: userName)) {
+                            VStack {
+                                Image(systemName: "person.2.fill")
+                                    .foregroundColor(.black)
+                                Text("Friends")
+                                    .foregroundColor(.black)
+                                    .font(.caption)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+
+                        NavigationLink(destination: RouteLandingView(userName: userName)) {
+                            VStack {
+                                Image(systemName: "map.fill")
+                                    .foregroundColor(.black)
+                                Text("Map")
+                                    .foregroundColor(.black)
+                                    .font(.caption)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+
+                        NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
+                            VStack {
+                                Image(systemName: "chart.bar.fill")
+                                    .foregroundColor(.black)
+                                Text("Metrics")
+                                    .foregroundColor(.black)
+                                    .font(.caption)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+
+                        NavigationLink(destination: ProfileView(userName: userName)) {
+                            VStack {
+                                Image(systemName: "person.fill")
+                                    .foregroundColor(.black)
+                                Text("Profile")
+                                    .foregroundColor(.black)
+                                    .font(.caption)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .padding()
+                    .background(Color.white)
+
                 }
                 .padding(.bottom, 40)
             }
@@ -260,6 +344,7 @@ struct ProfileView: View {
                     self.userFirstName = profile.firstName
                     self.userLastName = profile.lastName
                     self.email = profile.email
+                    self.bio = profile.bio
                 }
             } catch {
                 print("Failed to decode profile data:", error.localizedDescription)
@@ -308,7 +393,8 @@ struct ProfileView: View {
 
         let body: [String: Any] = [
             "firstName": userFirstName,
-            "lastName": userLastName
+            "lastName": userLastName,
+            "bio": bio
         ]
 
         var request = URLRequest(url: url)
@@ -341,4 +427,5 @@ struct Profile: Codable {
     let firstName: String
     let lastName: String
     let email: String
+    let bio: String
 }

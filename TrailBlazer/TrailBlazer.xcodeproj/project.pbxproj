@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9455778D2D5003BB0087150A /* ImagePicker in Frameworks */ = {isa = PBXBuildFile; productRef = 9455778C2D5003BB0087150A /* ImagePicker */; };
 		B83239942CF8FF0200F0C241 /* MapboxMaps in Frameworks */ = {isa = PBXBuildFile; productRef = B83239932CF8FF0200F0C241 /* MapboxMaps */; };
 /* End PBXBuildFile section */
 
@@ -69,6 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9455778D2D5003BB0087150A /* ImagePicker in Frameworks */,
 				B83239942CF8FF0200F0C241 /* MapboxMaps in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -139,6 +141,7 @@
 			name = TrailBlazer;
 			packageProductDependencies = (
 				B83239932CF8FF0200F0C241 /* MapboxMaps */,
+				9455778C2D5003BB0087150A /* ImagePicker */,
 			);
 			productName = TrailBlazer;
 			productReference = 4EAE89042CE3F2670086F310 /* TrailBlazer.app */;
@@ -224,6 +227,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				B83239922CF8FEFA00F0C241 /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */,
+				9455778B2D5003BB0087150A /* XCRemoteSwiftPackageReference "ImagePicker" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4EAE89052CE3F2670086F310 /* Products */;
@@ -623,6 +627,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9455778B2D5003BB0087150A /* XCRemoteSwiftPackageReference "ImagePicker" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/hyperoslo/ImagePicker.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.3.0;
+			};
+		};
 		B83239922CF8FEFA00F0C241 /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mapbox/mapbox-maps-ios.git";
@@ -634,6 +646,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		9455778C2D5003BB0087150A /* ImagePicker */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9455778B2D5003BB0087150A /* XCRemoteSwiftPackageReference "ImagePicker" */;
+			productName = ImagePicker;
+		};
 		B83239932CF8FF0200F0C241 /* MapboxMaps */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B83239922CF8FEFA00F0C241 /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */;

@@ -1,6 +1,15 @@
 {
-  "originHash" : "c48d77ebe93e854e8e2b4bbddf1d5fe4977e5a87efa4e14ea29c90b3e5919e31",
+  "originHash" : "cd4b3f3c1f5d788e41d9e05745173c09be7082e98d84d13fff95b986fc198d45",
   "pins" : [
+    {
+      "identity" : "imagepicker",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/hyperoslo/ImagePicker.git",
+      "state" : {
+        "revision" : "d8a8f840380b9a28230c8fcad277adb458706d0a",
+        "version" : "3.3.0"
+      }
+    },
     {
       "identity" : "mapbox-common-ios",
       "kind" : "remoteSourceControl",
