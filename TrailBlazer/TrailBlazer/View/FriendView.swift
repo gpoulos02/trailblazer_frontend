@@ -3,125 +3,121 @@ import SwiftUI
 struct FriendView: View {
     var userName: String // Accepts the logged-in user's name as a parameter
 
+    @State private var navigateToFriendRequests = false
+
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                // Placeholder content for connecting with friends, performance metrics, and location sharing
-                VStack {
-                    Text("Connect with Friends")
-                        .font(Font.custom("Inter", size: 25).weight(.bold))
-                        .foregroundColor(.black)
-                        .padding()
-                    
-                    // Add buttons or features related to adding/viewing friends
-                    Button(action: {
-                        // Action for adding a friend
-                        print("Add friend tapped")
+        VStack(spacing: 20) {
+            // Top bar with logo and add friend button
+            HStack {
+                Image("TextLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 30)
+                    .padding(.leading, 20)
+                
+                Spacer()
+                
+                Button(action: {
+                        navigateToFriendRequests = true
                     }) {
-                        Text("Add Friend")
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
+                        Image("AddFriend")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 40)
+                            .padding(.trailing, 20)
                     }
-                    
-                    Text("Share Performance Metrics")
-                        .font(.title2)
-                        .padding()
-                    
-                    Button(action: {
-                        // Action for sharing performance metrics
-                        print("Share performance metrics tapped")
-                    }) {
-                        Text("Share Metrics")
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
+                }
+                .padding(.top, 20)
+                .background(
+                    NavigationLink("", destination: FriendRequestsView(userName: userName), isActive: $navigateToFriendRequests)
+                )
+            
+            Rectangle()
+                .frame(height: 1)
+                .foregroundColor(Color.gray.opacity(0.5))
+                .padding(.horizontal, 20)
+
+           
+            
+            // Scrollable Friends Section
+            HStack(spacing: 10) {
+                Image("Location")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                
+                Rectangle()
+                    .frame(width: 1, height: 30)
+                    .foregroundColor(.black)
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 15) {
+                        Text("Add friends to see their location!")
+                            .font(.body)
+                            .foregroundColor(.black)
                     }
-                    
-                    Text("Share Your Location")
-                        .font(.title2)
-                        .padding()
-                    
-                    Button(action: {
-                        // Action for sharing location
-                        print("Share location tapped")
-                    }) {
-                        Text("Share Location")
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
+                    .padding(.leading, 10)
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            Spacer()
+            
+            // Bottom Navigation Bar
+            HStack {
+                NavigationLink(destination: HomeView(userName: userName)) {
+                    VStack {
+                        Image(systemName: "house.fill")
+                            .foregroundColor(.black)
+                        Text("Home")
+                            .foregroundColor(.black)
+                            .font(.caption)
+
                     }
                 }
                 .padding()
                 
-                Spacer()
+                NavigationLink(destination: FriendView(userName: userName)) {
+                    VStack {
+                        Image(systemName: "person.2.fill")
+                            .foregroundColor(.black)
+                        Text("Friends")
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    }
+                }
+                .frame(maxWidth: .infinity)
                 
-                // Navigation Bar at the Bottom
-                HStack {
-                    // Home Button
-                    NavigationLink(destination: HomeView(userName: userName)) { // Pass `userName` to HomeView
-                        VStack {
-                            Image(systemName: "house.fill")
-                                .foregroundColor(.black)
-                            Text("Home")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
+                NavigationLink(destination: RouteLandingView(userName: userName)) {
+                    VStack {
+                        Image(systemName: "map.fill")
+                            .foregroundColor(.black)
+                        Text("Map")
+                            .foregroundColor(.black)
+                            .font(.caption)
                     }
-                    
-                    // Friends Button
-                    NavigationLink(destination: FriendView(userName: userName)) { // Pass `userName` to FriendView
-                        VStack {
-                            Image(systemName: "person.2.fill") // Represents friends
-                                .foregroundColor(.black)
-                            Text("Friends")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
+                }
+                .frame(maxWidth: .infinity)
+
+                NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
+                    VStack {
+                        Image(systemName: "chart.bar.fill")
+                            .foregroundColor(.black)
+                        Text("Metrics")
+                            .foregroundColor(.black)
+                            .font(.caption)
                     }
-                    
-                    // Map Button
-                    NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass `userName` to SetNewRouteView
-                        VStack {
-                            Image(systemName: "map.fill") // Represents Map
-                                .foregroundColor(.black)
-                            Text("Map")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    
-                    // Metrics Button
-                    NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
-                        VStack {
-                            Image(systemName: "chart.bar.fill") // Represents Metrics
-                                .foregroundColor(.black)
-                            Text("Metrics")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    
-                    // Profile Button
-                    NavigationLink(destination: ProfileView(userName: userName)) { // Pass `userName` to ProfileView
-                        VStack {
-                            Image(systemName: "person.fill") // Represents Profile
-                                .foregroundColor(.black)
-                            Text("Profile")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
+                }
+                .frame(maxWidth: .infinity)
+                
+                NavigationLink(destination: ProfileView(userName: userName)) {
+                    VStack {
+                        Image(systemName: "person.fill")
+                            .foregroundColor(.black)
+                        Text("Profile")
+                            .foregroundColor(.black)
+                            .font(.caption)
+
                     }
                 }
                 .padding()
@@ -143,6 +139,6 @@ struct FriendView: View {
 
 struct FriendView_Previews: PreviewProvider {
     static var previews: some View {
-        FriendView(userName: "John Doe") // Provide a sample userName for preview
+        FriendView(userName: "John Doe")
     }
 }
