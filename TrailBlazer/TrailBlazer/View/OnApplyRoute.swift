@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct OnApplyRouteView: View {
+    var userName: String
+    
     @State private var isRouteActive: Bool = false
     @State private var speed: Int = 0
     @State private var timeElapsed: Int = 0 // Time in seconds
@@ -111,10 +113,73 @@ struct OnApplyRouteView: View {
                     }
                     .frame(width: 125, height: 38)
                 }
+                HStack {
+                    NavigationLink(destination: HomeView(userName: userName)) {
+                        VStack {
+                            Image(systemName: "house.fill")
+                                .foregroundColor(.black)
+                            Text("Home")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+
+                    NavigationLink(destination: FriendView(userName: userName)) {
+                        VStack {
+                            Image(systemName: "person.2.fill")
+                                .foregroundColor(.black)
+                            Text("Friends")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+
+                    NavigationLink(destination: RouteLandingView(userName: userName)) {
+                        VStack {
+                            Image(systemName: "map.fill")
+                                .foregroundColor(.black)
+                            Text("Map")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+
+                    NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
+                        VStack {
+                            Image(systemName: "chart.bar.fill")
+                                .foregroundColor(.black)
+                            Text("Metrics")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+
+                    NavigationLink(destination: ProfileView(userName: userName)) {
+                        VStack {
+                            Image(systemName: "person.fill")
+                                .foregroundColor(.black)
+                            Text("Profile")
+                                .foregroundColor(.black)
+                                .font(.caption)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+                .padding()
+                .background(Color.white)
             }
         }
-        .padding(.horizontal)
+        .navigationBarBackButtonHidden(true)
     }
+//}
+//            }
+//        }
+//        .padding(.horizontal)
+//    }
 
     // Start Route: Initialize metrics and start a timer
     private func startRoute() {
@@ -146,6 +211,6 @@ struct OnApplyRouteView: View {
 
 struct OnApplyRouteView_Previews: PreviewProvider {
     static var previews: some View {
-        OnApplyRouteView()
+        OnApplyRouteView(userName: "John Doe")
     }
 }

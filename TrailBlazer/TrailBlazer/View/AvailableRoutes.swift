@@ -59,10 +59,72 @@ struct AvailableRoutesView: View {
             }
 
             Spacer()
+            // Navigation Bar at the Bottom
+            HStack {
+                NavigationLink(destination: HomeView(userName: userName)) {
+                    VStack {
+                        Image(systemName: "house.fill")
+                            .foregroundColor(.black)
+                        Text("Home")
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+
+                NavigationLink(destination: FriendView(userName: userName)) {
+                    VStack {
+                        Image(systemName: "person.2.fill")
+                            .foregroundColor(.black)
+                        Text("Friends")
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+
+                NavigationLink(destination: RouteLandingView(userName: userName)) {
+                    VStack {
+                        Image(systemName: "map.fill")
+                            .foregroundColor(.black)
+                        Text("Map")
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+
+                NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
+                    VStack {
+                        Image(systemName: "chart.bar.fill")
+                            .foregroundColor(.black)
+                        Text("Metrics")
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+
+                NavigationLink(destination: ProfileView(userName: userName)) {
+                    VStack {
+                        Image(systemName: "person.fill")
+                            .foregroundColor(.black)
+                        Text("Profile")
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .padding()
+            .background(Color.white)
         }
-        .padding()
     }
+    
 }
+
+            
+    
 
 struct AvailableRoutesView_Previews: PreviewProvider {
     static var previews: some View {
