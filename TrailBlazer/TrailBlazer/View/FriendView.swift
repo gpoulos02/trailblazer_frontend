@@ -72,10 +72,9 @@ struct FriendView: View {
                         Text("Home")
                             .foregroundColor(.black)
                             .font(.caption)
-
                     }
                 }
-                .padding()
+                .frame(maxWidth: .infinity)
                 
                 NavigationLink(destination: FriendView(userName: userName)) {
                     VStack {
@@ -117,22 +116,13 @@ struct FriendView: View {
                         Text("Profile")
                             .foregroundColor(.black)
                             .font(.caption)
-
                     }
                 }
-                .padding()
-                .background(Color.white)
+                .frame(maxWidth: .infinity)
             }
-            .navigationBarTitle("Friends", displayMode: .inline)
-            .navigationBarBackButtonHidden(false) // Make sure the back button is not hidden
-//            .navigationBarItems(leading: Button(action: {
-//                // Custom back button action
-//                // Add the action to navigate back manually if needed
-//            }) {
-//                Image(systemName: "chevron.left")
-//                    .foregroundColor(.blue)
-//            })
-            .padding(.horizontal, 20)
+            .padding()
+            .background(Color.white)
+            .shadow(radius: 5)
         }
     }
 }
