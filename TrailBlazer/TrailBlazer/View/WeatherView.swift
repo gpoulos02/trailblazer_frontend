@@ -8,9 +8,11 @@ struct WeatherView: View {
     @State private var locationName: String = "Your Location"
     @State private var notifications: [String] = ["Snowstorm warning", "High wind alert", "Clear skies today"]
     @State private var forecast: [ForecastWeather] = []
+    @State private var currentTab: Tab = .home
     
     var userName: String
     
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
@@ -83,65 +85,47 @@ struct WeatherView: View {
 
                 
                 Spacer()
+                // Navigation Bar at the Bottom
                 HStack {
-                    // Home Button
-                    NavigationLink(destination: HomeView(userName: userName)) { // Pass userName
-                        VStack {
-                            Image(systemName: "house.fill")
-                                .foregroundColor(.black)
-                            Text("Home")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
+                    TabBarItem(
+                        tab: .home,
+                        currentTab: $currentTab,
+                        destination: {HomeView(userName: userName)},
+                        imageName: "house.fill",
+                        label: "Home"
+                    )
                     
-                    // Friends Button
-                    NavigationLink(destination: FriendView(userName: userName)) { // Pass userName
-                        VStack {
-                            Image(systemName: "person.2.fill")
-                                .foregroundColor(.black)
-                            Text("Friends")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
+                    TabBarItem(
+                        tab: .friends,
+                        currentTab: $currentTab,
+                        destination: {FriendView(userName: userName)},
+                        imageName: "person.2.fill",
+                        label: "Friends"
+                    )
                     
-                    // Map Button
-                    NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass userName
-                        VStack {
-                            Image(systemName: "map.fill")
-                                .foregroundColor(.black)
-                            Text("Map")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    // Performance Metrics Button
-                    NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
-                        VStack {
-                            Image(systemName: "chart.bar.fill") // Represents Metrics
-                                .foregroundColor(.black)
-                            Text("Metrics")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
+                    TabBarItem(
+                        tab: .map,
+                        currentTab: $currentTab,
+                        destination:{ RouteLandingView(userName: userName)},
+                        imageName: "map.fill",
+                        label: "Map"
+                    )
                     
-                    // Profile Button
-                    NavigationLink(destination: ProfileView(userName: userName)) { // Pass userName
-                        VStack {
-                            Image(systemName: "person.fill")
-                                .foregroundColor(.black)
-                            Text("Profile")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
+                    TabBarItem(
+                        tab: .metrics,
+                        currentTab: $currentTab,
+                        destination: {PerformanceMetricsView(userName: userName)},
+                        imageName: "chart.bar.fill",
+                        label: "Metrics"
+                    )
+                    
+                    TabBarItem(
+                        tab: .profile,
+                        currentTab: $currentTab,
+                        destination: {ProfileView(userName: userName)},
+                        imageName: "person.fill",
+                        label: "Profile"
+                    )
                 }
                 .padding()
                 .background(Color.white)
@@ -253,6 +237,7 @@ struct ForecastWeather: Codable, Identifiable {
     // Automatically generate a unique ID for each item
     var id: UUID { UUID() }
 }
+
 
 struct WeatherView_Previews: PreviewProvider {
     static var previews: some View {
