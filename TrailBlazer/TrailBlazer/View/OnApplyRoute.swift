@@ -186,6 +186,7 @@ struct OnApplyRouteView: View {
         speed = 0
         elevation = 0
     }
+    
 
     // Format time from seconds to mm:ss
     private func formattedTime(_ seconds: Int) -> String {

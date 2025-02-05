@@ -9,12 +9,14 @@ struct SelectedRouteView: View {
 
     @ObservedObject private var locationManager = LocationManager()
 
-    @State private var showPerformanceButton = false // Show button after route ends
     @State private var finalSpeed: Double = 0.0 // Store final speed
     @State private var finalElevation: Double = 0.0 // Store final elevation
     @State private var finalTime: TimeInterval = 0.0 // Store final time
     @State private var endRouteDate: String = ""
     @State private var currentTab: Tab = .map
+    
+    // New state for showing save/delete buttons
+    @State private var showSaveDeleteButtons = false
     
     var userName: String
 
@@ -75,69 +77,99 @@ struct SelectedRouteView: View {
                 }
                 .padding(.vertical)
 
-                // View Performance Button (Visible after route ends)
-                if showPerformanceButton {
-                    NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
-                        Text("View Performance")
-                            .font(Font.custom("Inter", size: 16).weight(.bold))
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green)
-                            .cornerRadius(8)
+                // Save/Delete Buttons (Visible after End Route is clicked)
+                if showSaveDeleteButtons {
+                    HStack(spacing: 20) {
+                        // Save Route Button
+                        Button(action: saveRoute) {
+                            Text("Save Route")
+                                .font(Font.custom("Inter", size: 16).weight(.bold))
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.green)
+                                .cornerRadius(8)
+                        }
+
+                        // Delete Route Button
+                        Button(action: deleteRoute) {
+                            
+                            Text("Delete Route")
+                                .font(Font.custom("Inter", size: 16).weight(.bold))
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.red)
+                                .cornerRadius(8)
+                        }
                     }
                     .padding(.vertical)
                 }
+
+                Spacer()
+
+                // Performance Metrics Button (Always interactive and grey)
+                NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
+                    Text("View Performance")
+                        .font(Font.custom("Inter", size: 16).weight(.bold))
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.gray)
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+                }
+                .padding(.bottom)
+
+                // Custom Tab Bar
+                HStack {
+                    TabBarItem(
+                        tab: .home,
+                        currentTab: $currentTab,
+                        destination: { HomeView(userName: userName) },
+                        imageName: "house.fill",
+                        label: "Home"
+                    )
+
+                    TabBarItem(
+                        tab: .friends,
+                        currentTab: $currentTab,
+                        destination: { FriendView(userName: userName) },
+                        imageName: "person.2.fill",
+                        label: "Friends"
+                    )
+
+                    TabBarItem(
+                        tab: .map,
+                        currentTab: $currentTab,
+                        destination: { RouteLandingView(userName: userName) },
+                        imageName: "map.fill",
+                        label: "Map"
+                    )
+
+                    TabBarItem(
+                        tab: .metrics,
+                        currentTab: $currentTab,
+                        destination: { PerformanceMetricsView(userName: userName) },
+                        imageName: "chart.bar.fill",
+                        label: "Metrics"
+                    )
+
+                    TabBarItem(
+                        tab: .profile,
+                        currentTab: $currentTab,
+                        destination: { ProfileView(userName: userName) },
+                        imageName: "person.fill",
+                        label: "Profile"
+                    )
+                }
+                .padding()
             }
             .padding()
             .onDisappear {
                 stopTimer()
                 locationManager.stopUpdatingLocation()
             }
-            TabBarItem(
-                tab: .home,
-                currentTab: $currentTab,
-                destination: {HomeView(userName: userName)},
-                imageName: "house.fill",
-                label: "Home"
-            )
-            
-            TabBarItem(
-                tab: .friends,
-                currentTab: $currentTab,
-                destination: {FriendView(userName: userName)},
-                imageName: "person.2.fill",
-                label: "Friends"
-            )
-            
-            TabBarItem(
-                tab: .map,
-                currentTab: $currentTab,
-                destination: {RouteLandingView(userName: userName)},
-                imageName: "map.fill",
-                label: "Map"
-            )
-            
-            TabBarItem(
-                tab: .metrics,
-                currentTab: $currentTab,
-                destination: {PerformanceMetricsView(userName: userName)},
-                imageName: "chart.bar.fill",
-                label: "Metrics"
-            )
-            
-            TabBarItem(
-                tab: .profile,
-                currentTab: $currentTab,
-                destination: {ProfileView(userName: userName)},
-                imageName: "person.fill",
-                label: "Profile"
-            )
-            
-            .padding()
-            .background(Color.white)
-
-
         }
     }
 
@@ -158,7 +190,7 @@ struct SelectedRouteView: View {
                 elapsedTime += Date().timeIntervalSince(start)
             }
             saveMetrics() // Save metrics to the backend
-            showPerformanceButton = true // Show the "View Performance" button
+            showSaveDeleteButtons = true // Show Save/Delete buttons
         } else {
             // Start the timer
             startTime = Date()
@@ -193,6 +225,29 @@ struct SelectedRouteView: View {
         finalTime = elapsedTime
         finalSpeed = locationManager.currentSpeed
         finalElevation = locationManager.currentElevation
+    }
+
+    // Save Route
+    private func saveRoute() {
+        // Call the backend to save the route data
+        print("Route saved: \(routeName), \(finalTime) seconds, \(finalSpeed) m/s, \(finalElevation) m elevation")
+        resetRoute()
+    }
+
+    // Delete Route
+    private func deleteRoute() {
+        // Reset route data without saving
+        resetRoute()
+    }
+
+    // Reset all route data
+    private func resetRoute() {
+        startTime = nil
+        elapsedTime = 0
+        finalSpeed = 0
+        finalElevation = 0
+        finalTime = 0
+        showSaveDeleteButtons = false
     }
 }
 
