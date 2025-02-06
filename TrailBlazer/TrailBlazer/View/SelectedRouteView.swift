@@ -2,34 +2,74 @@ import SwiftUI
 
 struct SelectedRouteView: View {
     let routeName: String // Passed from the previous view
-    //var routeID: String
     @State private var timerRunning: Bool = false
     @State private var startTime: Date? = nil
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer: Timer? = nil
-    
     @ObservedObject private var locationManager = LocationManager()
-    
-    @State private var finalSpeed: Double = 0.0 // Store final speed
-    @State private var finalElevation: Double = 0.0 // Store final elevation
-    @State private var finalTime: TimeInterval = 0.0 // Store final time
+    @State private var finalSpeed: Double = 0.0
+    @State private var finalElevation: Double = 0.0
+    @State private var finalTime: TimeInterval = 0.0
     @State private var finalDistance: Double = 0.0
-    
     @State private var endRouteDate: String = ""
     @State private var currentTab: Tab = .map
-    
-    // New state for showing save/delete buttons
     @State private var showSaveDeleteButtons = false
+    @State private var showSharePrompt = false
+    @State private var shareTitle = ""
     
     var userName: String
     
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                // Route Name
-                Text("\(routeName)")
-                    .font(Font.custom("Inter", size: 20).weight(.bold))
-                    .foregroundColor(.black)
+                HStack {
+                    // Left-aligned route name
+                    Text("\(routeName)")
+                        .font(Font.custom("Inter", size: 20).weight(.bold))
+                        .foregroundColor(.black)
+                    
+                    Spacer()
+                    
+                    // Right-aligned "Share with friends" button
+                    Button(action: {
+                        showSharePrompt.toggle()
+                    }) {
+                        Text("Share with friends")
+                            .font(Font.custom("Inter", size: 16).weight(.bold))
+                            .foregroundColor(.blue)
+                            .padding()
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(8)
+                    }
+                    .sheet(isPresented: $showSharePrompt) {
+                        VStack(spacing: 20) {
+                            Text("Enter Title")
+                                .font(Font.custom("Inter", size: 20).weight(.bold))
+                                .padding(.top)
+
+                            TextField("Enter title", text: $shareTitle)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .padding()
+
+                            HStack {
+                                Button("Cancel") {
+                                    showSharePrompt = false
+                                }
+                                .padding()
+
+                                Button("Share") {
+                                    shareRoute()
+                                    showSharePrompt = false
+                                }
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                            }
+                        }
+                        .padding()
+                    }
+                }
                 
                 // Map Placeholder
                 Rectangle()
@@ -61,6 +101,7 @@ struct SelectedRouteView: View {
                             .font(Font.custom("Inter", size: 16).weight(.bold))
                             .foregroundColor(.blue)
                     }
+                    
                     VStack {
                         Text("Distance")
                             .font(Font.custom("Inter", size: 16))
@@ -92,7 +133,7 @@ struct SelectedRouteView: View {
                 if showSaveDeleteButtons {
                     HStack(spacing: 20) {
                         // Save Route Button
-                        Button(action: {saveSessionData()}) {
+                        Button(action: { saveSessionData() }) {
                             Text("Save Route")
                                 .font(Font.custom("Inter", size: 16).weight(.bold))
                                 .foregroundColor(.white)
@@ -104,7 +145,6 @@ struct SelectedRouteView: View {
                         
                         // Delete Route Button
                         Button(action: deleteRoute) {
-                            
                             Text("Delete Route")
                                 .font(Font.custom("Inter", size: 16).weight(.bold))
                                 .foregroundColor(.white)
@@ -184,7 +224,6 @@ struct SelectedRouteView: View {
         }
     }
     
-    // Format elapsed time into hours, minutes, seconds
     private func formatTime(_ time: TimeInterval) -> String {
         let seconds = Int(time) % 60
         let minutes = (Int(time) / 60) % 60
@@ -192,25 +231,21 @@ struct SelectedRouteView: View {
         return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
     }
     
-    // Start/End Timer
     private func toggleTimer() {
         if timerRunning {
-            // Stop the timer
             stopTimer()
             if let start = startTime {
                 elapsedTime += Date().timeIntervalSince(start)
             }
-            saveMetrics() // Save metrics to the backend
-            showSaveDeleteButtons = true // Show Save/Delete buttons
+            saveMetrics()
+            showSaveDeleteButtons = true
         } else {
-            // Start the timer
             startTime = Date()
             timerRunning = true
             startTimer()
         }
     }
     
-    // Start the Timer
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if let start = startTime {
@@ -219,19 +254,16 @@ struct SelectedRouteView: View {
         }
     }
     
-    // Stop the Timer
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
         timerRunning = false
     }
     
-    // Save Metrics to Backend (Placeholder)
     private func saveMetrics() {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         endRouteDate = formatter.string(from: Date())
-        // Simulate saving metrics to backend
         print("Saving metrics: \(elapsedTime) seconds, Speed: \(locationManager.currentSpeed), Elevation: \(locationManager.currentElevation), Date: \(endRouteDate), distance: \(locationManager.totalDistance)")
         finalTime = elapsedTime
         finalSpeed = locationManager.currentSpeed
@@ -239,20 +271,15 @@ struct SelectedRouteView: View {
         finalDistance = locationManager.totalDistance
     }
     
-    // Save Route
     private func saveRoute() {
-        // Call the backend to save the route data
         print("Route saved: \(routeName), \(finalTime) seconds, \(finalSpeed) m/s, \(finalElevation) m elevation")
         resetRoute()
     }
     
-    // Delete Route
     private func deleteRoute() {
-        // Reset route data without saving
         resetRoute()
     }
     
-    // Reset all route data
     private func resetRoute() {
         startTime = nil
         elapsedTime = 0
@@ -261,139 +288,201 @@ struct SelectedRouteView: View {
         finalTime = 0
         showSaveDeleteButtons = false
     }
+    
     func routeNametoID(completion: @escaping (String?) -> Void) {
-        guard let token = UserDefaults.standard.string(forKey: "authToken"),
-              let url = URL(string: "https://TrailBlazer33:5001/api/routes/runIDByRunName?runName=\(routeName)") else {
-            print("Invalid URL or missing token")
-            completion(nil)
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        // Send GET request to retrieve runID by routeName
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("Error fetching runID:", error.localizedDescription)
-                    completion(nil)
-                    return
-                }
-
-                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    print("Failed to fetch runID. Invalid response.")
-                    completion(nil)
-                    return
-                }
-
-                guard let data = data else {
-                    print("No data received")
-                    completion(nil)
-                    return
-                }
-
-                // Debugging the response
-                if let responseString = String(data: data, encoding: .utf8) {
-                    print("Server response: \(responseString)")
-                }
-
-                // Parse the response JSON to extract runID
-                do {
-                    if let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let runID = jsonResponse["runID"] as? String {
-                        completion(runID)
-                    } else {
-                        print("Invalid response format or missing runID")
+            guard let token = UserDefaults.standard.string(forKey: "authToken"),
+                  let url = URL(string: "https://TrailBlazer33:5001/api/routes/runIDByRunName?runName=\(routeName)") else {
+                print("Invalid URL or missing token")
+                completion(nil)
+                return
+            }
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            // Send GET request to retrieve runID by routeName
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        print("Error fetching runID:", error.localizedDescription)
+                        completion(nil)
+                        return
+                    }
+                    guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                        print("Failed to fetch runID. Invalid response.")
+                        completion(nil)
+                        return
+                    }
+                    guard let data = data else {
+                        print("No data received")
+                        completion(nil)
+                        return
+                    }
+                    // Debugging the response
+                    if let responseString = String(data: data, encoding: .utf8) {
+                        print("Server response: \(responseString)")
+                    }
+                    // Parse the response JSON to extract runID
+                    do {
+                        if let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                           let runID = jsonResponse["runID"] as? String {
+                            completion(runID)
+                        } else {
+                            print("Invalid response format or missing runID")
+                            completion(nil)
+                        }
+                    } catch {
+                        print("Failed to decode JSON response:", error.localizedDescription)
                         completion(nil)
                     }
-                } catch {
-                    print("Failed to decode JSON response:", error.localizedDescription)
-                    completion(nil)
                 }
-            }
-        }.resume()
-    }
-
-    
+            }.resume()
+        }
     
     func saveSessionData() {
-        routeNametoID { runID in
-            guard let runID = runID else {
-                print("Failed to fetch runID")
+            routeNametoID { runID in
+                guard let runID = runID else {
+                    print("Failed to fetch runID")
+                    return
+                }
+                // Ensure the token is available
+                guard let token = UserDefaults.standard.string(forKey: "authToken"),
+                      let url = URL(string: "https://TrailBlazer33:5001/api/metrics") else {
+                    print("Invalid URL or missing token")
+                    return
+                }
+                
+    //            let sessionData: [String: Any] = [
+    //                "topSpeed": locationManager.currentSpeed,
+    //                "distance": locationManager.totalDistance,
+    //                "elevationGain": locationManager.currentElevation,
+    //                "duration": elapsedTime
+    //            ]
+                
+                let sessionData: [String: Any] = [
+                    "topSpeed": 15.5,
+                    "distance": 500,
+                    "elevationGain": 200,
+                    "duration": 120
+                ]
+                // Prepare the payload (the JSON object)
+                let payload: [String: Any] = [
+                    "sessionData": sessionData,
+                    "runID": runID]
+                print("Session data:", locationManager.currentSpeed, locationManager.totalDistance, locationManager.currentElevation, elapsedTime)
+                
+                // Serialize the data
+                guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+                    print("Failed to serialize JSON")
+                    return
+                }
+                
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                
+                // Upload task
+                URLSession.shared.uploadTask(with: request, from: jsonData) { data, response, error in
+                    DispatchQueue.main.async {
+                        if let error = error {
+                            print("Error saving session:", error.localizedDescription)
+                            return
+                        }
+                        
+                        guard let httpResponse = response as? HTTPURLResponse else {
+                            print("No response from server")
+                            return
+                        }
+                        
+                        if httpResponse.statusCode == 201 {
+                            print("Session saved successfully!")
+                        } else {
+                            print("Failed to save session. Status code: \(httpResponse.statusCode)")
+                        }
+                        
+                        // Optional: Log server response if data is returned
+                        if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                            print("Server response:", responseString)
+                        }
+                    }
+                }.resume()
+            }
+        }
+    
+
+
+    
+    private func shareRoute() {
+        routeNametoID { routeID in
+            guard let routeID = routeID else {
+                print("Failed to get route ID")
                 return
             }
+            
+            // Debugging: Verify that routeID is non-nil
+            print("Retrieved route ID: \(routeID)")
+            
             // Ensure the token is available
             guard let token = UserDefaults.standard.string(forKey: "authToken"),
-                  let url = URL(string: "https://TrailBlazer33:5001/api/metrics") else {
+                  let url = URL(string: "https://TrailBlazer33:5001/api/posts/route") else {
                 print("Invalid URL or missing token")
-                return
-            }
-            
-
-//            let sessionData: [String: Any] = [
-//                "topSpeed": locationManager.currentSpeed,
-//                "distance": locationManager.totalDistance,
-//                "elevationGain": locationManager.currentElevation,
-//                "duration": elapsedTime
-//            ]
-            
-            let sessionData: [String: Any] = [
-                "topSpeed": 15.5,
-                "distance": 500,
-                "elevationGain": 200,
-                "duration": 120
-            ]
-
-
-            // Prepare the payload (the JSON object)
-            let payload: [String: Any] = [
-                "sessionData": sessionData,
-                "runID": runID]
-
-
-            print("Session data:", locationManager.currentSpeed, locationManager.totalDistance, locationManager.currentElevation, elapsedTime)
-
-            
-            // Serialize the data
-            guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
-                print("Failed to serialize JSON")
                 return
             }
             
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             
-            // Upload task
-            URLSession.shared.uploadTask(with: request, from: jsonData) { data, response, error in
-                DispatchQueue.main.async {
-                    if let error = error {
-                        print("Error saving session:", error.localizedDescription)
-                        return
-                    }
-                    
-                    guard let httpResponse = response as? HTTPURLResponse else {
-                        print("No response from server")
-                        return
-                    }
-                    
-                    if httpResponse.statusCode == 201 {
-                        print("Session saved successfully!")
-                    } else {
-                        print("Failed to save session. Status code: \(httpResponse.statusCode)")
-                    }
-                    
-                    // Optional: Log server response if data is returned
+            // Set Content-Type to application/json
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            // Debugging: Print shareTitle
+            print("Share Title: \(shareTitle)")
+            
+            // Make sure body is correctly structured
+            let body: [String: Any] = [
+                "routeId": routeID,
+                "title": shareTitle
+            ]
+            
+            print("Request Body: \(body)") // Debugging body content
+            
+            // Ensure the body is properly serialized
+            do {
+                let jsonData = try JSONSerialization.data(withJSONObject: body, options: [])
+                request.httpBody = jsonData
+            } catch {
+                print("Failed to serialize request body: \(error.localizedDescription)")
+                return
+            }
+            
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("Error sharing route: \(error.localizedDescription)")
+                    return
+                }
+                
+                if let response = response as? HTTPURLResponse {
+                    print("HTTP Status Code: \(response.statusCode)")
                     if let data = data, let responseString = String(data: data, encoding: .utf8) {
-                        print("Server response:", responseString)
+                        print("Response Body: \(responseString)")
+                        
+                        if response.statusCode == 201 {
+                            print("Route shared successfully!")
+                        } else {
+                            print("Failed to share route")
+                        }
                     }
                 }
-            }.resume()
+            }
+            task.resume()
         }
     }
+
+
+
+
+
 
     
     struct SelectedRouteView_Previews: PreviewProvider {

@@ -1,24 +1,26 @@
 import SwiftUI
 
 struct FriendView: View {
-    var userName: String // Accepts the logged-in user's name as a parameter
+    var userName: String
 
     @State private var navigateToFriendRequests = false
     @State private var currentTab: Tab = .friends
+    @State private var showNewPostSheet = false
 
     var body: some View {
-        VStack(spacing: 20) {
-            // Top bar with logo and add friend button
-            HStack {
-                Image("TextLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 30)
-                    .padding(.leading, 20)
-                
-                Spacer()
-                
-                Button(action: {
+        ZStack {
+            VStack(spacing: 20) {
+                // Top bar with logo and add friend button
+                HStack {
+                    Image("TextLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 30)
+                        .padding(.leading, 20)
+                    
+                    Spacer()
+                    
+                    Button(action: {
                         navigateToFriendRequests = true
                     }) {
                         Image("AddFriend")
@@ -32,86 +34,110 @@ struct FriendView: View {
                 .background(
                     NavigationLink("", destination: FriendRequestsView(userName: userName), isActive: $navigateToFriendRequests)
                 )
-            
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(Color.gray.opacity(0.5))
-                .padding(.horizontal, 20)
-
-           
-            
-            // Scrollable Friends Section
-            HStack(spacing: 10) {
-                Image("Location")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20, height: 20)
                 
                 Rectangle()
-                    .frame(width: 1, height: 30)
-                    .foregroundColor(.black)
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 15) {
-                        Text("Add friends to see their location!")
-                            .font(.body)
-                            .foregroundColor(.black)
+                    .frame(height: 1)
+                    .foregroundColor(Color.gray.opacity(0.5))
+                    .padding(.horizontal, 20)
+
+                // Scrollable Friends Section
+                HStack(spacing: 10) {
+                    Image("Location")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                    
+                    Rectangle()
+                        .frame(width: 1, height: 30)
+                        .foregroundColor(.black)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 15) {
+                            Text("Add friends to see their location!")
+                                .font(.body)
+                                .foregroundColor(.black)
+                        }
+                        .padding(.leading, 10)
                     }
-                    .padding(.leading, 10)
+                }
+                .padding(.horizontal, 20)
+                
+                Spacer()
+                
+                // Bottom Navigation Bar
+                HStack {
+                    TabBarItem(
+                        tab: .home,
+                        currentTab: $currentTab,
+                        destination: { HomeView(userName: userName) },
+                        imageName: "house.fill",
+                        label: "Home"
+                    )
+                    
+                    TabBarItem(
+                        tab: .friends,
+                        currentTab: $currentTab,
+                        destination: { FriendView(userName: userName) },
+                        imageName: "person.2.fill",
+                        label: "Friends"
+                    )
+                    
+                    TabBarItem(
+                        tab: .map,
+                        currentTab: $currentTab,
+                        destination: { RouteLandingView(userName: userName) },
+                        imageName: "map.fill",
+                        label: "Map"
+                    )
+                    
+                    TabBarItem(
+                        tab: .metrics,
+                        currentTab: $currentTab,
+                        destination: { PerformanceMetricsView(userName: userName) },
+                        imageName: "chart.bar.fill",
+                        label: "Metrics"
+                    )
+                    
+                    TabBarItem(
+                        tab: .profile,
+                        currentTab: $currentTab,
+                        destination: { ProfileView(userName: userName) },
+                        imageName: "person.fill",
+                        label: "Profile"
+                    )
+                }
+                .padding()
+                .background(Color.white)
+                .shadow(radius: 5)
+            }
+            
+            // Floating Button
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        showNewPostSheet = true
+                    }) {
+                        Image("newPost")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 50, height: 50)
+                            .padding()
+                            .background(Color.indigo)
+                            .clipShape(Circle())
+                            .shadow(radius: 5)
+                    }
+                    .padding()
                 }
             }
-            .padding(.horizontal, 20)
-            
-            Spacer()
-            
-            // Bottom Navigation Bar
-            HStack {
-                TabBarItem(
-                    tab: .home,
-                    currentTab: $currentTab,
-                    destination: {HomeView(userName: userName)},
-                    imageName: "house.fill",
-                    label: "Home"
-                )
-                
-                TabBarItem(
-                    tab: .friends,
-                    currentTab: $currentTab,
-                    destination: {FriendView(userName: userName)},
-                    imageName: "person.2.fill",
-                    label: "Friends"
-                )
-                
-                TabBarItem(
-                    tab: .map,
-                    currentTab: $currentTab,
-                    destination: {RouteLandingView(userName: userName)},
-                    imageName: "map.fill",
-                    label: "Map"
-                )
-                
-                TabBarItem(
-                    tab: .metrics,
-                    currentTab: $currentTab,
-                    destination: {PerformanceMetricsView(userName: userName)},
-                    imageName: "chart.bar.fill",
-                    label: "Metrics"
-                )
-                
-                TabBarItem(
-                    tab: .profile,
-                    currentTab: $currentTab,
-                    destination: {ProfileView(userName: userName)},
-                    imageName: "person.fill",
-                    label: "Profile"
-                )
-            }
-            .padding()
-            .background(Color.white)
-            .shadow(radius: 5)
+        }
+        .sheet(isPresented: $showNewPostSheet) {
+            NewPostView()
         }
     }
 }
+
 
 struct FriendView_Previews: PreviewProvider {
     static var previews: some View {
