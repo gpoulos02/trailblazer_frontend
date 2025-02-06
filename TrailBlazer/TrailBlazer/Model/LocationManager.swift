@@ -11,6 +11,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var currentLocation: CLLocation?
     @Published var currentSpeed: Double = 0.0
     @Published var currentElevation: Double = 0.0
+    @Published var totalDistance: Double = 0.0
 
     override init() {
         super.init()
@@ -31,6 +32,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
+        
+        if let currentLocation = currentLocation {
+            let distance = location.distance(from: currentLocation)
+            totalDistance += distance
+        }
         currentLocation = location
         currentSpeed = location.speed >= 0 ? location.speed : 0
         currentElevation = location.altitude

@@ -2,6 +2,9 @@ import SwiftUI
 
 struct SetNewRouteView: View {
     var userName: String // Accept the user's name as a parameter
+    
+    @State private var currentTab: Tab = .map
+    
 
     var body: some View {
         VStack(spacing: 20) {
@@ -59,67 +62,46 @@ struct SetNewRouteView: View {
             
             Spacer()
             
-            // Navigation Bar at the Bottom
             HStack {
-                // Home Button
-                NavigationLink(destination: HomeView(userName: userName)) { // Pass `userName` to HomeView
-                    VStack {
-                        Image(systemName: "house.fill")
-                            .foregroundColor(.black)
-                        Text("Home")
-                            .foregroundColor(.black)
-                            .font(.caption)
-                    }
-                }
-                .frame(maxWidth: .infinity)
+                TabBarItem(
+                    tab: .home,
+                    currentTab: $currentTab,
+                    destination: {HomeView(userName: userName)},
+                    imageName: "house.fill",
+                    label: "Home"
+                )
                 
-                // Friends Button
-                NavigationLink(destination: FriendView(userName: userName)) { // Pass `userName` to FriendView
-                    VStack {
-                        Image(systemName: "person.2.fill") // Represents friends
-                            .foregroundColor(.black)
-                        Text("Friends")
-                            .foregroundColor(.black)
-                            .font(.caption)
-                    }
-                }
-                .frame(maxWidth: .infinity)
+                TabBarItem(
+                    tab: .friends,
+                    currentTab: $currentTab,
+                    destination: {FriendView(userName: userName)},
+                    imageName: "person.2.fill",
+                    label: "Friends"
+                )
                 
-                // Map Button
-                NavigationLink(destination: RouteLandingView(userName: userName)) { // Pass `userName` to RouteLandingView
-                    VStack {
-                        Image(systemName: "map.fill") // Represents Map
-                            .foregroundColor(.black)
-                        Text("Map")
-                            .foregroundColor(.black)
-                            .font(.caption)
-                    }
-                }
-                .frame(maxWidth: .infinity)
+                TabBarItem(
+                    tab: .map,
+                    currentTab: $currentTab,
+                    destination: {RouteLandingView(userName: userName)},
+                    imageName: "map.fill",
+                    label: "Map"
+                )
                 
-                // Weather Button
-                NavigationLink(destination: WeatherView(userName: userName)) {
-                    VStack {
-                        Image(systemName: "cloud.sun.fill") // Represents Weather
-                            .foregroundColor(.black)
-                        Text("Weather")
-                            .foregroundColor(.black)
-                            .font(.caption)
-                    }
-                }
-                .frame(maxWidth: .infinity)
+                TabBarItem(
+                    tab: .metrics,
+                    currentTab: $currentTab,
+                    destination: {PerformanceMetricsView(userName: userName)},
+                    imageName: "chart.bar.fill",
+                    label: "Metrics"
+                )
                 
-                // Profile Button
-                NavigationLink(destination: ProfileView(userName: userName)) { // Pass `userName` to ProfileView
-                    VStack {
-                        Image(systemName: "person.fill") // Represents Profile
-                            .foregroundColor(.black)
-                        Text("Profile")
-                            .foregroundColor(.black)
-                            .font(.caption)
-                    }
-                }
-                .frame(maxWidth: .infinity)
+                TabBarItem(
+                    tab: .profile,
+                    currentTab: $currentTab,
+                    destination: {ProfileView(userName: userName)},
+                    imageName: "person.fill",
+                    label: "Profile"
+                )
             }
             .padding()
             .background(Color.white)

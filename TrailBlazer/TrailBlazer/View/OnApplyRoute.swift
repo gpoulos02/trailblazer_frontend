@@ -8,6 +8,7 @@ struct OnApplyRouteView: View {
     @State private var timeElapsed: Int = 0 // Time in seconds
     @State private var elevation: Int = 0
     @State private var timer: Timer? = nil
+    @State private var currentTab: Tab = .map
 
     var body: some View {
         VStack(spacing: 20) {
@@ -114,60 +115,45 @@ struct OnApplyRouteView: View {
                     .frame(width: 125, height: 38)
                 }
                 HStack {
-                    NavigationLink(destination: HomeView(userName: userName)) {
-                        VStack {
-                            Image(systemName: "house.fill")
-                                .foregroundColor(.black)
-                            Text("Home")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-
-                    NavigationLink(destination: FriendView(userName: userName)) {
-                        VStack {
-                            Image(systemName: "person.2.fill")
-                                .foregroundColor(.black)
-                            Text("Friends")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-
-                    NavigationLink(destination: RouteLandingView(userName: userName)) {
-                        VStack {
-                            Image(systemName: "map.fill")
-                                .foregroundColor(.black)
-                            Text("Map")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-
-                    NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
-                        VStack {
-                            Image(systemName: "chart.bar.fill")
-                                .foregroundColor(.black)
-                            Text("Metrics")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-
-                    NavigationLink(destination: ProfileView(userName: userName)) {
-                        VStack {
-                            Image(systemName: "person.fill")
-                                .foregroundColor(.black)
-                            Text("Profile")
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
+                    TabBarItem(
+                        tab: .home,
+                        currentTab: $currentTab,
+                        destination: {HomeView(userName: userName)},
+                        imageName: "house.fill",
+                        label: "Home"
+                    )
+                    
+                    TabBarItem(
+                        tab: .friends,
+                        currentTab: $currentTab,
+                        destination: {FriendView(userName: userName)},
+                        imageName: "person.2.fill",
+                        label: "Friends"
+                    )
+                    
+                    TabBarItem(
+                        tab: .map,
+                        currentTab: $currentTab,
+                        destination: {RouteLandingView(userName: userName)},
+                        imageName: "map.fill",
+                        label: "Map"
+                    )
+                    
+                    TabBarItem(
+                        tab: .metrics,
+                        currentTab: $currentTab,
+                        destination: {PerformanceMetricsView(userName: userName)},
+                        imageName: "chart.bar.fill",
+                        label: "Metrics"
+                    )
+                    
+                    TabBarItem(
+                        tab: .profile,
+                        currentTab: $currentTab,
+                        destination: {ProfileView(userName: userName)},
+                        imageName: "person.fill",
+                        label: "Profile"
+                    )
                 }
                 .padding()
                 .background(Color.white)
@@ -200,6 +186,7 @@ struct OnApplyRouteView: View {
         speed = 0
         elevation = 0
     }
+    
 
     // Format time from seconds to mm:ss
     private func formattedTime(_ seconds: Int) -> String {

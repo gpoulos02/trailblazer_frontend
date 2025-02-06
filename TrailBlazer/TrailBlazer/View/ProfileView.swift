@@ -15,6 +15,7 @@ struct ProfileView: View {
     @State private var showSOSConfirmation = false // State for showing SOS confirmation alert
     @State private var showSaveConfirmation = false // State for showing save confirmation alert
     @State private var isEditMode = false // Tracks if the user is in edit mode
+    @State private var currentTab: Tab = .profile
 
     var body: some View {
         NavigationStack {
@@ -243,60 +244,45 @@ struct ProfileView: View {
                     
                     
                     HStack {
-                        NavigationLink(destination: HomeView(userName: userName)) {
-                            VStack {
-                                Image(systemName: "house.fill")
-                                    .foregroundColor(.black)
-                                Text("Home")
-                                    .foregroundColor(.black)
-                                    .font(.caption)
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-
-                        NavigationLink(destination: FriendView(userName: userName)) {
-                            VStack {
-                                Image(systemName: "person.2.fill")
-                                    .foregroundColor(.black)
-                                Text("Friends")
-                                    .foregroundColor(.black)
-                                    .font(.caption)
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-
-                        NavigationLink(destination: RouteLandingView(userName: userName)) {
-                            VStack {
-                                Image(systemName: "map.fill")
-                                    .foregroundColor(.black)
-                                Text("Map")
-                                    .foregroundColor(.black)
-                                    .font(.caption)
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-
-                        NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
-                            VStack {
-                                Image(systemName: "chart.bar.fill")
-                                    .foregroundColor(.black)
-                                Text("Metrics")
-                                    .foregroundColor(.black)
-                                    .font(.caption)
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-
-                        NavigationLink(destination: ProfileView(userName: userName)) {
-                            VStack {
-                                Image(systemName: "person.fill")
-                                    .foregroundColor(.black)
-                                Text("Profile")
-                                    .foregroundColor(.black)
-                                    .font(.caption)
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
+                        TabBarItem(
+                            tab: .home,
+                            currentTab: $currentTab,
+                            destination: {HomeView(userName: userName)},
+                            imageName: "house.fill",
+                            label: "Home"
+                        )
+                        
+                        TabBarItem(
+                            tab: .friends,
+                            currentTab: $currentTab,
+                            destination: {FriendView(userName: userName)},
+                            imageName: "person.2.fill",
+                            label: "Friends"
+                        )
+                        
+                        TabBarItem(
+                            tab: .map,
+                            currentTab: $currentTab,
+                            destination: {RouteLandingView(userName: userName)},
+                            imageName: "map.fill",
+                            label: "Map"
+                        )
+                        
+                        TabBarItem(
+                            tab: .metrics,
+                            currentTab: $currentTab,
+                            destination: {PerformanceMetricsView(userName: userName)},
+                            imageName: "chart.bar.fill",
+                            label: "Metrics"
+                        )
+                        
+                        TabBarItem(
+                            tab: .profile,
+                            currentTab: $currentTab,
+                            destination: {ProfileView(userName: userName)},
+                            imageName: "person.fill",
+                            label: "Profile"
+                        )
                     }
                     .padding()
                     .background(Color.white)
