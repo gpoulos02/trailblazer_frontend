@@ -65,39 +65,39 @@ struct AvailableRoutesView: View {
                 TabBarItem(
                     tab: .home,
                     currentTab: $currentTab,
-                    destination: {HomeView(userName: userName)},
+                    destination: { HomeView(userName: userName) },
                     imageName: "house.fill",
                     label: "Home"
                 )
-                
+
                 TabBarItem(
                     tab: .friends,
                     currentTab: $currentTab,
-                    destination: {FriendView(userName: userName)},
+                    destination: { FriendView(userName: userName) },
                     imageName: "person.2.fill",
                     label: "Friends"
                 )
-                
+
                 TabBarItem(
                     tab: .map,
                     currentTab: $currentTab,
-                    destination:{ RouteLandingView(userName: userName)},
+                    destination: { RouteLandingView(userName: userName) },
                     imageName: "map.fill",
                     label: "Map"
                 )
-                
+
                 TabBarItem(
                     tab: .metrics,
                     currentTab: $currentTab,
-                    destination: {PerformanceMetricsView(userName: userName)},
+                    destination: { PerformanceMetricsView(userName: userName) },
                     imageName: "chart.bar.fill",
                     label: "Metrics"
                 )
-                
+
                 TabBarItem(
                     tab: .profile,
                     currentTab: $currentTab,
-                    destination: {ProfileView(userName: userName)},
+                    destination: { ProfileView(userName: userName) },
                     imageName: "person.fill",
                     label: "Profile"
                 )
