@@ -26,30 +26,7 @@ struct PerformanceMetricsView: View {
                     .padding(.leading, 15)
                     .padding(.top, 15)
                 
-                // Rectangle for metrics quadrants
-                VStack {
-                    HStack {
-                        MetricItemView(title: "Top Speed", value: metricsData?.sessionData.topSpeed ?? 0)
-                        MetricItemView(title: "Top Elevation", value: metricsData?.sessionData.elevationGain ?? 0)
-                        MetricItemView(title: "Total Distance", value: metricsData?.sessionData.distance ?? 0)
-                        
-                        
-                        MetricItemView(title: "RunID", value: metricsData?.runID ?? 0)
-                    }
-//                    HStack {
-//                        MetricItemView(title: "Date", value: metricsData?.createdAt ?? 0)
-//                        MetricItemView(title: "user", value: metricsData?.userID)
-//                    }
-                    HStack{
-                        MetricItemView(title: "Total Distance", value: metricsData?.sessionData.distance ?? 0)
-                        MetricItemView(title: "Total Duration", value: metricsData?.sessionData.duration ?? 0)
-                        
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(10)
-                .padding(.horizontal, 20)
+
             }
             .padding(.top, 20)
             
@@ -81,6 +58,23 @@ struct PerformanceMetricsView: View {
                     .padding(.trailing, 20)
                 }
             }
+            VStack {
+                HStack {
+                    MetricItemView(title: "Top Speed", value: metricsData?.sessionData.topSpeed ?? 0)
+                    MetricItemView(title: "Top Elevation", value: metricsData?.sessionData.elevationGain ?? 0)
+                    MetricItemView(title: "Total Distance", value: metricsData?.sessionData.distance ?? 0)
+                    
+                    MetricItemView(title: "RunID", value: metricsData?.runID ?? 0)
+                }
+                HStack {
+                    MetricItemView(title: "Total Distance", value: metricsData?.sessionData.distance ?? 0)
+                    MetricItemView(title: "Total Duration", value: metricsData?.sessionData.duration ?? 0)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(10)
+            .padding(.horizontal, 20)
             .padding(.top, 20)
             
             // Fetching and displaying metrics data

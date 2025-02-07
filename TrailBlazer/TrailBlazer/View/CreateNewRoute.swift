@@ -30,7 +30,7 @@ struct CreateNewRouteView: View {
                     .frame(height: 40)
                     .padding(.top, 20)
                 // Title
-                Text("Set Your Route")
+                Text("Create Route")
                     .font(Font.custom("Inter", size: 25).weight(.bold))
                     .foregroundColor(.black)
                     .padding()
@@ -114,8 +114,9 @@ struct CreateNewRouteView: View {
                         Text("Apply")
                             .font(Font.custom("Inter", size: 16).weight(.bold))
                             .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 16) // Reduced padding on sides
+                            .padding(.vertical, 8)    // Reduced vertical padding
+                            .frame(maxWidth: 200)     // Limiting the width of the button (or you can set a specific width like 200)
                             .background(Color.blue)
                             .cornerRadius(8)
                     }
@@ -183,7 +184,6 @@ struct CreateNewRouteView: View {
             }
             .padding()
             .background(Color.white)
-            .shadow(radius: 5)
         }
     }
 
