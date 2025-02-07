@@ -133,7 +133,6 @@ struct WeatherView: View {
                 }
                 .padding()
                 .background(Color.white)
-                .shadow(radius: 5)
             }
             .onAppear {
                 fetchWeather()

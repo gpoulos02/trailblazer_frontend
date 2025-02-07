@@ -4,6 +4,7 @@ struct HomeView: View {
     var userName: String // Accepts the logged-in user's name as a parameter
     @State private var currentRoute = "None"
     @State private var currentTab: Tab = .home
+    @State private var selectedMap: String = "Select a map...."
     
 
     var body: some View {
@@ -21,10 +22,18 @@ struct HomeView: View {
                     .font(.title)
                     .fontWeight(.bold)
                 
-                // Current Route Status
-                Text("Current Route: \(currentRoute)")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
+                // Map selection drop-down button (Picker)
+                Picker("Select a map...", selection: $selectedMap) {
+                    Text("Select a Map...").tag("Select a Map...")
+                    // Add more map options here when available
+                    Text("Blue Mountain").tag("Option 1")
+                }
+                .pickerStyle(MenuPickerStyle()) // Style it as a dropdown
+                .frame(width: 200, height: 40) // Narrower frame width and height
+                .padding(.horizontal, 20) // Add padding to avoid edge contact
+                .background(Color.white)
+                .cornerRadius(10)
+                .shadow(radius: 5) // Add padding to avoid edge contact
                 
                 // Buttons (same size and vertically stacked)
                 VStack(spacing: 15) {
@@ -45,6 +54,7 @@ struct HomeView: View {
                     }
                 }
                 .padding(.top, 20)
+                .padding(.horizontal, 20)
                 
                 Spacer()
                 .navigationBarHidden(true)
@@ -94,7 +104,6 @@ struct HomeView: View {
                 }
                 .padding()
                 .background(Color.white)
-                //.shadow(radius: 5)
             }
             //.padding(.horizontal, 20)
             .navigationBarBackButtonHidden(true)

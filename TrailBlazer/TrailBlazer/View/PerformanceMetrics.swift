@@ -26,23 +26,7 @@ struct PerformanceMetricsView: View {
                     .padding(.leading, 15)
                     .padding(.top, 15)
                 
-                // Rectangle for metrics quadrants
-                VStack {
-                    HStack {
-                        MetricItemView(title: "Top Speed", value: metricsData?.sessionData.topSpeed ?? 0)
-                        MetricItemView(title: "Top Elevation", value: metricsData?.sessionData.elevationGain ?? 0)
-                        
-                        MetricItemView(title: "RunID", value: metricsData?.runID ?? 0)
-                    }
-                    HStack {
-                        MetricItemView(title: "Date", value: metricsData?.createdAt ?? 0)
-                        MetricItemView(title: "user", value: metricsData?.userID)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(10)
-                .padding(.horizontal, 20)
+
             }
             .padding(.top, 20)
             
@@ -74,6 +58,23 @@ struct PerformanceMetricsView: View {
                     .padding(.trailing, 20)
                 }
             }
+            VStack {
+                HStack {
+                    MetricItemView(title: "Top Speed", value: metricsData?.sessionData.topSpeed ?? 0)
+                    MetricItemView(title: "Top Elevation", value: metricsData?.sessionData.elevationGain ?? 0)
+                    MetricItemView(title: "Total Distance", value: metricsData?.sessionData.distance ?? 0)
+                    
+                    MetricItemView(title: "RunID", value: metricsData?.runID ?? 0)
+                }
+                HStack {
+                    MetricItemView(title: "Total Distance", value: metricsData?.sessionData.distance ?? 0)
+                    MetricItemView(title: "Total Duration", value: metricsData?.sessionData.duration ?? 0)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(10)
+            .padding(.horizontal, 20)
             .padding(.top, 20)
             
             // Fetching and displaying metrics data
@@ -177,19 +178,18 @@ struct PerformanceMetricsView: View {
     
     private func fetchMetricsData(completion: @escaping (MetricsData?) -> Void) {
         // URL without the userID parameter since it's now handled by the JWT token
-        guard let url = URL(string: "https://TrailBlazer33:5001/api/metrics/metrics") else {
-            print("Invalid URL")
+        guard let token = UserDefaults.standard.string(forKey: "authToken"),
+              let url = URL(string: "https://TrailBlazer33:5001/api/metrics/all") else {
+            print("Invalid URL or missing token")
             completion(nil)
             return
         }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
         // Add the Authorization header with the token
-        if let token = UserDefaults.standard.string(forKey: "authToken") {
-            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
 
         // Perform the request
         URLSession.shared.dataTask(with: request) { data, response, error in
