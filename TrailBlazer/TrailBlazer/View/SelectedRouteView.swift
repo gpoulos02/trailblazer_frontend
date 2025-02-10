@@ -359,10 +359,10 @@ struct SelectedRouteView: View {
     //            ]
                 
                 let sessionData: [String: Any] = [
-                    "topSpeed": 15.5,
-                    "distance": 500,
-                    "elevationGain": 200,
-                    "duration": 120
+                    "topSpeed": 10,
+                    "distance": 50,
+                    "elevationGain": 250,
+                    "duration": 310
                 ]
                 // Prepare the payload (the JSON object)
                 let payload: [String: Any] = [
