@@ -13,6 +13,10 @@ struct PerformanceMetricsView: View {
     @State private var isTrailNameListVisible: Bool = true
     @State private var sortLabel: String = ""
     
+    @State private var isShareSheetPresented: Bool = false
+    @State private var shareTitle: String = ""
+    @State private var selectedMetricForSharing: MetricsData? = nil
+    
     let baseURL = "https://TrailBlazer33:5001/api"
     
     var body: some View {
@@ -144,20 +148,65 @@ struct PerformanceMetricsView: View {
                                     Text("Run Name: Loading...")
                                         .font(.headline)
                                 }
-                                
+
                                 Text("Run Date: \(metric.createdAt)")
                                     .font(.headline)
-                                
+
                                 MetricRowView(title: "Top Speed", value: metric.sessionData.topSpeed)
                                 MetricRowView(title: "Elevation Gain", value: metric.sessionData.elevationGain)
                                 MetricRowView(title: "Distance", value: metric.sessionData.distance)
                                 MetricRowView(title: "Duration", value: metric.sessionData.duration)
+
+                                // Add Share Icon Button here
+                                Button(action: {
+                                    selectedMetricForSharing = metric
+                                    isShareSheetPresented = true
+                                }) {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.title)
+                                        .padding()
+                                }.sheet(isPresented: $isShareSheetPresented) {
+                                    VStack {
+                                        Text("Enter a title for your session")
+                                            .font(.headline)
+                                            .padding()
+
+                                        TextField("Session Title", text: $shareTitle)
+                                            .padding()
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        
+                                        Button(action: {
+                                            if let metric = selectedMetricForSharing {
+                                                // Set shareTitle and sessionID here
+                                                sharePerformanceSession(sessionID: metric.sessionID, title: shareTitle)
+                                                isShareSheetPresented = false
+                                                shareTitle = "" // Reset the title
+                                            }
+                                        }) {
+                                            Text("Post Session")
+                                                .padding()
+                                                .background(Color.blue)
+                                                .foregroundColor(.white)
+                                                .cornerRadius(8)
+                                        }
+                                        .padding()
+                                        
+                                        Button("Cancel") {
+                                            isShareSheetPresented = false
+                                            shareTitle = "" // Reset the title if canceled
+                                        }
+                                        .padding()
+                                    }
+                                    .padding()
+                                }
+
                             }
                             .padding(15)
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(10)
                             .padding(.horizontal, 20)
                         }
+
                     }
                 }
             }
@@ -261,6 +310,73 @@ struct PerformanceMetricsView: View {
             }
         }
     }
+    
+    private func sharePerformanceSession(sessionID: String, title: String) {
+        // Ensure the metric to share exists
+        guard let metric = selectedMetricForSharing else {
+            print("No metric selected for sharing")
+            return
+        }
+
+        // Ensure the token is available
+        guard let token = UserDefaults.standard.string(forKey: "authToken"),
+              let url = URL(string: "https://TrailBlazer33:5001/api/posts/performance") else {
+            print("Invalid URL or missing token")
+            return
+        }
+
+        // Prepare the request
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // Prepare the body for the POST request
+        let body: [String: Any] = [
+            "userID": metric.userID,  // Pass the userID from the performance metric
+            "type": "performance",    // Type is always performance for these posts
+            "sessionID": sessionID, // Pass the sessionID to reference the specific performance metric
+            "title": title            // Include the shareTitle for this performance post
+        ]
+
+        // Debugging: Print shareTitle and body
+        print("Share Title: \(title)")
+        print("Request Body: \(body)")
+
+        // Serialize the body to JSON
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: body, options: [])
+            request.httpBody = jsonData
+        } catch {
+            print("Failed to serialize request body: \(error.localizedDescription)")
+            return
+        }
+
+        // Send the POST request
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error sharing performance session: \(error.localizedDescription)")
+                return
+            }
+
+            if let response = response as? HTTPURLResponse {
+                print("HTTP Status Code: \(response.statusCode)")
+                if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                    print("Response Body: \(responseString)")
+
+                    if response.statusCode == 201 {
+                        print("Performance session shared successfully!")
+                    } else {
+                        print("Failed to share performance session")
+                    }
+                }
+            }
+        }
+
+        task.resume()
+    }
+
+
     
     private func fetchRunName(runID: Int, completion: @escaping (String) -> Void) {
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
