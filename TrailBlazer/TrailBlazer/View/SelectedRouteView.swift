@@ -441,7 +441,7 @@ struct SelectedRouteView: View {
             
             // Make sure body is correctly structured
             let body: [String: Any] = [
-                "routeId": routeID,
+                "routeID": routeID,
                 "title": shareTitle
             ]
             
