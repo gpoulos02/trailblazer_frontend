@@ -64,6 +64,12 @@ struct FriendView: View {
                 
                 Spacer()
                 
+//                ScrollView {
+//                                    ForEach(posts, id: \.self) { post in
+//                                        PostView(post: post)
+//                                    }
+//                                }
+                
                 // Bottom Navigation Bar
                 HStack {
                     TabBarItem(
@@ -109,7 +115,10 @@ struct FriendView: View {
                 .padding()
                 .background(Color.white)
                 .shadow(radius: 5)
+            }.onAppear {
+                fetchPosts()
             }
+        }
             
             // Floating Button
             VStack {
@@ -132,12 +141,28 @@ struct FriendView: View {
                 }
             }
         }
-        .sheet(isPresented: $showNewPostSheet) {
-            NewPostView()
-        }
+//        .sheet(isPresented: $showNewPostSheet) {
+//            NewPostView()
+//        }
     }
-}
 
+
+
+func fetchPosts() {
+//        let url = URL(string: "https://yourapi.com/posts?user=\(userName)")!
+//        
+//        URLSession.shared.dataTask(with: url) { data, response, error in
+//            if let data = data {
+//                // Directly decode the JSON data into raw dictionary objects
+//                if let decodedPosts = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
+//                    DispatchQueue.main.async {
+//                        self.posts = decodedPosts
+//                    }
+//                }
+//            }
+//        }.resume()
+//    }
+}
 
 struct FriendView_Previews: PreviewProvider {
     static var previews: some View {
