@@ -6,6 +6,8 @@ struct PostView: View {
     @State private var username: String = "" // Store the fetched username
     @State private var routeName: String = ""
     @State private var sessionDetails: SessionData? // Store the session details for performance posts
+    @State private var isLiked: Bool = false
+    @State private var likeCount: Int = 0
     
     // DateFormatter to format the ISO date string
     private var formattedDate: String {
@@ -62,24 +64,24 @@ struct PostView: View {
                         Text("Performance Metrics:")
                             .font(.headline)
                             .foregroundColor(.black)
-
+                        
                         Text("Top Speed: \(sessionDetails.sessionData.topSpeed) km/h")
                             .font(.body)
                             .foregroundColor(.black)
-
+                        
                         Text("Distance: \(sessionDetails.sessionData.distance) meters")
                             .font(.body)
                             .foregroundColor(.black)
-
+                        
                         Text("Elevation Gain: \(sessionDetails.sessionData.elevationGain) meters")
                             .font(.body)
                             .foregroundColor(.black)
-
+                        
                         Text("Duration: \(sessionDetails.sessionData.duration) seconds")
                             .font(.body)
                             .foregroundColor(.black)
                     }
-                
+                    
                 } else {
                     Text("Loading performance data...")
                         .font(.body)
@@ -104,13 +106,12 @@ struct PostView: View {
             // Bottom Buttons: Like and Comment
             HStack {
                 Button(action: {
-                    // Handle like action
-                    print("Liked post")
+                    toggleLike()
                 }) {
                     HStack {
-                        Image(systemName: "heart.fill")
-                            .foregroundColor(.red)
-                        Text("Like")
+                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                            .foregroundColor(isLiked ? .red : .gray)
+                        Text("\(likeCount)")
                             .foregroundColor(.black)
                     }
                     .padding()
@@ -143,7 +144,7 @@ struct PostView: View {
                 fetchRouteName()
             }
             fetchUsername()
-
+            
             // Reset sessionDetails before fetching new data
             if post.type == "performance" {
                 self.sessionDetails = nil
@@ -152,6 +153,7 @@ struct PostView: View {
             if let sessionID = post.performance {
                 fetchSessionDetails(sessionID: sessionID)
             }
+            toggleLike()
         }
     }
     
@@ -186,32 +188,32 @@ struct PostView: View {
     
     // Fetch route name for route posts
     func fetchRouteName() {
-            guard let url = URL(string: "https://TrailBlazer33:5001/api/routes/runNameByID?runID=\(post.route ?? 0)") else { return }
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "GET"
-            
-            // Add the token (replace `yourTokenHere` with the actual token)
-            if let token = UserDefaults.standard.string(forKey: "authToken") {
-                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            }
-            
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                if let data = data {
-                    do {
-                        // Decode the JSON response which contains the run name
-                        let responseJson = try JSONDecoder().decode([String: String].self, from: data)
-                        if let fetchedRunName = responseJson["runName"] {
-                            DispatchQueue.main.async {
-                                self.routeName = fetchedRunName
-                            }
-                        }
-                    } catch {
-                        print("Error decoding run name:", error)
-                    }
-                }
-            }.resume()
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/routes/runNameByID?runID=\(post.route ?? 0)") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        // Add the token (replace `yourTokenHere` with the actual token)
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                do {
+                    // Decode the JSON response which contains the run name
+                    let responseJson = try JSONDecoder().decode([String: String].self, from: data)
+                    if let fetchedRunName = responseJson["runName"] {
+                        DispatchQueue.main.async {
+                            self.routeName = fetchedRunName
+                        }
+                    }
+                } catch {
+                    print("Error decoding run name:", error)
+                }
+            }
+        }.resume()
+    }
     
     // Fetch session details for performance posts
     func fetchSessionDetails(sessionID: String) {
@@ -241,9 +243,68 @@ struct PostView: View {
             }
         }.resume()
     }
-
-
+    
+    func toggleLike() {
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(post.id)/like") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                do {
+                    let responseJson = try JSONDecoder().decode([String: String].self, from: data)
+                    DispatchQueue.main.async {
+                        if responseJson["message"] == "Post liked" {
+                            isLiked = true
+                            likeCount += 1
+                        } else if responseJson["message"] == "Already liked this post" {
+                            // 🚀 Call the UNLIKE function if already liked
+                            unlikePost()
+                        }
+                    }
+                } catch {
+                    print("Error toggling like:", error)
+                }
+            }
+        }.resume()
+    }
+    
+    // New function to unlike a post
+    func unlikePost() {
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(post.id)/unlike") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                do {
+                    let responseJson = try JSONDecoder().decode([String: String].self, from: data)
+                    DispatchQueue.main.async {
+                        if responseJson["message"] == "Post unliked" {
+                            isLiked = false
+                            likeCount -= 1
+                        }
+                    }
+                } catch {
+                    print("Error unliking post:", error)
+                }
+            }
+        }.resume()
+    }
 }
+
+
+
 
 // Define the SessionData struct to represent session details
 struct SessionData: Codable {
