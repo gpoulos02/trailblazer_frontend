@@ -1,167 +1,261 @@
 import SwiftUI
 
 struct PostView: View {
-    var post: [String: Any]  // Raw post data as a dictionary
+    var post: Post
     
-    @State private var isLiked: Bool = false
-    @State private var commentText: String = ""
-    @State private var showComments: Bool = false
-
+    @State private var username: String = "" // Store the fetched username
+    @State private var routeName: String = ""
+    @State private var sessionDetails: SessionData? // Store the session details for performance posts
+    
+    // DateFormatter to format the ISO date string
+    private var formattedDate: String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ" // Assuming the API uses this format
+        if let date = dateFormatter.date(from: post.createdAt) {
+            dateFormatter.dateStyle = .medium
+            dateFormatter.timeStyle = .short
+            return dateFormatter.string(from: date)
+        }
+        return post.createdAt // Fallback to raw date string if formatting fails
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Title of the Post
-            Text(post["title"] as? String ?? "No Title")
-                .font(.headline)
-                .padding(.bottom, 5)
+        VStack(alignment: .leading, spacing: 15) {
+            // Post Header: Username and Date
+            HStack {
+                // Display username (fetched from the API)
+                Text(username.isEmpty ? "Loading..." : username)
+                    .font(.headline)
+                    .fontWeight(.bold)
+                
+                Spacer()
+                
+                // Post Creation Date (formatted)
+                Text(formattedDate) // Display formatted date
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            }
             
-            // Conditional rendering based on the post type
-            if let type = post["type"] as? String {
-                switch type {
-                case "text":
-                    Text(post["textContent"] as? String ?? "No content")
+            // Post Title
+            Text(post.title)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(.black)
+            
+            // Optional Image (smaller placeholder for now)
+            Image(systemName: "photo") // Placeholder image for now
+                .resizable()
+                .scaledToFit()
+                .frame(height: 150) // Smaller size
+                .cornerRadius(10)
+                .padding(.top, 10)
+            
+            // Content Based on Post Type
+            if post.type == "text" {
+                Text(post.textContent ?? "No content available")
+                    .font(.body)
+                    .foregroundColor(.black)
+            } else if post.type == "performance" {
+                // Display Performance Metrics
+                if let sessionDetails = sessionDetails {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Performance Metrics:")
+                            .font(.headline)
+                            .foregroundColor(.black)
+
+                        Text("Top Speed: \(sessionDetails.sessionData.topSpeed) km/h")
+                            .font(.body)
+                            .foregroundColor(.black)
+
+                        Text("Distance: \(sessionDetails.sessionData.distance) meters")
+                            .font(.body)
+                            .foregroundColor(.black)
+
+                        Text("Elevation Gain: \(sessionDetails.sessionData.elevationGain) meters")
+                            .font(.body)
+                            .foregroundColor(.black)
+
+                        Text("Duration: \(sessionDetails.sessionData.duration) seconds")
+                            .font(.body)
+                            .foregroundColor(.black)
+                    }
+                
+                } else {
+                    Text("Loading performance data...")
+                        .font(.body)
+                        .foregroundColor(.gray)
+                }
+            } else if post.type == "route" {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Route Post:")
+                        .font(.headline)
+                        .foregroundColor(.black)
+                    
+                    Text("Route Name: \(routeName.isEmpty ? "Loading..." : routeName)") // Display route name or "Loading..."
                         .font(.body)
                         .foregroundColor(.black)
-                case "route":
-                    if let routeID = post["route"] as? String {
-                        RoutePostView(routeID: routeID)
-                    }
-                case "performance":
-                    if let performanceID = post["performance"] as? String {
-                        PerformancePostView(performanceID: performanceID)
-                    }
-                default:
-                    EmptyView()
                 }
             }
             
-            // Likes and Comments
-            if let likes = post["likes"] as? [String] {
-                HStack {
-                    Text("\(likes.count) Likes")
-                    Spacer()
-                    if let comments = post["comments"] as? [[String: Any]] {
-                        Text("\(comments.count) Comments")
-                    }
-                }
-                .font(.subheadline)
-                .foregroundColor(.gray)
-                .padding(.top, 5)
-            }
-            
+            // Divider
             Divider()
+                .padding(.vertical, 10)
+            
+            // Bottom Buttons: Like and Comment
+            HStack {
+                Button(action: {
+                    // Handle like action
+                    print("Liked post")
+                }) {
+                    HStack {
+                        Image(systemName: "heart.fill")
+                            .foregroundColor(.red)
+                        Text("Like")
+                            .foregroundColor(.black)
+                    }
+                    .padding()
+                }
+                
+                Spacer()
+                
+                Button(action: {
+                    // Handle comment action
+                    print("Commented on post")
+                }) {
+                    HStack {
+                        Image(systemName: "bubble.right.fill")
+                            .foregroundColor(.blue)
+                        Text("Comment")
+                            .foregroundColor(.black)
+                    }
+                    .padding()
+                }
+            }
+            .font(.subheadline)
         }
         .padding()
-    }
-}
+        .background(Color.white)
+        .cornerRadius(15)
+        .shadow(radius: 5)
+        .border(Color.gray.opacity(0.2), width: 1)
+        .onAppear {
+            if post.type == "route" {
+                fetchRouteName()
+            }
+            fetchUsername()
 
-struct RoutePostView: View {
-    var routeID: String
+            // Reset sessionDetails before fetching new data
+            if post.type == "performance" {
+                self.sessionDetails = nil
+            }
+            
+            if let sessionID = post.performance {
+                fetchSessionDetails(sessionID: sessionID)
+            }
+        }
+    }
     
-    var body: some View {
-        Text("Route Post - Route ID: \(routeID)") // You can replace with route details from the backend
-            .font(.subheadline)
-            .foregroundColor(.blue)
+    // Fetch username from the API based on userID
+    func fetchUsername() {
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/friends/getUsername?userID=\(post.userID)") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        // Add the token (replace `yourTokenHere` with the actual token)
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                do {
+                    // Decode the JSON response which contains the username
+                    let responseJson = try JSONDecoder().decode([String: String].self, from: data)
+                    if let fetchedUsername = responseJson["username"] {
+                        DispatchQueue.main.async {
+                            self.username = fetchedUsername
+                        }
+                    }
+                } catch {
+                    print("Error decoding username:", error)
+                }
+            }
+        }.resume()
     }
-}
-
-struct PerformancePostView: View {
-    var performanceID: String
     
-    var body: some View {
-        Text("Performance Post - Performance ID: \(performanceID)") // Replace with performance data
-            .font(.subheadline)
-            .foregroundColor(.green)
+    // Fetch route name for route posts
+    func fetchRouteName() {
+            guard let url = URL(string: "https://TrailBlazer33:5001/api/routes/runNameByID?runID=\(post.route ?? 0)") else { return }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            
+            // Add the token (replace `yourTokenHere` with the actual token)
+            if let token = UserDefaults.standard.string(forKey: "authToken") {
+                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let data = data {
+                    do {
+                        // Decode the JSON response which contains the run name
+                        let responseJson = try JSONDecoder().decode([String: String].self, from: data)
+                        if let fetchedRunName = responseJson["runName"] {
+                            DispatchQueue.main.async {
+                                self.routeName = fetchedRunName
+                            }
+                        }
+                    } catch {
+                        print("Error decoding run name:", error)
+                    }
+                }
+            }.resume()
+        }
+    
+    // Fetch session details for performance posts
+    func fetchSessionDetails(sessionID: String) {
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/metrics/session/\(sessionID)") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        // Add the token (replace `yourTokenHere` with the actual token)
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                do {
+                    let jsonString = String(data: data, encoding: .utf8) ?? "Invalid JSON"
+                    print("API Response: \(jsonString)")
+                    
+                    let decoded = try JSONDecoder().decode(SessionData.self, from: data)
+                    DispatchQueue.main.async {
+                        self.sessionDetails = decoded
+                    }
+                } catch {
+                    print("Error fetching session details:", error)
+                }
+            }
+        }.resume()
     }
+
+
 }
 
-//struct PostView: View {
-//    let post: Post
-//    @State private var isLiked: Bool = false
-//    @State private var commentText: String = ""
-//    @State private var showComments: Bool = false
-//
-//    var body: some View {
-//        VStack(alignment: .leading, spacing: 10) {
-//            HStack {
-//                Text(post.user.username).font(.headline)
-//                Spacer()
-//                Text(post.createdAt.formatted())
-//                    .font(.caption)
-//                    .foregroundColor(.gray)
-//            }
-//            Text(post.title)
-//                .font(.title2)
-//
-//            if post.type == "text" {
-//                Text(post.textContent ?? "")
-//            } else if post.type == "route" {
-//                Text("Route: \(post.route ?? 0)")
-//            } else if post.type == "performance" {
-//                Text("Performance: \(post.performance ?? "N/A")")
-//            }
-//
-//            HStack {
-//                Button(action: {
-//                    toggleLike()
-//                }) {
-//                    Image(systemName: isLiked ? "heart.fill" : "heart")
-//                        .foregroundColor(isLiked ? .red : .gray)
-//                }
-//                Text("\(post.likes.count) likes")
-//
-//                Button(action: {
-//                    showComments.toggle()
-//                }) {
-//                    Image(systemName: "bubble.right")
-//                }
-//                Text("\(post.comments.count) comments")
-//            }
-//
-//            if showComments {
-//                VStack(alignment: .leading) {
-//                    ForEach(post.comments) { comment in
-//                        Text("\(comment.user): \(comment.content)")
-//                            .font(.caption)
-//                    }
-//                    HStack {
-//                        TextField("Add a comment...", text: $commentText)
-//                            .textFieldStyle(RoundedBorderTextFieldStyle())
-//                        Button(action: {
-//                            addComment()
-//                        }) {
-//                            Image(systemName: "paperplane.fill")
-//                        }
-//                    }
-//                }
-//            }
-//
-//        }
-//        .padding()
-//        .onAppear {
-//            isLiked = post.likes.contains("YOUR_USER_ID_HERE") // Replace with actual user ID
-//        }
-//    }
-//
-//    func toggleLike() {
-//        // Implement like/unlike logic here with API call
-//        isLiked.toggle()
-//    }
-//
-//    func addComment() {
-//        // Implement add comment logic here with API call
-//        if !commentText.isEmpty {
-//            // Send comment to backend
-//            commentText = "" // Clear text field
-//        }
-//    }
-//}
-//
-//// Helper function to parse Date from ISO 8601 string
-//extension Date {
-//    func formatted() -> String {
-//        let formatter = DateFormatter()
-//        formatter.dateStyle = .short
-//        formatter.timeStyle = .short
-//        return formatter.string(from: self)
-//    }
-//}
+// Define the SessionData struct to represent session details
+struct SessionData: Codable {
+    var sessionID: String
+    var runID: Int
+    var sessionData: SessionMetrics
+    var createdAt: String
+}
+
+struct SessionMetrics: Codable {
+    var topSpeed: Double
+    var distance: Double
+    var elevationGain: Double
+    var duration: Double
+}

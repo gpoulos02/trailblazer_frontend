@@ -93,36 +93,41 @@ struct FriendView: View {
                 
                 // Posts Section (Below Location Section)
                 ScrollView {
-                    VStack(spacing: 10) {
-                        ForEach(posts) { post in
-                            VStack(spacing: 10) {
-                                // Display title and content of each post
-                                Text(post.title)
-                                    .font(.headline)
-                                    .foregroundColor(.black)
-                                
-                                if post.type == "text" {
-                                    Text(post.textContent ?? "No content available")
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
-                                } else if post.type == "performance" {
-                                    Text("Performance Post: \(post.performance ?? "No performance data")")
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
-                                } else if post.type == "route" {
-                                    Text("Route Post: \(String(post.route ?? 0))")
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
-                                }
-                                
-                                Divider()
+//                    VStack(spacing: 10) {
+//                        ForEach(posts) { post in
+//                            VStack(spacing: 10) {
+//                                // Display title and content of each post
+//                                Text(post.title)
+//                                    .font(.headline)
+//                                    .foregroundColor(.black)
+//                                
+//                                if post.type == "text" {
+//                                    Text(post.textContent ?? "No content available")
+//                                        .font(.subheadline)
+//                                        .foregroundColor(.gray)
+//                                } else if post.type == "performance" {
+//                                    Text("Performance Post: \(post.performance ?? "No performance data")")
+//                                        .font(.subheadline)
+//                                        .foregroundColor(.gray)
+//                                } else if post.type == "route" {
+//                                    Text("Route Post: \(String(post.route ?? 0))")
+//                                        .font(.subheadline)
+//                                        .foregroundColor(.gray)
+//                                }
+//                                
+//                                Divider()
+//                            }
+//                            .padding()
+//                            .background(Color.white)
+//                            .cornerRadius(10)
+//                            .shadow(radius: 5)
+//                            .border(Color.black, width: 1) // Visual distinction between posts
+//                        }
+                        VStack(spacing: 10) {
+                            ForEach(posts) { post in
+                                PostView(post: post)
                             }
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(10)
-                            .shadow(radius: 5)
-                            .border(Color.black, width: 1) // Visual distinction between posts
-                        }
+                        
                     }
                     .padding(.horizontal)
                 }
@@ -175,6 +180,7 @@ struct FriendView: View {
             }
             .onAppear {
                 fetchPosts()
+                fetchFriendsPosts()
             }
             
             // Floating Button
@@ -202,22 +208,72 @@ struct FriendView: View {
     
     // Fetch posts from the API
     func fetchPosts() {
-         guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/my-posts") else { return }
-         
-         URLSession.shared.dataTask(with: url) { data, response, error in
-             if let data = data {
-                 do {
-                     // Decode the JSON directly into an array of Post objects
-                     let decodedPosts = try JSONDecoder().decode([Post].self, from: data)
-                     DispatchQueue.main.async {
-                         self.posts = decodedPosts
-                     }
-                 } catch {
-                     print("Error decoding posts:", error)
-                 }
-             }
-         }.resume()
-     }
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/my-posts") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        // Add the token (replace `yourTokenHere` with the actual token)
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                do {
+                    // Decode the JSON directly into an array of Post objects
+                    let decodedPosts = try JSONDecoder().decode([Post].self, from: data)
+                    DispatchQueue.main.async {
+                        self.posts = decodedPosts
+                    }
+                } catch {
+                    print("Error decoding posts:", error)
+                }
+            }
+        }.resume()
+    }
+    
+    struct FriendsPostsResponse: Codable {
+        var posts: [Post] // Array of Post objects
+    }
+
+    func fetchFriendsPosts() {
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/friends") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        // Add authentication token
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                // Print the raw JSON for debugging
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("Raw JSON response: \(jsonString)")
+                }
+
+                do {
+                    // Decode the response
+                    let decodedResponse = try JSONDecoder().decode([Post].self, from: data)
+                    DispatchQueue.main.async {
+                        self.posts.append(contentsOf: decodedResponse) // Append the posts
+                    }
+                } catch {
+                    print("Error decoding friends' posts:", error)
+                }
+            } else if let error = error {
+                print("Error fetching friends' posts:", error)
+            }
+        }.resume()
+
+    }
+
+
+
+
 }
 
 struct FriendView_Previews: PreviewProvider {
