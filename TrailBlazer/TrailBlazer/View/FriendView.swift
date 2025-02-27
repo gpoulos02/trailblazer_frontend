@@ -2,18 +2,17 @@ import SwiftUI
 
 // Define the Post struct to represent each post
 struct Post: Identifiable, Codable {
-    var id: String // _id field from API
+    var id: String
     var userID: String
     var type: String
     var title: String
-    var textContent: String? // Only exists for text posts
-    var performance: String? // Only exists for performance posts
-    var route: Int? // Only exists for route posts
-    var createdAt: String // ISO date string for creation time
-    var likes: [String] // Assuming likes are stored as an array of user IDs
-    var comments: [String] // Assuming comments are stored as an array of comment IDs
+    var textContent: String?
+    var performance: String?
+    var route: String? // Change this to String? to handle both types (String or Int)
+    var createdAt: String
+    var likes: [String]
+    var comments: [String]
     
-    // Coding keys to map API response keys to struct properties
     enum CodingKeys: String, CodingKey {
         case id = "_id"
         case userID
@@ -26,7 +25,32 @@ struct Post: Identifiable, Codable {
         case likes
         case comments
     }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        userID = try container.decode(String.self, forKey: .userID)
+        type = try container.decode(String.self, forKey: .type)
+        title = try container.decode(String.self, forKey: .title)
+        textContent = try container.decodeIfPresent(String.self, forKey: .textContent)
+        performance = try container.decodeIfPresent(String.self, forKey: .performance)
+        
+        // Decode route which can be a String or a Number
+        if let routeString = try? container.decode(String.self, forKey: .route) {
+            route = routeString
+        } else if let routeInt = try? container.decode(Int.self, forKey: .route) {
+            route = String(routeInt) // Convert integer to string
+        } else {
+            route = nil
+        }
+        
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        likes = try container.decode([String].self, forKey: .likes)
+        comments = try container.decode([String].self, forKey: .comments)
+    }
 }
+
 
 struct FriendView: View {
     var userName: String

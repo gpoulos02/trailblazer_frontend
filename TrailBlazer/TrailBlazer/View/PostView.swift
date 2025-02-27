@@ -96,6 +96,11 @@ struct PostView: View {
                     Text("Route Name: \(routeName.isEmpty ? "Loading..." : routeName)") // Display route name or "Loading..."
                         .font(.body)
                         .foregroundColor(.black)
+                        .onAppear {
+                            // Debugging: Print routeName when the view appears
+                            print("Route Name onAppear: \(routeName)")
+                        }
+
                 }
             }
             
@@ -187,33 +192,73 @@ struct PostView: View {
     }
     
     // Fetch route name for route posts
+    // Fetch route name for route posts
     func fetchRouteName() {
-        guard let url = URL(string: "https://TrailBlazer33:5001/api/routes/runNameByID?runID=\(post.route ?? 0)") else { return }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        
-        // Add the token (replace `yourTokenHere` with the actual token)
-        if let token = UserDefaults.standard.string(forKey: "authToken") {
-            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+          // Debug to see which runID is being sent
+
+        guard let routeID = post.route else {
+            print("No route ID found.")
+            return
         }
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data {
-                do {
-                    // Decode the JSON response which contains the run name
-                    let responseJson = try JSONDecoder().decode([String: String].self, from: data)
-                    if let fetchedRunName = responseJson["runName"] {
-                        DispatchQueue.main.async {
-                            self.routeName = fetchedRunName
-                        }
-                    }
-                } catch {
-                    print("Error decoding run name:", error)
-                }
+        print("Sending request for runID: \(routeID)")
+
+        // Try to convert routeID to an integer
+        if let routeIDInt = Int(routeID) {
+            // If conversion is successful, construct the URL with the number
+            let urlString = "https://TrailBlazer33:5001/api/routes/runNameByID?runID=\(routeIDInt)"
+            print("Fetching route with URL: \(urlString)")  // Check if URL is correct
+
+            guard let url = URL(string: urlString) else {
+                print("Invalid URL")
+                return
             }
-        }.resume()
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+
+            // Add the token (replace `yourTokenHere` with the actual token)
+            if let token = UserDefaults.standard.string(forKey: "authToken") {
+                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+
+            // Debug: Print the request being sent
+            print("Request being sent to API:", request)
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("API Request Error: \(error.localizedDescription)") // Error on request
+                } else {
+                    if let data = data {
+                        do {
+                            // Debug: Log the response data for analysis
+                            let jsonString = String(data: data, encoding: .utf8) ?? "Invalid JSON"
+                            print("Response data received: \(jsonString)")
+
+                            // Decode the JSON response
+                            let responseJson = try JSONDecoder().decode([String: String].self, from: data)
+                            if let fetchedRunName = responseJson["runName"] {
+                                DispatchQueue.main.async {
+                                    print("Fetched run name: \(fetchedRunName)") // Debug: Fetched run name
+                                    self.routeName = fetchedRunName
+                                }
+                            } else {
+                                print("No runName field in response JSON.")
+                            }
+                        } catch {
+                            print("Error decoding run name:", error) // Error during JSON decoding
+                        }
+                    } else {
+                        print("No data received from API.") // No data received from the API
+                    }
+                }
+            }.resume()
+        } else {
+            print("Invalid routeID, could not convert to number.") // routeID conversion failed
+        }
     }
+
+
+
     
     // Fetch session details for performance posts
     func fetchSessionDetails(sessionID: String) {
@@ -250,9 +295,12 @@ struct PostView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
+        // Add the token (replace `yourTokenHere` with the actual token)
         if let token = UserDefaults.standard.string(forKey: "authToken") {
             request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
+        
+        print("Sending like request for post ID: \(post.id) with user token")
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let data = data {
@@ -260,19 +308,26 @@ struct PostView: View {
                     let responseJson = try JSONDecoder().decode([String: String].self, from: data)
                     DispatchQueue.main.async {
                         if responseJson["message"] == "Post liked" {
+                            print("Post liked successfully. Updating UI.")
                             isLiked = true
                             likeCount += 1
                         } else if responseJson["message"] == "Already liked this post" {
+                            print("Post already liked. Unliking the post.")
                             // 🚀 Call the UNLIKE function if already liked
                             unlikePost()
+                        } else {
+                            print("Unexpected response:", responseJson)
                         }
                     }
                 } catch {
-                    print("Error toggling like:", error)
+                    print("Error decoding response:", error)
                 }
+            } else if let error = error {
+                print("Error making request:", error)
             }
         }.resume()
     }
+
     
     // New function to unlike a post
     func unlikePost() {
