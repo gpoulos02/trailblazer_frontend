@@ -5,123 +5,137 @@ struct NewPostView: View {
     @State private var postTitle: String = ""
     @State private var postBody: String = ""
     @State private var isSubmitting = false
-    
+
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                TextField("Post Title", text: $postTitle)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding()
-                    .onChange(of: postTitle) { newValue in
-                        print("DEBUG: Post title changed to \(newValue)")
-                    }
-                
+        VStack {
+            Spacer() // Push content to the center vertically
+
+            // Post Title Field (Ensure both have the same width and padding)
+            TextField("Post Title", text: $postTitle)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                //.padding(.horizontal) // Same padding for consistency
+                .font(.title3)
+                .background(Color.white)
+                .cornerRadius(10)
+                .shadow(radius: 5)
+                .frame(width: 350) // Ensure both have full width
+            
+
+            // Post Body TextEditor (Ensure it has the same width and padding as the title field)
+            ZStack(alignment: .topLeading) {
                 TextEditor(text: $postBody)
-                    .frame(height: 150)
-                    .border(Color.gray, width: 1)
-                    .padding()
-                    .overlay(
-                        VStack {
-                            if postBody.isEmpty {
-                                Text("What's on your mind?")
-                                    .foregroundColor(.gray)
-                                    .padding(.top, 8)
-                            }
-                            Spacer()
-                        }
-                            .padding(.leading, 5),
-                        alignment: .topLeading
-                    )
-                    .onChange(of: postBody) { newValue in
-                        print("DEBUG: Post body changed to \(newValue)")
-                    }
+                    .frame(height: 180)
+                    .padding(10) // Padding to match TextField padding
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .shadow(radius: 5)
+                    .font(.body)
+                    .frame(width: 350)
+
+                // Placeholder Text
+                if postBody.isEmpty {
+                    Text("What's on your mind?")
+                        .foregroundColor(.gray)
+                        .padding(.top, 12)
+                        .padding(.leading, 15)
+                        .font(.body)
+                }
+            }
+            .padding(.horizontal) // Same horizontal padding as TextField
+
+            Spacer() // Push content to the center vertically
+
+            // Buttons at the bottom
+            HStack {
+                // Cancel Button
+                Button(action: {
+                    dismiss()
+                }) {
+                    Text("Cancel")
+                                            .font(.body)
+                                            .padding(.vertical, 10) // Reduce the height of the button
+                                            .frame(maxWidth: .infinity) // Ensure same width
+                                            .background(Color.red)
+                                            .foregroundColor(.white)
+                                            .cornerRadius(8)
+                }
                 
-                Button(action: submitPost) {
+                // Post Button
+                Button(action: {
+                    submitPost()
+                }) {
                     Text(isSubmitting ? "Posting..." : "Post")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(isSubmitting ? Color.gray : Color.indigo)
+                        .font(.body)
+                        .padding(.vertical, 10) // Reduce the height of the button
+                        .frame(maxWidth: .infinity) // Ensure same width
+                        .background(isSubmitting ? Color.gray : Color.blue)
                         .foregroundColor(.white)
-                        .cornerRadius(10)
+                        .cornerRadius(8)
                 }
-                .padding()
-                .disabled(isSubmitting)
-                .onAppear {
-                    print("DEBUG: NewPostView appeared")
-                }
-                .onDisappear {
-                    print("DEBUG: NewPostView disappeared")
-                }
-                
-                Spacer()
+                .disabled(isSubmitting || postBody.isEmpty || postTitle.isEmpty)
             }
-            .padding()
-            .navigationTitle("Create Post")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        print("DEBUG: User tapped Cancel")
-                        dismiss()
-                    }
-                }
-            }
+            .padding(.horizontal)
+            .padding(.bottom, 20) // Space from the bottom
         }
+        .padding()
+        .navigationTitle("Create Post")
+        .navigationBarTitleDisplayMode(.inline)
     }
-    
+
     private func submitPost() {
         guard !postBody.isEmpty else {
-            print("DEBUG: Attempted to submit an empty post")
+            print("Attempted to submit an empty post")
             return
         }
-        
+
         isSubmitting = true
-        print("DEBUG: Submitting post with title: \(postTitle) and body: \(postBody)")
-        
+
         let requestBody: [String: Any] = ["title": postTitle, "textContent": postBody]
         guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/text") else {
-            print("DEBUG: Invalid URL")
+            print("Invalid URL")
             isSubmitting = false
             return
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Retrieve token (this should be stored securely in UserDefaults or Keychain)
+
         if let token = UserDefaults.standard.string(forKey: "authToken") {
             request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            print("DEBUG: Authorization token added to request")
         } else {
-            print("DEBUG: No auth token found, request will fail")
+            print("No auth token found, request will fail")
             isSubmitting = false
             return
         }
-        
-        request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
-        
-        print("DEBUG: Sending network request to \(url)")
-        
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody, options: [])
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 isSubmitting = false
-                
+
                 if let error = error {
-                    print("DEBUG: Network request failed with error: \(error.localizedDescription)")
+                    print("Network request failed with error: \(error.localizedDescription)")
                     return
                 }
-                
+
                 if let httpResponse = response as? HTTPURLResponse {
-                    print("DEBUG: Server responded with status code: \(httpResponse.statusCode)")
+                    print("Server responded with status code: \(httpResponse.statusCode)")
                 }
-                
+
                 if let data = data, let responseString = String(data: data, encoding: .utf8) {
-                    print("DEBUG: Response Data: \(responseString)")
+                    print("Response Data: \(responseString)")
                 }
-                
-                print("DEBUG: Post submitted successfully")
+
                 dismiss()
             }
         }.resume()
+    }
+}
+
+struct NewPostView_Previews: PreviewProvider {
+    static var previews: some View {
+        NewPostView()
     }
 }
