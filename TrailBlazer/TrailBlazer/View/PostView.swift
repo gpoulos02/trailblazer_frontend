@@ -93,13 +93,17 @@ struct PostView: View {
                         .font(.headline)
                         .foregroundColor(.black)
                     
-                    Text("Route Name: \(routeName.isEmpty ? "Loading..." : routeName)") // Display route name or "Loading..."
+//                    Text("Route Name: \(routeName.isEmpty ? "Loading..." : routeName)") // Display route name or "Loading..."
+//                        .font(.body)
+//                        .foregroundColor(.black)
+//                        .onAppear {
+//                            // Debugging: Print routeName when the view appears
+//                            print("Route Name onAppear: \(routeName)")
+//                        }
+                    Text("Route ID: \(post.route ?? "N/A")")
                         .font(.body)
                         .foregroundColor(.black)
-                        .onAppear {
-                            // Debugging: Print routeName when the view appears
-                            print("Route Name onAppear: \(routeName)")
-                        }
+
 
                 }
             }
@@ -158,7 +162,7 @@ struct PostView: View {
             if let sessionID = post.performance {
                 fetchSessionDetails(sessionID: sessionID)
             }
-            toggleLike()
+            //toggleLike()
         }
     }
     
@@ -289,44 +293,83 @@ struct PostView: View {
         }.resume()
     }
     
+    // Updated toggleLike function to handle the response correctly
     func toggleLike() {
-        guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(post.id)/like") else { return }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        
-        // Add the token (replace `yourTokenHere` with the actual token)
-        if let token = UserDefaults.standard.string(forKey: "authToken") {
-            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-        
-        print("Sending like request for post ID: \(post.id) with user token")
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data {
+        if let postID = post.postID {
+            print("Sending like request for post ID: \(postID)")
+            // Now postID is a non-optional string, so you can safely use it in the URL
+            guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(postID)/like") else {
+                print("Invalid URL")
+                
+                return
+            }
+            
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            
+            // Add the token from UserDefaults for authentication
+            if let token = UserDefaults.standard.string(forKey: "authToken") {
+                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            } else {
+                print("Auth token is missing")
+                return
+            }
+            
+            print("Sending like request for post ID: \(postID) with user token")
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("Error making request:", error)
+                    return
+                }
+                
+                guard let data = data else {
+                    print("No data received from request")
+                    return
+                }
+                
+                // Print the raw response data for inspection
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("Raw response JSON: \(jsonString)")
+                }
+                
+                // Attempt to decode the response into a dictionary
                 do {
-                    let responseJson = try JSONDecoder().decode([String: String].self, from: data)
-                    DispatchQueue.main.async {
-                        if responseJson["message"] == "Post liked" {
-                            print("Post liked successfully. Updating UI.")
-                            isLiked = true
-                            likeCount += 1
-                        } else if responseJson["message"] == "Already liked this post" {
-                            print("Post already liked. Unliking the post.")
-                            // 🚀 Call the UNLIKE function if already liked
-                            unlikePost()
+                    // Decode the response as a dictionary with [String: Any] to handle dynamic content
+                    if let responseJson = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        // Print the dictionary to inspect the structure
+                        print("Decoded response as dictionary: \(responseJson)")
+                        
+                        // Check if the 'likes' key exists and is an array
+                        if let likes = responseJson["likes"] as? [String] {
+                            DispatchQueue.main.async {
+                                self.isLiked = true
+                                self.likeCount += 1 
+                                // Check if the current user's ID is in the likes array
+                                if likes.contains(post.userID) {
+                                        isLiked = true
+                                    } else {
+                                        isLiked = false
+                                    }
+                                    likeCount = likes.count
+                            }
                         } else {
-                            print("Unexpected response:", responseJson)
+                            print("Error: 'likes' key not found or invalid type")
                         }
                     }
                 } catch {
                     print("Error decoding response:", error)
                 }
-            } else if let error = error {
-                print("Error making request:", error)
-            }
-        }.resume()
+            }.resume()
+        }
     }
+
+
+
+
+
+
 
     
     // New function to unlike a post
@@ -375,3 +418,11 @@ struct SessionMetrics: Codable {
     var elevationGain: Double
     var duration: Double
 }
+
+struct LikePostResponse: Codable {
+    var message: String
+    var post: Post? // The post object returned by the backend
+}
+
+
+
