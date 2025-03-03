@@ -114,14 +114,16 @@ struct PostView: View {
             
             // Bottom Buttons: Like and Comment
             HStack {
+                Text("\(likeCount)")  // Display the like count
+                    .foregroundColor(.black)
                 Button(action: {
                     toggleLike()
                 }) {
                     HStack {
                         Image(systemName: isLiked ? "heart.fill" : "heart")
                             .foregroundColor(isLiked ? .red : .gray)
-                        Text("\(likeCount)")
-                            .foregroundColor(.black)
+//                        Text("\(likeCount)")
+//                            .foregroundColor(.black)
                     }
                     .padding()
                 }
@@ -153,6 +155,7 @@ struct PostView: View {
                 fetchRouteName()
             }
             fetchUsername()
+            fetchLikeCount()
             
             // Reset sessionDetails before fetching new data
             if post.type == "performance" {
@@ -295,78 +298,110 @@ struct PostView: View {
     
     // Updated toggleLike function to handle the response correctly
     func toggleLike() {
-        if let postID = post.postID {
-            print("Sending like request for post ID: \(postID)")
-            // Now postID is a non-optional string, so you can safely use it in the URL
-            guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(postID)/like") else {
-                print("Invalid URL")
-                
-                return
-            }
-            
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            
-            // Add the token from UserDefaults for authentication
-            if let token = UserDefaults.standard.string(forKey: "authToken") {
-                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            } else {
-                print("Auth token is missing")
-                return
-            }
-            
-            print("Sending like request for post ID: \(postID) with user token")
-            
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    print("Error making request:", error)
-                    return
-                }
-                
-                guard let data = data else {
-                    print("No data received from request")
-                    return
-                }
-                
-                // Print the raw response data for inspection
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("Raw response JSON: \(jsonString)")
-                }
-                
-                // Attempt to decode the response into a dictionary
-                do {
-                    // Decode the response as a dictionary with [String: Any] to handle dynamic content
-                    if let responseJson = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                        // Print the dictionary to inspect the structure
-                        print("Decoded response as dictionary: \(responseJson)")
-                        
-                        // Check if the 'likes' key exists and is an array
-                        if let likes = responseJson["likes"] as? [String] {
-                            DispatchQueue.main.async {
-                                self.isLiked = true
-                                self.likeCount += 1 
-                                // Check if the current user's ID is in the likes array
-                                if likes.contains(post.userID) {
-                                        isLiked = true
-                                    } else {
-                                        isLiked = false
-                                    }
-                                    likeCount = likes.count
-                            }
-                        } else {
-                            print("Error: 'likes' key not found or invalid type")
-                        }
-                    }
-                } catch {
-                    print("Error decoding response:", error)
-                }
-            }.resume()
+        guard let postID = post.postID else { return }
+        
+        print("Sending like request for post ID: \(postID)")
+        
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(postID)/like") else {
+            print("Invalid URL")
+            return
         }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        // Add the token for authentication
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            print("Auth token is missing")
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error making request:", error)
+                return
+            }
+            
+            guard let data = data else {
+                print("No data received from request")
+                return
+            }
+            
+            do {
+                if let responseJson = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                            if let likesArray = responseJson["likes"] as? [String] { // Extract array
+                                let newLikeCount = likesArray.count // Count elements in array
+                                
+                                DispatchQueue.main.async {
+                                    self.isLiked.toggle()
+                                    self.likeCount = newLikeCount // Update UI with backend count
+                                    //fetchLikeCount()
+                                }
+                            }
+                        }
+            } catch {
+                print("Error decoding response:", error)
+            }
+            DispatchQueue.main.async {
+                self.fetchLikeCount()
+            }
+        }.resume()
     }
+    
+    func fetchLikeCount() {
+        guard let postID = post.postID else { return }
+        
+        print("Fetching like count for post ID: \(postID)")  // Debugging
+        
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(postID)/getLikeCount") else {
+            print("Invalid URL")
+            return
+        }
 
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
 
+        // Add the token for authentication
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
 
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error fetching post:", error)
+                return
+            }
+
+            guard let data = data else {
+                print("No data received from request")
+                return
+            }
+
+            do {
+                // Debugging: Print raw response data
+                let rawResponseString = String(data: data, encoding: .utf8) ?? "Invalid response"
+                print("Raw response data: \(rawResponseString)")
+
+                // Decode the response assuming likeCount is a simple key
+                if let responseJson = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                    if let likeCount = responseJson["likeCount"] as? Int {
+                        DispatchQueue.main.async {
+                            self.likeCount = likeCount  // Set the like count
+                            print("Fetched like count: \(self.likeCount)")  // Debugging
+                        }
+                    } else {
+                        print("No 'likeCount' key found in response.")
+                    }
+                } else {
+                    print("Invalid JSON structure in response.")
+                }
+            } catch {
+                print("Error decoding response:", error)
+            }
+        }.resume()
+    }
 
 
 
