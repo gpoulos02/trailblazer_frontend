@@ -459,5 +459,3 @@ struct LikePostResponse: Codable {
     var post: Post? // The post object returned by the backend
 }
 
-
-
