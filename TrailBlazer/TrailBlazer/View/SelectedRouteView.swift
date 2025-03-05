@@ -413,63 +413,63 @@ struct SelectedRouteView: View {
 
     
     private func shareRoute() {
-        routeNametoID { routeID in
-            guard let routeID = routeID else {
-                print("Failed to get route ID")
-                return
-            }
-            
-            // Ensure the token is available
-            guard let token = UserDefaults.standard.string(forKey: "authToken"),
-                  let url = URL(string: "https://TrailBlazer33:5001/api/posts/route") else {
-                print("Invalid URL or missing token")
-                return
-            }
-
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-            // Ensure that routeID and title are set
-            let body: [String: Any] = [
-                "routeID": routeID,
-                "title": shareTitle,
-                "type": "route"  // Explicitly set the type to 'route'
-            ]
-
-            print("Request Body: \(body)") // Debugging body content
-
-            do {
-                let jsonData = try JSONSerialization.data(withJSONObject: body, options: [])
-                request.httpBody = jsonData
-            } catch {
-                print("Failed to serialize request body: \(error.localizedDescription)")
-                return
-            }
-
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    print("Error sharing route: \(error.localizedDescription)")
+            routeNametoID { routeID in
+                guard let routeID = routeID else {
+                    print("Failed to get route ID")
+                    return
+                }
+                
+                // Ensure the token is available
+                guard let token = UserDefaults.standard.string(forKey: "authToken"),
+                      let url = URL(string: "https://TrailBlazer33:5001/api/posts/route") else {
+                    print("Invalid URL or missing token")
                     return
                 }
 
-                if let response = response as? HTTPURLResponse {
-                    print("HTTP Status Code: \(response.statusCode)")
-                    if let data = data, let responseString = String(data: data, encoding: .utf8) {
-                        print("Response Body: \(responseString)")
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
-                        if response.statusCode == 201 {
-                            print("Route shared successfully!")
-                        } else {
-                            print("Failed to share route")
+                // Ensure that routeID and title are set
+                let body: [String: Any] = [
+                    "routeID": routeID,
+                    "title": shareTitle,
+                    "type": "route"  // Explicitly set the type to 'route'
+                ]
+
+                print("Request Body: \(body)") // Debugging body content
+
+                do {
+                    let jsonData = try JSONSerialization.data(withJSONObject: body, options: [])
+                    request.httpBody = jsonData
+                } catch {
+                    print("Failed to serialize request body: \(error.localizedDescription)")
+                    return
+                }
+
+                let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                    if let error = error {
+                        print("Error sharing route: \(error.localizedDescription)")
+                        return
+                    }
+
+                    if let response = response as? HTTPURLResponse {
+                        print("HTTP Status Code: \(response.statusCode)")
+                        if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                            print("Response Body: \(responseString)")
+
+                            if response.statusCode == 201 {
+                                print("Route shared successfully!")
+                            } else {
+                                print("Failed to share route")
+                            }
                         }
                     }
                 }
+                task.resume()
             }
-            task.resume()
         }
-    }
 
 
 
