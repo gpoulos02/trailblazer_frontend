@@ -6,6 +6,7 @@ struct Post: Identifiable, Codable {
     var postID: String?
     var userID: String
     var type: String
+    var routeID: String?
     var title: String
     var textContent: String?
     var performance: String?
@@ -37,6 +38,7 @@ struct Post: Identifiable, Codable {
         case postID
         case userID
         case type
+        case routeID
         case title
         case textContent
         case performance
@@ -48,32 +50,35 @@ struct Post: Identifiable, Codable {
     }
     
     init(from decoder: Decoder) throws {
-                let container = try decoder.container(keyedBy: CodingKeys.self)
-
-                postID = try container.decodeIfPresent(String.self, forKey: .postID)
-                userID = try container.decode(String.self, forKey: .userID)
-                type = try container.decode(String.self, forKey: .type)
-                title = try container.decode(String.self, forKey: .title)
-                textContent = try container.decodeIfPresent(String.self, forKey: .textContent)
-                performance = try container.decodeIfPresent(String.self, forKey: .performance)
-
-                if let routeString = try? container.decode(String.self, forKey: .route) {
-                    route = routeString
-                } else if let routeInt = try? container.decode(Int.self, forKey: .route) {
-                    route = String(routeInt)
-                } else {
-                    route = nil
-                }
-
-                createdAt = try container.decode(String.self, forKey: .createdAt)
-                likes = try container.decode([String].self, forKey: .likes)
-                comments = try container.decode([Comment].self, forKey: .comments)
-                
-                // Decode session data
-                session = try container.decodeIfPresent(SessionData.self, forKey: .session)
-            }
-     }
-
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            
+            postID = try container.decodeIfPresent(String.self, forKey: .postID)
+            userID = try container.decode(String.self, forKey: .userID)
+            type = try container.decode(String.self, forKey: .type)
+            title = try container.decode(String.self, forKey: .title)
+            textContent = try container.decodeIfPresent(String.self, forKey: .textContent)
+            performance = try container.decodeIfPresent(String.self, forKey: .performance)
+            createdAt = try container.decode(String.self, forKey: .createdAt)
+            likes = try container.decode([String].self, forKey: .likes)
+            comments = try container.decode([Comment].self, forKey: .comments)
+            
+            // Decode the routeID properly
+            routeID = try container.decodeIfPresent(String.self, forKey: .routeID)
+            
+            // Decode sessionData
+            let sessionContainer = try container.decodeIfPresent(SessionData.self, forKey: .session)
+            session = sessionContainer
+            
+            // Handle the route field (can be String or Int)
+            if let routeString = try? container.decode(String.self, forKey: .route) {
+                route = routeString
+            } else if let routeInt = try? container.decode(Int.self, forKey: .route) {
+                route = String(routeInt)
+            } else {
+                route = nil
+            }
+        }
+    }
 
 struct FriendView: View {
     var userName: String
@@ -199,7 +204,8 @@ struct FriendView: View {
                 .shadow(radius: 5)
             }
             .onAppear {
-                fetchPosts()
+                //fetchPosts()
+                fetchAllPosts()
                 fetchFriendsPosts()
             }
             
@@ -230,41 +236,42 @@ struct FriendView: View {
     }
     
     func fetchPosts() {
-            guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/my-posts") else {
-                print("Invalid URL for fetching posts")
-                return
-            }
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "GET"
-            
-            if let token = UserDefaults.standard.string(forKey: "authToken") {
-                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            } else {
-                print("No token found")
-            }
-            
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    print("Error fetching posts:", error)
-                    return
-                }
-                
-                if let data = data {
-                    print("Received data for posts:", data)
-                    
-                    do {
-                        let decodedPosts = try JSONDecoder().decode([Post].self, from: data)
-                        DispatchQueue.main.async {
-                            self.posts = decodedPosts
-                            print("Decoded posts:", decodedPosts) // Logs the decoded posts
-                        }
-                    } catch {
-                        print("Error decoding posts:", error)
-                    }
-                }
-            }.resume()
-        }
+                guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/my-posts") else {
+                    print("Invalid URL for fetching posts")
+                    return
+                }
+                
+                var request = URLRequest(url: url)
+                request.httpMethod = "GET"
+                
+                if let token = UserDefaults.standard.string(forKey: "authToken") {
+                    request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                } else {
+                    print("No token found")
+                }
+                
+                URLSession.shared.dataTask(with: request) { data, response, error in
+                    if let error = error {
+                        print("Error fetching posts:", error)
+                        return
+                    }
+                    
+                    if let data = data {
+                        print("Received data for posts:", data)
+                        
+                        do {
+                            let decodedPosts = try JSONDecoder().decode([Post].self, from: data)
+                            DispatchQueue.main.async {
+                                self.posts = decodedPosts
+                                print("Decoded posts:", decodedPosts) // Logs the decoded posts
+                            }
+                        } catch {
+                            print("Error decoding posts:", error)
+                        }
+                    }
+                }.resume()
+            }
+
 
 
     struct FriendsPostsResponse: Codable {
@@ -362,10 +369,62 @@ struct FriendView: View {
                 }
 
                 // Optionally, fetch the updated posts after creating the new post
-                fetchPosts()
+                //fetchPosts()
+                fetchAllPosts()
             }
         }.resume()
     }
+    
+    func fetchAllPosts() {
+        // Replace with your API URL
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/posts") else {
+            print("Invalid URL")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        // Add authorization header if needed
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        print("Requesting URL: \(url)")
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Failed to fetch posts: \(error)")
+                return
+            }
+            
+            // Debugging the response status code
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Response Status Code: \(httpResponse.statusCode)")
+            }
+            
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+
+            // Debugging the raw data
+            print("Received Data: \(String(describing: String(data: data, encoding: .utf8)))")
+
+            do {
+                // Decode the posts from the response
+                let decodedPosts = try JSONDecoder().decode([Post].self, from: data)
+                print("Decoded Posts: \(decodedPosts)") // Debugging decoded posts
+
+                // Update the posts array on the main thread
+                DispatchQueue.main.async {
+                    self.posts = decodedPosts
+                }
+            } catch {
+                print("Failed to decode posts: \(error)")
+            }
+        }.resume()
+    }
+
 
 }
 
