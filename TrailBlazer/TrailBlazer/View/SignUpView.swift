@@ -1,4 +1,6 @@
 import SwiftUI
+import Firebase
+import FirebaseAuth
 
 struct SignUpView: View {
     @State private var username = ""
@@ -63,10 +65,12 @@ struct SignUpView: View {
     }
 
     private func signUp() {
-        guard let url = URL(string: "https://TrailBlazer33:5001/api/auth/register") else { return }
+        guard !email.isEmpty, !username.isEmpty, !password.isEmpty else {
+            errorMessage = "Please fill in all fields."
+            return
+        }
 
-
-
+        // Send the request to the backend to create the user (this part is already working)
         let body: [String: String] = [
             "username": username,
             "password": password,
@@ -74,18 +78,24 @@ struct SignUpView: View {
             "lastName": lastName,
             "email": email
         ]
-        print("Attempting to sign up with data: \(body)")
 
-        // Send the request
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/auth/register") else { return }
+
         NetworkManager.shared.postData(url: url, body: body) { result in
             switch result {
-            case .success(let data):
-                print("Sign up successful, received response: \(data)")
-                if let response = try? JSONDecoder().decode([String: String].self, from: data),
-                   let message = response["message"] {
-                    DispatchQueue.main.async {
-                        errorMessage = nil
-                        successMessage = message
+            case .success:
+                // After successfully registering the user, send the Firebase email verification link
+                Auth.auth().currentUser?.sendEmailVerification { error in
+                    if let error = error {
+                        DispatchQueue.main.async {
+                            successMessage = nil
+                            errorMessage = "Error sending verification email: \(error.localizedDescription)"
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            successMessage = "Sign-up successful! Check your email for the verification link."
+                            errorMessage = nil
+                        }
                     }
                 }
             case .failure:
