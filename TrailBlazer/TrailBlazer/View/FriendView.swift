@@ -82,6 +82,8 @@ struct FriendView: View {
     @State private var currentTab: Tab = .friends
     @State private var showNewPostSheet = false
     @State private var posts: [Post] = [] // Now we use Post objects
+    @State private var newPostTitle: String = ""
+    @State private var newPostContent: String = ""
     
     var body: some View {
         ZStack {
@@ -201,24 +203,27 @@ struct FriendView: View {
                 fetchFriendsPosts()
             }
             
-            // Floating Button
+            // Floating Button - This will navigate to the NewPostView
             VStack {
                 Spacer()
                 HStack {
                     Spacer()
-                    Button(action: {
-                        showNewPostSheet = true
-                    }) {
-                        Image("newPost")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 50, height: 50)
-                            .padding()
-                            .background(Color.indigo)
-                            .clipShape(Circle())
-                            .shadow(radius: 5)
+                    NavigationLink(destination: NewPostView(), isActive: $showNewPostSheet) {
+                        Button(action: {
+                            showNewPostSheet = true
+                        }) {
+                            Image("newPost")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 40, height: 40)
+                                .padding()
+                                .background(Color.blue)
+                                .clipShape(Circle())
+                                .shadow(radius: 5)
+                        }
+                        .padding(.bottom, 80)
+                        .padding(.trailing, 15)
                     }
-                    .padding()
                 }
             }
         }
@@ -305,6 +310,62 @@ struct FriendView: View {
                 }
             }.resume()
         }
+    
+    // This function is responsible for submitting the post
+    func submitPost() {
+        guard !newPostContent.isEmpty else {
+            print("Post content is required.")
+            return
+        }
+        
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/text") else {
+            print("DEBUG: Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        // Create the post data
+        let postData = [
+            "title": newPostTitle,
+            "textContent": newPostContent
+        ]
+
+        // Add the authorization token if available
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        // Set the request body
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: postData, options: [])
+            request.httpBody = jsonData
+        } catch {
+            print("DEBUG: Failed to create new post JSON:", error)
+            return
+        }
+
+        // Send the request to create the post
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("DEBUG: Error posting new post:", error)
+                    return
+                }
+
+                if let data = data {
+                    // Print the raw JSON for debugging
+                    if let jsonString = String(data: data, encoding: .utf8) {
+                        print("DEBUG: Post creation response: \(jsonString)")
+                    }
+                }
+
+                // Optionally, fetch the updated posts after creating the new post
+                fetchPosts()
+            }
+        }.resume()
+    }
 
 }
 
