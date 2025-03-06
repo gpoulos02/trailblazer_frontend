@@ -9,6 +9,8 @@ struct CreateNewRouteView: View {
     @State private var isLoading: Bool = false
     @State private var showError: Bool = false
     @State private var navigateToRoutes: Bool = false // Controls navigation
+    @State private var mountainID: Int = UserDefaults.standard.integer(forKey: "selectedMountainID")
+
 
     @State private var liftOptions: [String] = []
     @State private var destinationOptions: [String] = []
@@ -226,7 +228,8 @@ struct CreateNewRouteView: View {
         let requestBody: [String: Any] = [
             "chairliftName": selectedLift,
             "maxDifficulty": maxDifficulty,
-            "destination": selectedDestination
+            "destination": selectedDestination,
+            "mountainID": mountainID
         ]
 
         do {
@@ -263,6 +266,8 @@ struct CreateNewRouteView: View {
                     return
                 }
 
+                print("Raw Response Data: \(String(data: data, encoding: .utf8) ?? "Invalid Data")")
+
                 print("Response Body: \(String(data: data, encoding: .utf8) ?? "Invalid Data")")
 
                 do {
@@ -272,6 +277,8 @@ struct CreateNewRouteView: View {
                     self.availableRoutes = routes.compactMap { $0.map { $0.runName } }
                     self.navigateToRoutes = true
                 } catch {
+                    print("Raw Response Data: \(String(data: data, encoding: .utf8) ?? "Invalid Data")")
+
                     print("Error decoding response data: \(error.localizedDescription)")
                     self.showError = true
                     self.errorMessage = "Failed to decode response."
@@ -285,13 +292,13 @@ struct CreateNewRouteView: View {
 
 
     private func fetchDropdownData() {
-        // Fetching Chairlifts
-        guard let liftUrl = URL(string: "https://TrailBlazer33:5001/api/chairlifts/lift-names") else { return }
+        // Updated lift URL to include mountainID
+        guard let liftUrl = URL(string: "https://TrailBlazer33:5001/api/chairlifts/\(mountainID)/lift-names/") else { return }
         var liftRequest = URLRequest(url: liftUrl)
         liftRequest.httpMethod = "GET"
         
-        // Fetching POIs
-        guard let poiUrl = URL(string: "https://TrailBlazer33:5001/api/pois/get-pois") else { return }
+        // Updated POI URL to include mountainID
+        guard let poiUrl = URL(string: "https://TrailBlazer33:5001/api/pois/\(mountainID)") else { return }
         var poiRequest = URLRequest(url: poiUrl)
         poiRequest.httpMethod = "GET"
         
@@ -308,8 +315,6 @@ struct CreateNewRouteView: View {
             }
             
             // Log raw POI data for debugging
-            
-            
             do {
                 // Decode POI response
                 let pois = try JSONDecoder().decode([PointOfInterest].self, from: data)
@@ -369,8 +374,11 @@ struct CreateNewRouteView: View {
         let runID: Int
         let runName: String
         let difficulty: String
+        let startingLift: Int? // Make optional if it can be null
+        let endingPoints: [Int]? // Make optional and array of Ints
+        let isEnd: Bool? // Make optional
+        let mergesTo: [Int]? // Make optional and array of Ints
     }
-
 }
 
 struct CreateNewRouteView_Previews: PreviewProvider {
