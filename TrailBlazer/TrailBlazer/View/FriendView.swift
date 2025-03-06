@@ -253,7 +253,7 @@ struct FriendView: View {
                     }
                 }
             }
-
+            
         }
     }
     
@@ -307,8 +307,8 @@ struct FriendView: View {
             }
         }.resume()
     }
-
-
+    
+    
     
     // This function is responsible for submitting the post
     func submitPost() {
@@ -416,18 +416,18 @@ struct FriendView: View {
         var firstName: String
         var lastName: String
     }
-
+    
     struct PendingRequestsResponse: Codable {
         var pendingRequests: [PendingRequest]
     }
-
+    
     
     func checkPendingRequests() {
         guard let url = URL(string: "https://TrailBlazer33:5001/api/friends/pending-requests") else {
             print("Invalid URL for checking pending requests")
             return
         }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         
@@ -465,11 +465,12 @@ struct FriendView: View {
             }
         }.resume()
     }
-
-struct FriendView_Previews: PreviewProvider {
-    static var previews: some View {
-        FriendView(userName: "John Doe")
-
-    }
     
+    struct FriendView_Previews: PreviewProvider {
+        static var previews: some View {
+            FriendView(userName: "John Doe")
+            
+        }
+        
+    }
 }
