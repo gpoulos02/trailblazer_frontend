@@ -102,11 +102,22 @@ struct LogInView: View {
                 }
                 
                 // Validate Response
-                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    errorMessage = "Invalid credentials. Please try again."
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    errorMessage = "Invalid response from server."
                     return
                 }
                 
+                if httpResponse.statusCode == 403 {
+                    // Handle email verification error
+                    errorMessage = "Please verify your email address before logging in."
+                    return
+                }
+
+                if httpResponse.statusCode != 200 {
+                    errorMessage = "Invalid credentials. Please try again."
+                    return
+                }
+
                 print("HTTP Status Code: \(httpResponse.statusCode)")
                 
                 // Validate Data
@@ -134,6 +145,7 @@ struct LogInView: View {
             }
         }.resume()
     }
+
 }
 
 struct LogInView_Previews: PreviewProvider {

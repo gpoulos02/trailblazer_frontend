@@ -17,6 +17,9 @@ struct SelectedRouteView: View {
     @State private var showSharePrompt = false
     @State private var shareTitle = ""
     
+    @State private var mountainID: Int = UserDefaults.standard.integer(forKey: "selectedMountainID")
+
+    
     var userName: String
     
     var body: some View {
@@ -237,6 +240,10 @@ struct SelectedRouteView: View {
             if let start = startTime {
                 elapsedTime += Date().timeIntervalSince(start)
             }
+            print("Here!!")
+            
+            print( routeName)
+            
             saveMetrics()
             showSaveDeleteButtons = true
         } else {
@@ -290,60 +297,63 @@ struct SelectedRouteView: View {
     }
     
     func routeNametoID(completion: @escaping (String?) -> Void) {
-            guard let token = UserDefaults.standard.string(forKey: "authToken"),
-                  let url = URL(string: "https://TrailBlazer33:5001/api/routes/runIDByRunName?runName=\(routeName)") else {
-                print("Invalid URL or missing token")
-                completion(nil)
-                return
-            }
-            var request = URLRequest(url: url)
-            request.httpMethod = "GET"
-            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            // Send GET request to retrieve runID by routeName
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                DispatchQueue.main.async {
-                    if let error = error {
-                        print("Error fetching runID:", error.localizedDescription)
-                        completion(nil)
-                        return
-                    }
-                    guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                        print("Failed to fetch runID. Invalid response.")
-                        completion(nil)
-                        return
-                    }
-                    guard let data = data else {
-                        print("No data received")
-                        completion(nil)
-                        return
-                    }
-                    // Debugging the response
-                    if let responseString = String(data: data, encoding: .utf8) {
-                        print("Server response: \(responseString)")
-                    }
-                    // Parse the response JSON to extract runID
-                    do {
-                        if let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                           let runID = jsonResponse["runID"] as? String {
-                            completion(runID)
-                        } else {
-                            print("Invalid response format or missing runID")
+                guard let token = UserDefaults.standard.string(forKey: "authToken"),
+                      let url = URL(string: "https://TrailBlazer33:5001/api/routes/runIDByName?runName=\(routeName)") else {
+                    print("Invalid URL or missing token")
+                    completion(nil)
+                    return
+                }
+                var request = URLRequest(url: url)
+                request.httpMethod = "GET"
+                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                // Send GET request to retrieve runID by routeName
+                URLSession.shared.dataTask(with: request) { data, response, error in
+                    DispatchQueue.main.async {
+                        if let error = error {
+                            print("Error fetching runID:", error.localizedDescription)
+                            completion(nil)
+                            return
+                        }
+                        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                            print("Failed to fetch runID. Invalid response.")
+                            completion(nil)
+                            return
+                        }
+                        guard let data = data else {
+                            print("No data received")
+                            completion(nil)
+                            return
+                        }
+                        // Debugging the response
+                        if let responseString = String(data: data, encoding: .utf8) {
+                            print("Server response: \(responseString)")
+                        }
+                        // Parse the response JSON to extract runID
+                        do {
+                            if let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                               let runID = jsonResponse["runID"] as? String {
+                                completion(runID)
+                            } else {
+                                print("Invalid response format or missing runID")
+                                completion(nil)
+                            }
+                        } catch {
+                            print("Failed to decode JSON response:", error.localizedDescription)
                             completion(nil)
                         }
-                    } catch {
-                        print("Failed to decode JSON response:", error.localizedDescription)
-                        completion(nil)
                     }
-                }
-            }.resume()
-        }
+                }.resume()
+            }
     
     func saveSessionData() {
-            routeNametoID { runID in
+        routeNametoID { runID in
                 guard let runID = runID else {
                     print("Failed to fetch runID")
                     return
                 }
+                
+                print(runID)
+            
                 // Ensure the token is available
                 guard let token = UserDefaults.standard.string(forKey: "authToken"),
                       let url = URL(string: "https://TrailBlazer33:5001/api/metrics") else {
@@ -367,7 +377,9 @@ struct SelectedRouteView: View {
                 // Prepare the payload (the JSON object)
                 let payload: [String: Any] = [
                     "sessionData": sessionData,
-                    "runID": runID]
+                    "runID": runID,
+                    "mountainID": mountainID]
+            
                 print("Session data:", locationManager.currentSpeed, locationManager.totalDistance, locationManager.currentElevation, elapsedTime)
                 
                 // Serialize the data

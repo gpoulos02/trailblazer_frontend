@@ -14,6 +14,8 @@ struct Post: Identifiable, Codable {
     var createdAt: String
     var likes: [String]
     
+
+    
     struct Comment: Codable {
         var user: String
         var content: String
@@ -81,9 +83,6 @@ struct Post: Identifiable, Codable {
 
 
 
-    
-    
-    
 struct FriendView: View {
     var userName: String
     
@@ -93,6 +92,8 @@ struct FriendView: View {
     @State private var posts: [Post] = [] // Now we use Post objects
     @State private var newPostTitle: String = ""
     @State private var newPostContent: String = ""
+    @State private var hasPendingRequests = false
+    @State private var pendingRequestsCount: Int = 0
     
     var body: some View {
         ZStack {
@@ -110,11 +111,25 @@ struct FriendView: View {
                     Button(action: {
                         navigateToFriendRequests = true
                     }) {
-                        Image("AddFriend")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 40)
-                            .padding(.trailing, 20)
+                        ZStack {
+                            Image("AddFriend")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 40)
+                                .padding(.trailing, 20)
+                            
+                            if hasPendingRequests {
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 12, height: 12)
+                                    .overlay(
+                                        Text(pendingRequestsCount > 9 ? "9+" : "\(pendingRequestsCount)")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.white)
+                                    )
+                                    .offset(x: 12, y: -12) // Position the dot at the top-right corner
+                            }
+                        }
                     }
                 }
                 .padding(.top, 20)
@@ -211,6 +226,7 @@ struct FriendView: View {
                 
                 fetchAllPosts()
                 fetchFriendsPosts()
+                checkPendingRequests()
             }
             
             // Floating Button - This will navigate to the NewPostView
@@ -231,11 +247,13 @@ struct FriendView: View {
                                 .clipShape(Circle())
                                 .shadow(radius: 5)
                         }
+                        .contentShape(Circle()) // Define a smaller tappable area
                         .padding(.bottom, 80)
                         .padding(.trailing, 15)
                     }
                 }
             }
+
         }
     }
     
@@ -391,13 +409,67 @@ struct FriendView: View {
             }
         }.resume()
     }
+    
+    struct PendingRequest: Codable {
+        var userID: String
+        var username: String
+        var firstName: String
+        var lastName: String
+    }
+
+    struct PendingRequestsResponse: Codable {
+        var pendingRequests: [PendingRequest]
+    }
 
     
-    
-    struct FriendView_Previews: PreviewProvider {
-        static var previews: some View {
-            FriendView(userName: "John Doe")
+    func checkPendingRequests() {
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/friends/pending-requests") else {
+            print("Invalid URL for checking pending requests")
+            return
         }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            print("No token found")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error checking pending requests:", error)
+                return
+            }
+            
+            if let data = data {
+                do {
+                    // Decode the response into PendingRequestsResponse
+                    let decodedResponse = try JSONDecoder().decode(PendingRequestsResponse.self, from: data)
+                    
+                    // Check if there are any pending requests
+                    let pendingRequestsCount = decodedResponse.pendingRequests.count
+                    DispatchQueue.main.async {
+                        if pendingRequestsCount > 0 {
+                            self.hasPendingRequests = true // Set the red dot to show
+                            self.pendingRequestsCount = pendingRequestsCount > 9 ? 9 : pendingRequestsCount // Show "9+" if over 9
+                        } else {
+                            self.hasPendingRequests = false // No pending requests
+                            self.pendingRequestsCount = 0 // No number to show
+                        }
+                    }
+                } catch {
+                    print("Error decoding pending requests:", error)
+                }
+            }
+        }.resume()
+    }
+
+struct FriendView_Previews: PreviewProvider {
+    static var previews: some View {
+        FriendView(userName: "John Doe")
+
     }
     
 }

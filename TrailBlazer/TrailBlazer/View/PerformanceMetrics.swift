@@ -511,6 +511,12 @@ struct PerformanceMetricsView: View {
     }
     
     struct GridView: View {
+        
+        let baseURL = "https://TrailBlazer33:5001/api"
+        @State private var averageDifficulty: String = "Loading..."  // State to hold the fetched difficulty
+
+
+        
         var metricsData: [MetricsData]
 
         var body: some View {
@@ -518,9 +524,10 @@ struct PerformanceMetricsView: View {
                 GridItemView(title: "Total Runs", value: "\(totalRunsForToday())")
                 GridItemView(title: "Top Speed", value: "\(String(format: "%.2f", topSpeedForToday())) km/h")
                 GridItemView(title: "Longest Run", value: "\(String(format: "%.2f", longestRunForToday())) km")
-                GridItemView(title: "Average Difficulty", value: "Coming Soon")
+                GridItemView(title: "Average Difficulty", value: averageDifficulty)  // Display the average difficulty
             }
             .padding(.horizontal, 20)
+            .onAppear{getAvgDiffToday()}
         }
 
         private func totalRunsForToday() -> Int {
@@ -541,12 +548,59 @@ struct PerformanceMetricsView: View {
                 .map { $0.sessionData.distance }
                 .max() ?? 0.0
         }
+        
+        private func getAvgDiffToday() {
+                guard let token = UserDefaults.standard.string(forKey: "authToken"),
+                      let url = URL(string: "\(baseURL)/metrics/average-difficulty") else {
+                    print("Invalid URL or missing token")
+                    return
+                }
+                
+                print("Fetching average difficulty from: \(url)")
+                
+                var request = URLRequest(url: url)
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")  // Set the auth token in the header
+                request.httpMethod = "GET"
+                
+                URLSession.shared.dataTask(with: request) { data, response, error in
+                    if let error = error {
+                        print("Error fetching average difficulty: \(error.localizedDescription)")
+                        return
+                    }
+                    
+                    guard let data = data else {
+                        print("No data received")
+                        return
+                    }
+                    
+                    print("Data received: \(data.count) bytes")
+                    
+                    do {
+                        // Parse the response and extract the average difficulty
+                        if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                           let avgDifficulty = jsonResponse["averageDifficulty"] as? String {
+                            print("Average Difficulty fetched: \(avgDifficulty)")
+                            // Update the UI on the main thread
+                            DispatchQueue.main.async {
+                                self.averageDifficulty = avgDifficulty
+                            }
+                        } else {
+                            // Now jsonResponse is accessible in the else block
+                            print("Failed to parse the response. Response: \(data)") // You can print the raw response here
+                        }
+                    } catch {
+                        print("Error parsing JSON response: \(error.localizedDescription)")
+                    }
+                }.resume()
+            }
 
         private func formattedDate(date: Date) -> String {
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy-MM-dd"
             return formatter.string(from: date)
         }
+        
+        
     }
     struct GridItemView: View {
         var title: String
