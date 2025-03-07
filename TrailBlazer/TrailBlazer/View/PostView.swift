@@ -2,13 +2,18 @@ import SwiftUI
 
 struct PostView: View {
     var post: Post
+    @Binding var posts: [Post]
     
     @State private var username: String = "" // Store the fetched username
     @State private var routeName: String = ""
     
     @State private var isLiked: Bool = false
     @State private var likeCount: Int = 0
+    @State private var currentUsername: String = ""
+    @State private var showDeleteButton: Bool = false
     
+    
+        
     
     // DateFormatter to format the ISO date string
     private var formattedDate: String {
@@ -30,6 +35,7 @@ struct PostView: View {
                 Text(username.isEmpty ? "Loading..." : username)
                     .font(.headline)
                     .fontWeight(.bold)
+                //print("Current User ID: \(currentUserID)")
                 
                 Spacer()
                 
@@ -82,6 +88,7 @@ struct PostView: View {
             
             // Bottom Buttons: Like and Comment
             HStack {
+                
                 Text("\(likeCount)")  // Display the like count
                     .foregroundColor(.black)
                 
@@ -100,6 +107,15 @@ struct PostView: View {
                 }
                 
                 Spacer()
+                if shouldShowDeleteButton() {  // Use shouldShowDeleteButton() to check the condition
+                    Button(action: {
+                        deletePost()
+                    }) {
+                        Image(systemName: "trash.fill")
+                            .foregroundColor(.red)
+                    }
+                }
+
                 
                 Button(action: {
                     // Handle comment action
@@ -125,13 +141,14 @@ struct PostView: View {
             fetchUsername()
             fetchLikeCount()
             
-            
-           
+        
             if let routeID = post.routeID {
                 fetchRouteName(routeID: routeID)
             }
         }
     }
+    
+
     // Fetch username from the API based on userID
     func fetchUsername() {
         guard let url = URL(string: "https://TrailBlazer33:5001/api/friends/getUsername?userID=\(post.userID)") else { return }
@@ -152,14 +169,53 @@ struct PostView: View {
                     if let fetchedUsername = responseJson["username"] {
                         DispatchQueue.main.async {
                             self.username = fetchedUsername
-                        }
-                    }
+
+                                                }
+                                            }
                 } catch {
                     print("Error decoding username:", error)
                 }
             }
         }.resume()
     }
+    func getUserIDFromToken() -> String? {
+            guard let token = UserDefaults.standard.string(forKey: "authToken") else {
+                print("Auth token is missing")
+                return nil
+            }
+            
+            let parts = token.split(separator: ".")
+            guard parts.count == 3 else {
+                print("Invalid token format")
+                return nil
+            }
+            
+            let base64String = String(parts[1])
+            let paddedBase64String = base64String.padding(toLength: (base64String.count + 3) / 4 * 4, withPad: "=", startingAt: 0)
+            
+            guard let decodedData = Data(base64Encoded: paddedBase64String, options: .ignoreUnknownCharacters) else {
+                print("Failed to decode token payload")
+                return nil
+            }
+            
+            do {
+                // Decode the JSON payload
+                let json = try JSONSerialization.jsonObject(with: decodedData, options: []) as? [String: Any]
+                return json?["userID"] as? String
+            } catch {
+                print("Error decoding token payload:", error)
+                return nil
+            }
+        }
+    
+    func shouldShowDeleteButton() -> Bool {
+            guard let userIDFromToken = getUserIDFromToken() else {
+                return false
+            }
+            
+            return post.userID == userIDFromToken
+            
+        }
     
     func fetchRouteName(routeID: String) {
         guard let url = URL(string: "https://TrailBlazer33:5001/api/routes/runNamebyID?runID=\(routeID)") else { return }
@@ -189,13 +245,61 @@ struct PostView: View {
     }
     
 
+    func deletePost() {
+            guard let postID = post.postID else {return}
+            guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/delete/\(postID)") else {return}
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "DELETE"
+            
+            if let token = UserDefaults.standard.string(forKey: "authToken") {
+                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            } else {
+                print("Auth token is missing")
+                return
+            }
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("Error making request:", error)
+                    return
+                }
+                guard let data = data else {
+                    print("No data received from request")
+                    return
+                }
 
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("HTTP Status Code:", httpResponse.statusCode)
+                }
+
+                let responseString = String(data: data, encoding: .utf8) ?? "Empty response"
+                //print("Raw Response:", responseString)
+
+                do {
+                    let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+                    let message = jsonResponse?["message"] as? String ?? "Unknown response"
+                    print("Server Message:", message)
+                    
+                    // After deletion, remove the post from the list in the parent view
+                    DispatchQueue.main.async {
+                        if let index = posts.firstIndex(where: { $0.postID == postID }) {
+                            posts.remove(at: index)
+                        }
+                    }
+                } catch {
+                    print("Error decoding response:", error)
+                }
+
+            }.resume()
+        }
     
     // Updated toggleLike function to handle the response correctly
     func toggleLike() {
             guard let postID = post.postID else { return }
             
             //print("Sending like request for post ID: \(postID)")
+            //print("current user:  \(currentUserID)")
             
             guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(postID)/like") else {
                 print("Invalid URL")
@@ -309,7 +413,7 @@ struct PostView: View {
     func unlikePost() {
             guard let postID = post.postID else { return }
             
-            print("Sending unlike request for post ID: \(postID)")
+            //print("Sending unlike request for post ID: \(postID)")
             
             guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(postID)/unlike") else {
                 print("Invalid URL")

@@ -169,7 +169,7 @@ struct FriendView: View {
                     
                     VStack(spacing: 10) {
                         ForEach(posts) { post in
-                            PostView(post: post)
+                            PostView(post: post, posts: $posts)
                         }
                         
                     }
@@ -288,11 +288,11 @@ struct FriendView: View {
             }
             
             guard let data = data else {
-                print("No data received for friends' posts")
+                //print("No data received for friends' posts")
                 return
             }
             
-            print("Received data for friends' posts:", String(data: data, encoding: .utf8) ?? "Invalid data")
+            //print("Received data for friends' posts:", String(data: data, encoding: .utf8) ?? "Invalid data")
             
             do {
                 let decodedResponse = try JSONDecoder().decode([Post].self, from: data)
@@ -300,7 +300,7 @@ struct FriendView: View {
                 DispatchQueue.main.async {
                     self.posts.append(contentsOf: decodedResponse) // Append instead of replacing
                     self.posts.sort { $0.createdAt > $1.createdAt } // Sort posts by newest first
-                    print("Merged friends' posts:", self.posts)
+                    //print("Merged friends' posts:", self.posts)
                 }
             } catch {
                 print("Error decoding friends' posts:", error)
@@ -356,7 +356,7 @@ struct FriendView: View {
                 if let data = data {
                     // Print the raw JSON for debugging
                     if let jsonString = String(data: data, encoding: .utf8) {
-                        print("DEBUG: Post creation response: \(jsonString)")
+                        //print("DEBUG: Post creation response: \(jsonString)")
                     }
                 }
                 
@@ -402,7 +402,7 @@ struct FriendView: View {
                 DispatchQueue.main.async {
                     self.posts.append(contentsOf: decodedPosts) // Append instead of replacing
                     self.posts.sort { $0.createdAt > $1.createdAt } // Sort posts by newest first
-                    print("Merged user's posts:", self.posts)
+                    //print("Merged user's posts:", self.posts)
                 }
             } catch {
                 print("Failed to decode posts: \(error)")
@@ -465,6 +465,8 @@ struct FriendView: View {
             }
         }.resume()
     }
+    
+    
     
     struct FriendView_Previews: PreviewProvider {
         static var previews: some View {
