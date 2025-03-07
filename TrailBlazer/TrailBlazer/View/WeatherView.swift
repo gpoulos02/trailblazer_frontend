@@ -224,10 +224,12 @@ struct WeatherView: View {
         let dateFormatter = ISO8601DateFormatter()
         guard let date = dateFormatter.date(from: dateTime) else { return dateTime }
 
+        // Custom date format "Mar 7, 2025"
         let displayFormatter = DateFormatter()
-        displayFormatter.dateFormat = "MMM d, yyyy, h:mm a"
+        displayFormatter.dateFormat = "MMM d, yyyy"
         return displayFormatter.string(from: date)
     }
+
 }
 
 struct WeatherData: Codable {
