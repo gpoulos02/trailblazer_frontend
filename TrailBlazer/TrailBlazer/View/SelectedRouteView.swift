@@ -368,12 +368,18 @@ struct SelectedRouteView: View {
     //                "duration": elapsedTime
     //            ]
                 
-                let sessionData: [String: Any] = [
-                    "topSpeed": 10,
-                    "distance": 50,
-                    "elevationGain": 250,
-                    "duration": 310
-                ]
+            // Generate random values for session data
+            let topSpeed = Double.random(in: 10...50) // Random speed between 10 and 50
+            let distance = Double.random(in: 10...500) // Random distance between 10 and 500
+            let elevationGain = Double.random(in: 10...500) // Random elevation gain between 10 and 500
+            let duration = Double.random(in: 10...300) // Random duration between 10 and 300 minutes
+            
+            let sessionData: [String: Any] = [
+                "topSpeed": topSpeed,
+                "distance": distance,
+                "elevationGain": elevationGain,
+                "duration": duration
+            ]
                 // Prepare the payload (the JSON object)
                 let payload: [String: Any] = [
                     "sessionData": sessionData,
