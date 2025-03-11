@@ -1,4 +1,6 @@
 import SwiftUI
+import MapboxMaps
+import CoreLocation
 
 struct SelectedRouteView: View {
     let routeName: String // Passed from the previous view
@@ -16,6 +18,11 @@ struct SelectedRouteView: View {
     @State private var showSaveDeleteButtons = false
     @State private var showSharePrompt = false
     @State private var shareTitle = ""
+    @State private var mapView: MapView?
+    @State private var apiKey: String? = nil
+    @State private var errorMessage: String? = nil
+    @State private var isLoading = true
+
     
     @State private var mountainID: Int = UserDefaults.standard.integer(forKey: "selectedMountainID")
 
@@ -75,15 +82,38 @@ struct SelectedRouteView: View {
                 }
                 
                 // Map Placeholder
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(height: 200)
-                    .cornerRadius(8)
-                    .overlay(
-                        Text("Map View (Coming Soon)")
-                            .font(Font.custom("Inter", size: 16))
-                            .foregroundColor(.black.opacity(0.7))
-                    )
+//                Rectangle()
+//                    .fill(Color.gray.opacity(0.3))
+//                    .frame(height: 200)
+//                    .cornerRadius(8)
+//                    .overlay(
+//                        Text("Map View (Coming Soon)")
+//                            .font(Font.custom("Inter", size: 16))
+//                            .foregroundColor(.black.opacity(0.7))
+//                    )
+                ZStack {
+                                if let errorMessage = errorMessage {
+                                    Text("Error: \(errorMessage)")
+                                        .foregroundColor(.red)
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                        .background(Color.red.opacity(0.2))
+                                } else if isLoading {
+                                    ProgressView("Loading map...")
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                        .onAppear {
+                                            fetchApiKey()
+                                        }
+                                } else if let apiKey = apiKey {
+                                    // Display the MapViewWrapper with the user's location
+                                    MapViewWrapper(apiKey: apiKey)
+                                        .edgesIgnoringSafeArea(.all)
+                                } else {
+                                    Text("Failed to load map.")
+                                        .foregroundColor(.gray)
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                        .background(Color.gray.opacity(0.2))
+                                }
+                            }
                 
                 // Metrics
                 HStack(spacing: 40) {
@@ -220,12 +250,41 @@ struct SelectedRouteView: View {
                 .padding()
             }
             .padding()
+
             .onDisappear {
                 stopTimer()
                 locationManager.stopUpdatingLocation()
             }
         }
     }
+    private func fetchApiKey() {
+            guard let url = URL(string: "https://TrailBlazer33:5001/api/map/key") else {
+                errorMessage = "Invalid API URL"
+                isLoading = false
+                return
+            }
+
+            URLSession.shared.dataTask(with: url) { data, response, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        errorMessage = error.localizedDescription
+                        isLoading = false
+                        return
+                    }
+
+                    guard let data = data,
+                          let result = try? JSONDecoder().decode([String: String].self, from: data),
+                          let key = result["key"] else {
+                        errorMessage = "Failed to decode API response"
+                        isLoading = false
+                        return
+                    }
+
+                    apiKey = key
+                    isLoading = false
+                }
+            }.resume()
+        }
     
     private func formatTime(_ time: TimeInterval) -> String {
         let seconds = Int(time) % 60
@@ -486,6 +545,59 @@ struct SelectedRouteView: View {
                 }
             }
             task.resume()
+        }
+    }
+    
+    struct MapViewWrapper: UIViewRepresentable {
+        var apiKey: String
+        @ObservedObject var locationManager = LocationManager()
+
+        func makeUIView(context: Context) -> MapView {
+            MapboxOptions.accessToken = apiKey
+            
+            let options = MapInitOptions(styleURI: StyleURI(rawValue: "mapbox://styles/gpoulakos/cm3nt0prt00m801r25h8wajy5"))
+            let mapView = MapView(frame: .zero, mapInitOptions: options)
+
+            let cameraOptions = CameraOptions(zoom: 14.0, bearing: 0.0, pitch: 45.0)
+            mapView.mapboxMap.setCamera(to: cameraOptions)
+
+            context.coordinator.mapView = mapView
+            locationManager.delegate = context.coordinator
+
+            let locationOptions = LocationOptions(
+                puckType: .puck2D(),
+                puckBearing: .heading
+            )
+            mapView.location.options = locationOptions
+
+            locationManager.startUpdatingLocation()
+
+            return mapView
+        }
+
+        func updateUIView(_ uiView: MapView, context: Context) {}
+
+        func makeCoordinator() -> Coordinator {
+            return Coordinator()
+        }
+
+        class Coordinator: NSObject, LocationManagerDelegate {
+            var mapView: MapView?
+
+            func didUpdateLocation(_ location: CLLocation) {
+                guard let mapView = mapView else { return }
+
+                let coordinate = location.coordinate
+                let cameraOptions = CameraOptions(
+                    center: CLLocationCoordinate2D(latitude: coordinate.latitude, longitude: coordinate.longitude),
+                    zoom: 14.0,
+                    bearing: 0.0,
+                    pitch: 45.0
+                )
+                mapView.mapboxMap.setCamera(to: cameraOptions)
+
+                print("Updated location: \(coordinate.latitude), \(coordinate.longitude)")
+            }
         }
     }
 
