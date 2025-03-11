@@ -12,6 +12,7 @@ struct SignUpView: View {
     @State private var successMessage: String?
     @State private var isEmailVerified = false
     @State private var navigateToLogin = false // This state triggers navigation
+    @State private var showLoginButton = false
 
     var body: some View {
         NavigationStack {
@@ -66,13 +67,29 @@ struct SignUpView: View {
                 .background(Color.blue)
                 .foregroundColor(.white)
                 .cornerRadius(8)
-
-                // Only show the navigation to login when the email is verified
-                if isEmailVerified {
-                    NavigationLink(destination: LogInView(), isActive: $navigateToLogin) {
-                        EmptyView()  // Hidden, just to trigger navigation
+                
+                if showLoginButton {
+                    Text("Check your email for verification, then click Log In.")
+                        .foregroundColor(.blue)
+                        .padding(.top)
+                    
+                    NavigationLink(destination: LogInView()) {
+                        Text("Log In")
+                            .padding()
+                            .background(Color.green)
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
                     }
                 }
+                
+
+
+                // Only show the navigation to login when the email is verified
+//                if isEmailVerified {
+//                    NavigationLink(destination: LogInView(), isActive: $navigateToLogin) {
+//                        EmptyView()  // Hidden, just to trigger navigation
+//                    }
+//                }
             }
             .padding()
             .navigationBarTitle("Sign Up", displayMode: .inline)
@@ -113,6 +130,7 @@ struct SignUpView: View {
                             errorMessage = nil
                             isEmailVerified = true  // Set the flag to show the login button
                             navigateToLogin = true // Activate the navigation to login page
+                            showLoginButton = true
                             print("Email verification sent successfully!") // Debug statement
                             print("isEmailVerified is now: \(isEmailVerified)") // Debug statement
                         }
