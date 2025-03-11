@@ -16,13 +16,13 @@ struct AvailableRoutesView: View {
                 .frame(height: 40)
                 .padding(.top, 20)
             
-            Text("Available Routes")
+            Text("Select Your Route")
                 .font(Font.custom("Inter", size: 25).weight(.bold))
                 .foregroundColor(.black)
                 .padding()
 
             if availableRoutes.isEmpty {
-                Text("No routes available")
+                Text("No routes available. Try a new combination.")
                     .font(Font.custom("Inter", size: 16))
                     .foregroundColor(.gray)
                     .padding()

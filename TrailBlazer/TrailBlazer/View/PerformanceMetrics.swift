@@ -141,16 +141,17 @@ struct PerformanceMetricsView: View {
                         ForEach(sortMetricsData(), id: \.sessionID) { metric in
                             VStack(alignment: .leading, spacing: 10) {
                                 if let runName = runNames[metric.runID] {
-                                    Text("Run Name: \(runName)")
+                                    Text("\(runName)")
                                         .font(.headline)
                                         .padding(.bottom, 5)
                                 } else {
-                                    Text("Run Name: Loading...")
+                                    Text("Loading...")
                                         .font(.headline)
                                 }
 
-                                Text("Run Date: \(metric.createdAt)")
+                                Text(formattedDate(for: metric))
                                     .font(.headline)
+                                    .foregroundColor(.gray)
 
                                 MetricRowView(title: "Top Speed", value: metric.sessionData.topSpeed)
                                 MetricRowView(title: "Elevation Gain", value: metric.sessionData.elevationGain)
@@ -300,6 +301,19 @@ struct PerformanceMetricsView: View {
         formatter.dateFormat = "MM dd, yyyy"
         return formatter.string(from: date)
     }
+    private func formattedDate(for metric: MetricsData) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ" // This is the input format for the ISO 8601 string
+
+        if let date = dateFormatter.date(from: metric.createdAt) {
+            let outputFormatter = DateFormatter()
+            outputFormatter.dateFormat = "MMMM d, yyyy h:mma" // This is the desired format "March 7, 2025 11:00am"
+            return outputFormatter.string(from: date)
+        }
+        
+        return metric.createdAt // Fallback in case the date cannot be parsed
+    }
+
     
     private func loadRunNames(for metrics: [MetricsData]) {
         for metric in metrics {
