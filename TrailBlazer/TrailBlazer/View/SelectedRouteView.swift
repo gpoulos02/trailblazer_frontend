@@ -22,6 +22,7 @@ struct SelectedRouteView: View {
     @State private var apiKey: String? = nil
     @State private var errorMessage: String? = nil
     @State private var isLoading = true
+    @State private var routeStatusMessage: String? = nil
 
     
     @State private var mountainID: Int = UserDefaults.standard.integer(forKey: "selectedMountainID")
@@ -80,17 +81,7 @@ struct SelectedRouteView: View {
                         .padding()
                     }
                 }
-                
-                // Map Placeholder
-//                Rectangle()
-//                    .fill(Color.gray.opacity(0.3))
-//                    .frame(height: 200)
-//                    .cornerRadius(8)
-//                    .overlay(
-//                        Text("Map View (Coming Soon)")
-//                            .font(Font.custom("Inter", size: 16))
-//                            .foregroundColor(.black.opacity(0.7))
-//                    )
+
                 ZStack {
                                 if let errorMessage = errorMessage {
                                     Text("Error: \(errorMessage)")
@@ -166,7 +157,8 @@ struct SelectedRouteView: View {
                 if showSaveDeleteButtons {
                     HStack(spacing: 20) {
                         // Save Route Button
-                        Button(action: { saveSessionData() }) {
+                        Button(action: { saveSessionData()
+                            }) {
                             Text("Save")
                                 .font(Font.custom("Inter", size: 16).weight(.bold))
                                 .foregroundColor(.white)
@@ -188,6 +180,14 @@ struct SelectedRouteView: View {
                         }
                     }
                     .padding(.vertical)
+                    
+                    if let statusMessage = routeStatusMessage {
+                        Text(statusMessage)
+                            .font(Font.custom("Inter", size: 14))
+                            .foregroundColor(.gray)
+                            .padding(.top, 5)
+                    }
+
                 }
                 
                 Spacer()
@@ -473,8 +473,10 @@ struct SelectedRouteView: View {
                         
                         if httpResponse.statusCode == 201 {
                             print("Session saved successfully!")
+                            routeStatusMessage = "Route has been saved."
                         } else {
                             print("Failed to save session. Status code: \(httpResponse.statusCode)")
+                            routeStatusMessage = "Route did not save."
                         }
                         
                         // Optional: Log server response if data is returned
