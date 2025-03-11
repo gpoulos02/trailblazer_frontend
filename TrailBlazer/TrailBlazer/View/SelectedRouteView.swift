@@ -37,7 +37,7 @@ struct SelectedRouteView: View {
                     Button(action: {
                         showSharePrompt.toggle()
                     }) {
-                        Text("Share with friends")
+                        Text("Share")
                             .font(Font.custom("Inter", size: 16).weight(.bold))
                             .foregroundColor(.blue)
                             .padding()
@@ -116,7 +116,7 @@ struct SelectedRouteView: View {
                 }
                 
                 // Timer
-                Text("Elapsed Time: \(formatTime(elapsedTime))")
+                Text("\(formatTime(elapsedTime))")
                     .font(Font.custom("Inter", size: 16))
                     .foregroundColor(.black)
                 
@@ -137,7 +137,7 @@ struct SelectedRouteView: View {
                     HStack(spacing: 20) {
                         // Save Route Button
                         Button(action: { saveSessionData() }) {
-                            Text("Save Route")
+                            Text("Save")
                                 .font(Font.custom("Inter", size: 16).weight(.bold))
                                 .foregroundColor(.white)
                                 .padding()
@@ -148,7 +148,7 @@ struct SelectedRouteView: View {
                         
                         // Delete Route Button
                         Button(action: deleteRoute) {
-                            Text("Delete Route")
+                            Text("Delete")
                                 .font(Font.custom("Inter", size: 16).weight(.bold))
                                 .foregroundColor(.white)
                                 .padding()
@@ -164,7 +164,7 @@ struct SelectedRouteView: View {
                 
                 // Performance Metrics Button (Always interactive and grey)
                 NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
-                    Text("View Performance")
+                    Text("Performance Metrics")
                         .font(Font.custom("Inter", size: 16).weight(.bold))
                         .foregroundColor(.white)
                         .padding()
@@ -271,7 +271,7 @@ struct SelectedRouteView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         endRouteDate = formatter.string(from: Date())
-        print("Saving metrics: \(elapsedTime) seconds, Speed: \(locationManager.currentSpeed), Elevation: \(locationManager.currentElevation), Date: \(endRouteDate), distance: \(locationManager.totalDistance)")
+//        print("Saving metrics: \(elapsedTime) seconds, Speed: \(locationManager.currentSpeed), Elevation: \(locationManager.currentElevation), Date: \(endRouteDate), distance: \(locationManager.totalDistance)")
         finalTime = elapsedTime
         finalSpeed = locationManager.currentSpeed
         finalElevation = locationManager.currentElevation
@@ -279,7 +279,7 @@ struct SelectedRouteView: View {
     }
     
     private func saveRoute() {
-        print("Route saved: \(routeName), \(finalTime) seconds, \(finalSpeed) m/s, \(finalElevation) m elevation")
+        //print("Route saved: \(routeName), \(finalTime) seconds, \(finalSpeed) m/s, \(finalElevation) m elevation")
         resetRoute()
     }
     
@@ -368,12 +368,18 @@ struct SelectedRouteView: View {
     //                "duration": elapsedTime
     //            ]
                 
-                let sessionData: [String: Any] = [
-                    "topSpeed": 10,
-                    "distance": 50,
-                    "elevationGain": 250,
-                    "duration": 310
-                ]
+            // Generate random values for session data
+            let topSpeed = Double.random(in: 10...50) // Random speed between 10 and 50
+            let distance = Double.random(in: 10...500) // Random distance between 10 and 500
+            let elevationGain = Double.random(in: 10...500) // Random elevation gain between 10 and 500
+            let duration = Double.random(in: 10...300) // Random duration between 10 and 300 minutes
+            
+            let sessionData: [String: Any] = [
+                "topSpeed": topSpeed,
+                "distance": distance,
+                "elevationGain": elevationGain,
+                "duration": duration
+            ]
                 // Prepare the payload (the JSON object)
                 let payload: [String: Any] = [
                     "sessionData": sessionData,

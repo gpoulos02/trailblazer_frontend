@@ -32,7 +32,7 @@ struct CreateNewRouteView: View {
                     .frame(height: 40)
                     .padding(.top, 20)
                 // Title
-                Text("Create Route")
+                Text("Make a Route")
                     .font(Font.custom("Inter", size: 25).weight(.bold))
                     .foregroundColor(.black)
                     .padding()
@@ -65,7 +65,7 @@ struct CreateNewRouteView: View {
                 
                 // Destination (not required)
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Destination")
+                    Text("Where do you want to go?")
                         .font(Font.custom("Inter", size: 16).weight(.bold))
                         .foregroundColor(.black)
                     
@@ -85,7 +85,7 @@ struct CreateNewRouteView: View {
                 
                 // Max Difficulty (not required)
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Max Difficulty")
+                    Text("What is the highest difficulty you want?")
                         .font(Font.custom("Inter", size: 16).weight(.bold))
                         .foregroundColor(.black)
                     

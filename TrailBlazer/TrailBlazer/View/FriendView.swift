@@ -137,26 +137,17 @@ struct FriendView: View {
                     NavigationLink("", destination: FriendRequestsView(userName: userName), isActive: $navigateToFriendRequests)
                 )
                 
-                Rectangle()
-                    .frame(height: 1)
-                    .foregroundColor(Color.gray.opacity(0.5))
-                    .padding(.horizontal, 20)
+
                 
                 // Scrollable Friends Section
                 HStack(spacing: 10) {
-                    Image("Location")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                    
-                    Rectangle()
-                        .frame(width: 1, height: 30)
-                        .foregroundColor(.black)
+
+                
                     
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 15) {
-                            Text("Add friends to see their location!")
-                                .font(.body)
+                            Text("Your Feed")
+                                .font(.headline)
                                 .foregroundColor(.black)
                         }
                         .padding(.leading, 10)
@@ -172,6 +163,7 @@ struct FriendView: View {
                         }
                     }
                     .padding(.horizontal)
+                    
                 }
                 
                 // Bottom Navigation Bar

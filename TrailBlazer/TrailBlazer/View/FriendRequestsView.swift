@@ -13,71 +13,118 @@ struct FriendRequestsView: View {
 
     var body: some View {
         NavigationView {
-            VStack {
+            VStack(spacing: 20) {
+                // Search bar with clear button
                 HStack {
                     TextField("Search for users...", text: $searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding()
-
+                                        .padding(.leading, 30) // Space for the magnifying glass
+                                        .frame(height: 45)
+                                        .padding(.horizontal, 15) // Adjust the horizontal padding
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(12)
+                                        .overlay(
+                                            HStack {
+                                                Image(systemName: "magnifyingglass")
+                                                    .foregroundColor(.gray)
+                                                    .padding(.leading, 8) // Adjust the padding to avoid overlap
+                                                Spacer()
+                                            }
+                                        )
+                                        .padding(.horizontal, 10)
+                    
                     Button(action: searchUsers) {
-                        Image(systemName: "magnifyingglass")
-                            .padding()
+                        Text("Search")
+                            .fontWeight(.semibold)
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 10)
                             .background(Color.blue)
                             .foregroundColor(.white)
-                            .clipShape(Circle())
+                            .cornerRadius(10)
+                            .shadow(radius: 5)
                     }
+                    .padding(.trailing, 10)
                 }
-
+                .padding(.horizontal)
+                
                 if isLoading {
                     ProgressView("Searching...")
+                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
                         .padding()
                 }
-
+                
                 // Friends List
-                List(friends, id: \.userID) { friend in
-                    if let username = friend["username"] as? String, let userId = friend["userID"] as? String {
-                        HStack {
-                            Text(username)
-                            Spacer()
-                            Button(action: {
-                                self.userToUnfriend = (username, userId)
-                                showUnfriendAlert = true
-                            }) {
-                                Image(systemName: "person.crop.circle.badge.xmark")
-                                        .foregroundColor(.red)  // Red color to indicate removal or unfriend action
-                                        .font(.title2)  // You can adjust the size as needed
+                if !friends.isEmpty {
+                    Text("Your Friends")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .padding(.horizontal)
+                    
+                    List(friends, id: \.userID) { friend in
+                        if let username = friend["username"] as? String, let userId = friend["userID"] as? String {
+                            HStack {
+                                Text(username)
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                Button(action: {
+                                    self.userToUnfriend = (username, userId)
+                                    showUnfriendAlert = true
+                                }) {
+                                    Image(systemName: "person.crop.circle.badge.xmark")
+                                        .foregroundColor(.red)
+                                        .font(.title2)
                                 }
+                            }
+                            .padding(.vertical, 5)
                         }
                     }
+                    .listStyle(PlainListStyle())
                 }
 
                 // Search Results List
-                List(searchResults, id: \.userID) { user in
-                    if let username = user["username"] as? String, let userId = user["_id"] as? String {
-                        HStack {
-                            Text(username)
-                            Spacer()
-                            Button(action: {
-                                sendFriendRequest(to: username)
-                            }) {
-                                Image(systemName: "plus.circle")
-                                    .foregroundColor(.blue)
-                                    .font(.title2)
+                if !searchResults.isEmpty {
+                    Text("Search Results")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .padding(.horizontal)
+                    
+                    List(searchResults, id: \.userID) { user in
+                        if let username = user["username"] as? String, let userId = user["_id"] as? String {
+                            HStack {
+                                Text(username)
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                Button(action: {
+                                    sendFriendRequest(to: username)
+                                }) {
+                                    Image(systemName: "plus.circle")
+                                        .foregroundColor(.blue)
+                                        .font(.title2)
+                                }
                             }
+                            .padding(.vertical, 5)
                         }
                     }
+                    .listStyle(PlainListStyle())
                 }
 
+                // Navigate to Pending Requests
                 NavigationLink(destination: PendingRequestsView()) {
-                    Text("View Pending Friend Requests")
+                    Text("Friend Requests")
+                        .fontWeight(.semibold)
                         .padding()
+                        .frame(maxWidth: .infinity)
                         .background(Color.blue)
                         .foregroundColor(.white)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
                 }
+                .padding(.horizontal)
             }
             .navigationTitle("Friends")
-            .onAppear(perform: fetchFriends)  // Fetch friends when view appears
+            .padding(.top, 20)
+            .onAppear(perform: fetchFriends)
             .alert(isPresented: $showUnfriendAlert) {
                 Alert(
                     title: Text("Unfriend \(userToUnfriend?.username ?? "")?"),
@@ -105,11 +152,11 @@ struct FriendRequestsView: View {
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
-        isLoading = true  // Show loading indicator
-        
+        isLoading = true
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
-                isLoading = false  // Hide loading indicator
+                isLoading = false
             }
             
             if let error = error {
@@ -162,7 +209,7 @@ struct FriendRequestsView: View {
             }
         }.resume()
     }
-    
+
     func searchUsers() {
         guard !searchText.isEmpty else { return }
         isLoading = true
@@ -182,9 +229,7 @@ struct FriendRequestsView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        print("Fetching: \(url.absoluteString)") // Debugging line
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 isLoading = false
@@ -194,20 +239,12 @@ struct FriendRequestsView: View {
                 print("Search error: \(error.localizedDescription)")
                 return
             }
-            
-            if let httpResponse = response as? HTTPURLResponse {
-                print("HTTP Response Code: \(httpResponse.statusCode)")
-                if httpResponse.statusCode != 200 {
-                    print("Server responded with status code \(httpResponse.statusCode)")
-                    return
-                }
-            }
-            
+
             guard let data = data else {
                 print("No data received from server")
                 return
             }
-            
+
             do {
                 if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
                     DispatchQueue.main.async {
@@ -221,79 +258,83 @@ struct FriendRequestsView: View {
             }
         }.resume()
     }
-    
-    func sendFriendRequest(to username: String) {
-            guard let token = UserDefaults.standard.string(forKey: "authToken") else {
-                print("No token found")
-                return
-            }
 
-            // Convert username to userID
-            guard let url = URL(string: "https://TrailBlazer33:5001/api/friends/getUserID?username=\(username)") else {
-                print("Invalid URL")
-                return
-            }
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "GET"
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    print("Error fetching userID: \(error.localizedDescription)")
-                    return
-                }
-                
-                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200, let data = data {
-                    do {
-                        if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                           let userID = jsonResponse["userID"] as? String {                            // Send the friend request
-                            sendRequest(to: userID)
-                        } else {
-                            print("Expected userID as String but got something else")
-                        }
-                    } catch {
-                        print("Error parsing userID response: \(error.localizedDescription)")
-                    }
-                }
-            }.resume()
+    func sendFriendRequest(to username: String) {
+        guard let token = UserDefaults.standard.string(forKey: "authToken") else {
+            print("No token found")
+            return
+        }
+
+        // Convert username to userID
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/friends/getUserID?username=\(username)") else {
+            print("Invalid URL")
+            return
         }
         
-        func sendRequest(to userID: String) {
-            guard let token = UserDefaults.standard.string(forKey: "authToken") else {
-                print("No token found")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error fetching userID: \(error.localizedDescription)")
                 return
             }
             
-            guard let url = URL(string: "https://TrailBlazer33:5001/api/friends/send/\(userID)") else {
-                print("Invalid URL")
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200, let data = data {
+                do {
+                    if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                       let userID = jsonResponse["userID"] as? String {
+                        // Send the friend request
+                        sendRequest(to: userID)
+                    }
+                } catch {
+                    print("Error parsing userID response: \(error.localizedDescription)")
+                }
+            }
+        }.resume()
+    }
+
+    func sendRequest(to userID: String) {
+        guard let token = UserDefaults.standard.string(forKey: "authToken") else {
+            print("No token found")
+            return
+        }
+
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/friends/send/\(userID)") else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error sending friend request: \(error.localizedDescription)")
                 return
             }
 
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    print("Error sending friend request: \(error.localizedDescription)")
-                    return
-                }
-                
-                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                    print("Friend request sent successfully")
-                }
-            }.resume()
-        }
-    
-    
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                print("Friend request sent successfully")
+            }
+        }.resume()
+    }
 }
+
 
 
 struct PendingRequestsView: View {
     @State private var friendRequests: [[String: Any]] = []  // Make this mutable
 
     var body: some View {
+        if friendRequests.isEmpty {
+            Text("No friend requests.")
+                .font(.footnote)
+                .foregroundColor(.gray)
+                .padding()
+        }
         List(friendRequests, id: \.userID) { request in  // Use _id as the identifier
                     if let username = request["username"] as? String, let userID = request["userID"] as? String {
                         HStack {
@@ -326,7 +367,7 @@ struct PendingRequestsView: View {
                     }
         }
         .onAppear(perform: fetchFriendRequests)
-        .navigationTitle("Pending Requests")
+        .navigationTitle("Friend Requests")
     }
 
     func fetchFriendRequests() {
