@@ -166,12 +166,10 @@ struct FriendView: View {
                 
                 // Posts Section (Below Location Section)
                 ScrollView {
-                    
                     VStack(spacing: 10) {
                         ForEach(posts) { post in
                             PostView(post: post, posts: $posts)
                         }
-                        
                     }
                     .padding(.horizontal)
                 }
@@ -222,40 +220,37 @@ struct FriendView: View {
                 .background(Color.white)
                 .shadow(radius: 5)
             }
-            .onAppear {
-                
-                fetchAllPosts()
-                fetchFriendsPosts()
-                checkPendingRequests()
-            }
             
-            // Floating Button - This will navigate to the NewPostView
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    NavigationLink(destination: NewPostView(), isActive: $showNewPostSheet) {
-                        Button(action: {
-                            showNewPostSheet = true
-                        }) {
-                            Image("newPost")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 40, height: 40)
-                                .padding()
-                                .background(Color.blue)
-                                .clipShape(Circle())
-                                .shadow(radius: 5)
-                        }
-                        .contentShape(Circle()) // Define a smaller tappable area
-                        .padding(.bottom, 80)
-                        .padding(.trailing, 15)
-                    }
+            // Floating Button at Bottom Right Corner
+            NavigationLink(destination: NewPostView(), isActive: $showNewPostSheet) {
+                Button(action: {
+                    showNewPostSheet = true
+                }) {
+                    Image("newPost")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 40, height: 40)
+                        .padding()
+                        .background(Color.blue)
+                        .clipShape(Circle())
+                        .shadow(radius: 5)
                 }
+                .frame(width: 40, height: 40)
+                .padding(.bottom, 40) // Adjust this for desired distance from the bottom
+                .padding(.trailing, 25) // Adjust this for desired distance from the right
             }
-            
+            .zIndex(1) // Ensures it appears above other elements
+//            .padding(.bottom, 40) // Add padding to avoid overlap with the bottom navigation bar
+//            .padding(.trailing, 20) // Controls distance from the right side
+            .position(x: UIScreen.main.bounds.width - 40, y: UIScreen.main.bounds.height - 230) // Position the button at the bottom-right
+        }
+        .onAppear {
+            fetchAllPosts()
+            fetchFriendsPosts()
+            checkPendingRequests()
         }
     }
+
     
     
     
