@@ -22,7 +22,7 @@ struct Post: Identifiable, Codable {
         var createdAt: String
     }
     
-    var comments: [Comment]
+    var comments: [Comment] = []
     
     // Flattened session data
     var sessionID: String?
@@ -61,7 +61,11 @@ struct Post: Identifiable, Codable {
         performance = try container.decodeIfPresent(String.self, forKey: .performance)
         createdAt = try container.decode(String.self, forKey: .createdAt)
         likes = try container.decode([String].self, forKey: .likes)
-        comments = try container.decode([Comment].self, forKey: .comments)
+        if let decodedComments = try? container.decode([Comment].self, forKey: .comments) {
+            comments = decodedComments
+        } else {
+            comments = []  // Default to an empty array if comments are not available
+        }
         
         // Decode sessionMetrics if it exists
         sessionID = try container.decodeIfPresent(String.self, forKey: .sessionID)
@@ -389,7 +393,7 @@ struct FriendView: View {
                 DispatchQueue.main.async {
                     self.posts.append(contentsOf: decodedPosts) // Append instead of replacing
                     self.posts.sort { $0.createdAt > $1.createdAt } // Sort posts by newest first
-                    //print("Merged user's posts:", self.posts)
+                    print("Merged user's posts:", self.posts)
                 }
             } catch {
                 print("Failed to decode posts: \(error)")
