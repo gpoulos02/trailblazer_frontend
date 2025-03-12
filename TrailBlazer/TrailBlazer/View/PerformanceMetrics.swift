@@ -3,6 +3,7 @@ import SwiftUI
 struct PerformanceMetricsView: View {
     @State private var metricsData: [MetricsData] = []
     @State private var originalMetricsData: [MetricsData] = []
+    @State private var filteredMetricsData: [MetricsData] = []
     @State private var isLoading: Bool = true
     @State private var selectedFilter: String? = nil
     @State private var selectedTrailName: String? = nil
@@ -118,6 +119,8 @@ struct PerformanceMetricsView: View {
                                 filterByTrailName()
                                 metricsData = sortMetricsData()
                                 isTrailNameListVisible = false// Filter metrics by selected trail name
+                              
+                                //GridView(metricsData: metricsData)
                             }) {
                                 Text(trailName)
                             }
@@ -228,14 +231,26 @@ struct PerformanceMetricsView: View {
         .onAppear {
             fetchMetricsData { data in
                 DispatchQueue.main.async {
+                    
                     self.metricsData = data
                     self.originalMetricsData = data
+                    self.filteredMetricsData = data
                     self.isLoading = false
                     self.loadRunNames(for: data)
                 }
             }
         }
     }
+    
+    private func isToday(dateString: String) -> Bool {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        if let date = formatter.date(from: dateString) {
+            return Calendar.current.isDateInToday(date)
+        }
+        return false
+    }
+
     
     private func fetchMetricsData(completion: @escaping ([MetricsData]) -> Void) {
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
@@ -478,7 +493,7 @@ struct PerformanceMetricsView: View {
         guard let selectedTrailName = selectedTrailName else { return }
         
         // Only filter when runNames has been populated for each runID
-        metricsData = originalMetricsData.filter { runNames[$0.runID] == selectedTrailName }
+        filteredMetricsData = originalMetricsData.filter { runNames[$0.runID] == selectedTrailName }
     }
 
 
@@ -488,7 +503,8 @@ struct PerformanceMetricsView: View {
         case "Date":
             return metricsData.sorted { $0.createdAt > $1.createdAt }
         case "Trail Name":
-            return metricsData.sorted { runNames[$0.runID] ?? "" < runNames[$1.runID] ?? "" }
+            //return metricsData.sorted { runNames[$0.runID] ?? "" < runNames[$1.runID] ?? "" }
+            return filteredMetricsData
         case "Speed":
             return metricsData.sorted { $0.sessionData.topSpeed > $1.sessionData.topSpeed }
         case "Distance":
