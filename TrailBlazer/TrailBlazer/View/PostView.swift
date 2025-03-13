@@ -6,6 +6,7 @@ struct PostView: View {
     
     @State private var username: String = "" // Store the fetched username
     @State private var routeName: String = ""
+    @State private var role = ""
     
     @State private var isLiked: Bool = false
     @State private var likeCount: Int = 0
@@ -140,6 +141,7 @@ struct PostView: View {
         .onAppear {
             fetchUsername()
             fetchLikeCount()
+            fetchUserRole()
             
         
             if let routeID = post.routeID {
@@ -202,6 +204,7 @@ struct PostView: View {
                 // Decode the JSON payload
                 let json = try JSONSerialization.jsonObject(with: decodedData, options: []) as? [String: Any]
                 return json?["userID"] as? String
+                
             } catch {
                 print("Error decoding token payload:", error)
                 return nil
@@ -213,7 +216,7 @@ struct PostView: View {
                 return false
             }
             
-            return post.userID == userIDFromToken
+            return post.userID == userIDFromToken || role == "admin"
             
         }
     
@@ -293,6 +296,54 @@ struct PostView: View {
 
             }.resume()
         }
+    
+    func fetchUserRole() {
+//        guard let userIDFromToken = getUserIDFromToken() else {
+//            return false
+//        }
+        guard let token = UserDefaults.standard.string(forKey: "authToken"),
+              let url = URL(string: "https://TrailBlazer33:5001/api/admin/userTypeByID") else {
+            print("Invalid URL or missing token")
+            return
+        }
+
+        print("Fetching user role from:", url)
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error fetching user role:", error.localizedDescription)
+                return
+            }
+
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Status Code:", httpResponse.statusCode)
+            }
+
+            do {
+                let roleResponse = try JSONDecoder().decode(RoleResponse.self, from: data)
+                DispatchQueue.main.async {
+                    self.role = roleResponse.role
+                    print("User role fetched successfully:", self.role)
+                }
+            } catch {
+                print("Failed to decode user role:", error.localizedDescription)
+                if let dataString = String(data: data, encoding: .utf8) {
+                    print("📥 Received response:", dataString)
+                }
+            }
+        }.resume()
+    }
+    
+    
     
     // Updated toggleLike function to handle the response correctly
     func toggleLike() {
