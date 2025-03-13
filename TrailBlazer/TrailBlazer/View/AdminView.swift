@@ -153,7 +153,11 @@ struct AdminView: View {
                 
                 if let array = json as? [[String: Any]] {
                     DispatchQueue.main.async {
-                        searchResults = array
+                        searchResults = array.map { result in
+                                                    var user = result
+                                                    user["userID"] = user["_id"]  // Ensure `userID` is set correctly for each user
+                                                    return user
+                                                }
                     }
                 } else if let object = json as? [String: Any] {
                     DispatchQueue.main.async {
