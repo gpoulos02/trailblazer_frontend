@@ -62,6 +62,7 @@ struct AvailableRoutesView: View {
             bottomTabBar
         }
         .onAppear { fetchDifficulties() }
+        .navigationBarBackButtonHidden(true)
     }
     
     // Bottom Navigation Bar
