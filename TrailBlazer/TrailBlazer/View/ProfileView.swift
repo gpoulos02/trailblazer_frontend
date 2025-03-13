@@ -7,6 +7,7 @@ struct ProfileView: View {
     @State private var userLastName = ""
     @State private var email = ""
     @State private var bio = ""
+    @State private var role = ""
     
     @State private var isOfflineMapEnabled = false
     @State private var isDarkModeEnabled = UserDefaults.standard.bool(forKey: "isDarkModeEnabled")
@@ -82,6 +83,7 @@ struct ProfileView: View {
             }
             .onAppear {
                 fetchProfileData()
+                fetchUserRole()
             }
             .navigationTitle("My Profile")
             .navigationBarTitleDisplayMode(.inline)
@@ -156,16 +158,18 @@ struct ProfileView: View {
                 .font(.title2)
                 .fontWeight(.semibold)
             
-            NavigationLink(destination: AdminView(userName: userName)) {
-                Text("Admin Page")
-                    .font(.subheadline)
-                    .foregroundColor(.blue)
-                    .padding(6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.blue, lineWidth: 1)
-                    )
-            }
+            if role == "admin" {
+                            NavigationLink(destination: AdminView(userName: userName)) {
+                                Text("Admin Page")
+                                    .font(.subheadline)
+                                    .foregroundColor(.blue)
+                                    .padding(6)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.blue, lineWidth: 1)
+                                    )
+                            }
+                        }
             
             Toggle(isOn: $isDarkModeEnabled) {
                 Text("Enable Dark Mode")
@@ -342,8 +346,60 @@ struct ProfileView: View {
             }
         }.resume()
     }
+    
+    func fetchUserRole() {
+//        guard let userIDFromToken = getUserIDFromToken() else {
+//            return false
+//        }
+        guard let token = UserDefaults.standard.string(forKey: "authToken"),
+              let url = URL(string: "https://TrailBlazer33:5001/api/admin/userTypeByID") else {
+            print("Invalid URL or missing token")
+            return
+        }
+
+        print("Fetching user role from:", url)
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error fetching user role:", error.localizedDescription)
+                return
+            }
+
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Status Code:", httpResponse.statusCode)
+            }
+
+            do {
+                let roleResponse = try JSONDecoder().decode(RoleResponse.self, from: data)
+                DispatchQueue.main.async {
+                    self.role = roleResponse.role
+                    print("User role fetched successfully:", self.role)
+                }
+            } catch {
+                print("Failed to decode user role:", error.localizedDescription)
+                if let dataString = String(data: data, encoding: .utf8) {
+                    print("📥 Received response:", dataString)
+                }
+            }
+        }.resume()
+    }
+    
+
+
 }
 
+struct RoleResponse: Codable {
+    let role: String
+}
 
 // Profile Model
 struct Profile: Codable {
