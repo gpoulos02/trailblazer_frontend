@@ -244,6 +244,8 @@ struct FriendView: View {
             fetchAllPosts()
             fetchFriendsPosts()
             checkPendingRequests()
+            
+            fetchAllPostsIfAdmin()
         }
     }
 
@@ -401,6 +403,104 @@ struct FriendView: View {
         }.resume()
     }
     
+    func fetchAllPostsIfAdmin() {
+        // Fetch user role and check if the user is an admin
+        fetchUserRole { role in
+            if role == "admin" {
+                // Proceed with the API call to fetch all posts
+                guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/getEveryPost") else {
+                    print("Invalid URL")
+                    return
+                }
+
+                var request = URLRequest(url: url)
+                request.httpMethod = "GET"
+
+                // Add the authorization token if available
+                if let token = UserDefaults.standard.string(forKey: "authToken") {
+                    request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                }
+
+                print("Requesting URL: \(url)")
+                URLSession.shared.dataTask(with: request) { data, response, error in
+                    if let error = error {
+                        print("Failed to fetch all posts: \(error)")
+                        return
+                    }
+
+                    if let httpResponse = response as? HTTPURLResponse {
+                        print("Response Status Code: \(httpResponse.statusCode)")
+                    }
+
+                    guard let data = data else {
+                        print("No data received")
+                        return
+                    }
+                    
+
+                    do {
+                        let decodedPosts = try JSONDecoder().decode([Post].self, from: data)
+
+                        DispatchQueue.main.async {
+                            self.posts.append(contentsOf: decodedPosts) // Append instead of replacing
+                            self.posts.sort { $0.createdAt > $1.createdAt } // Sort posts by newest first
+                            print("Merged posts from admin fetch:", self.posts)
+                        }
+                    } catch {
+                        print("Failed to decode posts:", error)
+                    }
+                }.resume()
+            } else {
+                print("User is not an admin, skipping fetch for all posts.")
+            }
+        }
+    }
+
+    func fetchUserRole(completion: @escaping (String) -> Void) {
+        guard let token = UserDefaults.standard.string(forKey: "authToken"),
+              let url = URL(string: "https://TrailBlazer33:5001/api/admin/userTypeByID") else {
+            print("Invalid URL or missing token")
+            return
+        }
+
+        print("Fetching user role from:", url)
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error fetching user role:", error.localizedDescription)
+                return
+            }
+
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Status Code:", httpResponse.statusCode)
+            }
+
+            do {
+                let roleResponse = try JSONDecoder().decode(RoleResponse.self, from: data)
+                DispatchQueue.main.async {
+                    completion(roleResponse.role)
+                    print("User role fetched successfully:", roleResponse.role)
+                }
+            } catch {
+                print("Failed to decode user role:", error.localizedDescription)
+                if let dataString = String(data: data, encoding: .utf8) {
+                    print("📥 Received response:", dataString)
+                }
+            }
+        }.resume()
+    }
+
+
+    
     struct PendingRequest: Codable {
         var userID: String
         var username: String
@@ -456,6 +556,8 @@ struct FriendView: View {
             }
         }.resume()
     }
+    
+    
     
     
     

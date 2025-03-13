@@ -393,35 +393,6 @@ struct ProfileView: View {
         }.resume()
     }
     
-//    func getUserIDFromToken() -> String? {
-//            guard let token = UserDefaults.standard.string(forKey: "authToken") else {
-//                print("Auth token is missing")
-//                return nil
-//            }
-//            
-//            let parts = token.split(separator: ".")
-//            guard parts.count == 3 else {
-//                print("Invalid token format")
-//                return nil
-//            }
-//            
-//            let base64String = String(parts[1])
-//            let paddedBase64String = base64String.padding(toLength: (base64String.count + 3) / 4 * 4, withPad: "=", startingAt: 0)
-//            
-//            guard let decodedData = Data(base64Encoded: paddedBase64String, options: .ignoreUnknownCharacters) else {
-//                print("Failed to decode token payload")
-//                return nil
-//            }
-//            
-//            do {
-//                // Decode the JSON payload
-//                let json = try JSONSerialization.jsonObject(with: decodedData, options: []) as? [String: Any]
-//                return json?["userID"] as? String
-//            } catch {
-//                print("Error decoding token payload:", error)
-//                return nil
-//            }
-//        }
 
 
 }
