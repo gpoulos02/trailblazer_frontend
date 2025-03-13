@@ -60,27 +60,33 @@ struct SignUpView: View {
                 }
 
                 // Sign-Up Button
-                Button("Sign Up") {
-                    signUp()
-                }
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-                
-                if showLoginButton {
-                    Text("Check your email for verification, then click Log In.")
-                        .foregroundColor(.blue)
-                        .padding(.top)
-                    
-                    NavigationLink(destination: LogInView()) {
-                        Text("Log In")
+                VStack {
+                            Button("Sign Up") {
+                                signUp()
+                                showLoginButton = true
+                            }
                             .padding()
-                            .background(Color.green)
+                            .background(Color.blue)
                             .foregroundColor(.white)
                             .cornerRadius(8)
-                    }
-                }
+                            
+                            if showLoginButton {
+                                Text("Check your email for verification.")
+                                    .foregroundColor(.blue)
+                                    .padding(.top)
+                                
+                                NavigationLink(destination: LogInView()) {
+                                    Text("Log In")
+                                        .padding()
+                                        .background(Color.green)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(5)
+                                }
+                            }
+                        }
+                        .padding()
+                    
+            
                 
 
 
@@ -101,6 +107,7 @@ struct SignUpView: View {
             errorMessage = "Please fill in all fields."
             return
         }
+        showLoginButton = true
 
         // Send the request to the backend to create the user
         let body: [String: String] = [
