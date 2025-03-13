@@ -6,6 +6,7 @@ struct AdminView: View {
     @State private var searchText = ""
     @State private var searchResults: [[String: Any]] = []
     @State private var isLoading = false
+    @State private var successMessage: String? = nil
     
     var body: some View {
         VStack {
@@ -41,6 +42,17 @@ struct AdminView: View {
             }
             .padding(.horizontal)
             
+            if successMessage != nil {
+                Text(successMessage ?? "")
+                    .font(.body)
+                    .foregroundColor(.gray)
+                    .padding()
+                    .background(Color.red.opacity(0.1))
+                    .cornerRadius(8)
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: successMessage)
+            }
+
             // Search Results
             if !searchResults.isEmpty {
                 Text("Search Results")
@@ -50,6 +62,12 @@ struct AdminView: View {
                 
                 List(searchResults, id: \.userID) { user in
                     if let username = user["username"] as? String, let userId = user["_id"] as? String {
+                        
+                        // Safely handle the case where 'role' might be missing or nil
+                        let role = user["role"] as? String ?? "user" // Default to "user" if role is missing
+                        
+                       
+
                         HStack {
                             Text(username)
                                 .font(.headline)
@@ -57,36 +75,32 @@ struct AdminView: View {
                             
                             Spacer()
                             
-                            // Make Mountain Owner Button
-                            Button(action: {
-                                makeMountainOwner(userId: userId)
-                            }) {
-                                Image(systemName: "mountain.2.fill")
-                                    .foregroundColor(.green)
-                                    .font(.title2)
-                            }
-                            
-                            // Suspend/Unsuspend Button
-                            Button(action: {
-                                toggleSuspension(userId: userId)
-                            }) {
-                                Image(systemName: user["isSuspended"] as? Bool == true ? "pause.circle" : "play.circle")
-                                    .foregroundColor(user["isSuspended"] as? Bool == true ? .red : .orange)
-                                    .font(.title2)
-                            }
-                            
-                            // Delete Button
-                            Button(action: {
-                                deleteUser(userId: userId)
-                            }) {
-                                Image(systemName: "trash")
-                                    .foregroundColor(.red)
-                                    .font(.title2)
+                            // Make Mountain Owner Button (only if the user is not already a mountain owner)
+                            if role != "mountain_owner" {
+                                Button(action: {
+                                    makeMountainOwner(userId: userId)
+                                }) {
+                                    Text("Mountain owner")
+                                    Image(systemName: "mountain.2.fill")
+                                        .foregroundColor(.green)
+                                        .font(.title2)
+                                }
+                            } else {
+                                // Demote User from Mountain Owner Button (if the user is already a mountain owner)
+                                Button(action: {
+                                    demoteMountainOwner(userId: userId)
+                                }) {
+                                    Text("Demote")
+                                    Image(systemName: "arrow.down.circle.fill")
+                                        .foregroundColor(.red)
+                                        .font(.title2)
+                                }
                             }
                         }
                         .padding(.vertical, 5)
                     }
                 }
+
                 .listStyle(PlainListStyle())
             }
         }
@@ -100,7 +114,7 @@ struct AdminView: View {
         isLoading = true
         
         guard let encodedQuery = searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://TrailBlazer33:5001/api/friends/search?query=\(encodedQuery)") else {
+              let url = URL(string: "https://TrailBlazer33:5001/api/admin/search?query=\(encodedQuery)") else {
             print("Invalid URL")
             isLoading = false
             return
@@ -157,42 +171,116 @@ struct AdminView: View {
     
     // MARK: - Make Mountain Owner
     func makeMountainOwner(userId: String) {
-        guard let url = URL(string: "https://TrailBlazer33:5001/api/admin/approve-mountain-owner/\(userId)") else { return }
-        performAdminAction(url: url, method: "POST")
-    }
-    
-    // MARK: - Toggle Suspension
-    func toggleSuspension(userId: String) {
-        guard let url = URL(string: "https://TrailBlazer33:5001/api/users/\(userId)/toggle-suspension") else { return }
-        performAdminAction(url: url, method: "POST")
-    }
-    
-    // MARK: - Delete User
-    func deleteUser(userId: String) {
-        guard let url = URL(string: "https://TrailBlazer33:5001/api/users/\(userId)") else { return }
-        performAdminAction(url: url, method: "DELETE")
-    }
-    
-    // MARK: - Admin Action Helper
-    private func performAdminAction(url: URL, method: String) {
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/admin/approve-mountain-owner/\(userId)") else {
+            print("Invalid URL")
+            return
+        }
+
         guard let token = UserDefaults.standard.string(forKey: "authToken") else {
             print("No token found")
             return
         }
-        
+
         var request = URLRequest(url: url)
-        request.httpMethod = method
+        request.httpMethod = "PUT"  // Change from POST to PUT to match the server endpoint
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        URLSession.shared.dataTask(with: request) { _, response, error in
+
+        print("Attempting to make user \(userId) a Mountain Owner...")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("\(method) action error: \(error.localizedDescription)")
+                print("Error: \(error.localizedDescription)")
                 return
             }
-            
-            DispatchQueue.main.async {
-                searchUsers() // Refresh results after action
+
+            guard let data = data else {
+                print("No data received from server")
+                return
+            }
+
+            // Log raw data for debugging
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("Data received from server: \(responseString.count) bytes")
+                print("Raw server response: \(responseString)")
+            }
+
+            // Check content type of the response to ensure it's JSON
+            if let httpResponse = response as? HTTPURLResponse,
+               let contentType = httpResponse.allHeaderFields["Content-Type"] as? String,
+               !contentType.contains("application/json") {
+                print("Response is not JSON. Content-Type: \(contentType)")
+                return
+            }
+
+            // Try to parse the JSON response
+            do {
+                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
+                if let responseDict = jsonResponse as? [String: Any], let message = responseDict["message"] as? String {
+                    DispatchQueue.main.async {
+                        print(message)
+                        successMessage = "User is now a Mountain Owner"
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                            successMessage = nil
+                        }
+                    }
+                }
+            } catch {
+                print("Error parsing JSON: \(error.localizedDescription)")
             }
         }.resume()
     }
+    
+    // MARK: - Demote Mountain Owner
+    func demoteMountainOwner(userId: String) {
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/admin/demote-mountain-owner/\(userId)") else {
+            print("Invalid URL")
+            return
+        }
+
+        guard let token = UserDefaults.standard.string(forKey: "authToken") else {
+            print("No token found")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        print("Attempting to demote user \(userId) from Mountain Owner...")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error: \(error.localizedDescription)")
+                return
+            }
+
+            guard let data = data else {
+                print("No data received from server")
+                return
+            }
+
+            do {
+                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
+                if let responseDict = jsonResponse as? [String: Any], let message = responseDict["message"] as? String {
+                    DispatchQueue.main.async {
+                        print(message)
+                        successMessage = "User has been demoted from Mountain Owner"
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                            successMessage = nil
+                        }
+                    }
+                }
+            } catch {
+                print("Error parsing JSON: \(error.localizedDescription)")
+            }
+        }.resume()
+    }
+
+    // MARK: - Delete User
+    func deleteUser(userId: String) {
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/users/\(userId)") else { return }
+        //performAdminAction(url: url, method: "DELETE")
+    }
+    
+
 }
