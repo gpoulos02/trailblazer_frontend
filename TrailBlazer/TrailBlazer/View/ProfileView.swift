@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ProfileView: View {
-    var userName: String // Accept the userName parameter
+    var userName: String
 
     @State private var userFirstName = ""
     @State private var userLastName = ""
@@ -10,283 +10,73 @@ struct ProfileView: View {
     
     @State private var isOfflineMapEnabled = false
     @State private var isDarkModeEnabled = UserDefaults.standard.bool(forKey: "isDarkModeEnabled")
-    @State private var showLogoutConfirmation = false // State for showing alert
-    @State private var navigateToLandingView = false  // State for navigation
-    @State private var showSOSConfirmation = false // State for showing SOS confirmation alert
-    @State private var showSaveConfirmation = false // State for showing save confirmation alert
-    @State private var isEditMode = false // Tracks if the user is in edit mode
+    @State private var showLogoutConfirmation = false
+    @State private var navigateToLandingView = false
+    @State private var showSOSConfirmation = false
+    @State private var showSaveConfirmation = false
+    @State private var isEditMode = false
     @State private var currentTab: Tab = .profile
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 30) {
-                    // Profile Picture Section
-                    VStack {
-                        Image("profile")
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 150, height: 150)
-                            .clipShape(Circle())
-                    }
-                    .padding(.top, 20)
+                    ProfilePicture()
+                    ProfileInfo()
+                    SettingsSection()
+                    SOSButton()
+                    LogoutButton()
 
-                    // Profile Info Section
-                    VStack(alignment: .leading, spacing: 15) {
-                        // Title and Edit Button
-                        HStack {
-                            Text("Profile Information")
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                            Spacer()
-                            Button(action: {
-                                isEditMode.toggle() // Toggle edit mode
-                            }) {
-                                Text(isEditMode ? "Cancel" : "Update Profile")
-                                    .foregroundColor(.blue)
-                                    .padding(8)
-                                    .background(Color(UIColor.systemGray5))
-                                    .cornerRadius(8)
-                            }
-                        }
-
-                        // Fields (Editable or Non-editable)
-                        VStack(spacing: 10) {
-                            // First Name
-                            HStack {
-                                Text("First Name:")
-                                    .fontWeight(.bold)
-                                Spacer()
-                                if isEditMode {
-                                    TextField("Enter First Name", text: $userFirstName)
-                                        .padding(8)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(Color.white)
-                                                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
-                                        )
-                                        .frame(maxWidth: 200) // Adjust width for better alignment
-                                        .foregroundColor(.primary)
-                                } else {
-                                    Text(userFirstName)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            Divider()
-
-                            // Last Name
-                            HStack {
-                                Text("Last Name:")
-                                    .fontWeight(.bold)
-                                Spacer()
-                                if isEditMode {
-                                    TextField("Enter Last Name", text: $userLastName)
-                                        .padding(8)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(Color.white)
-                                                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
-                                        )
-                                        .frame(maxWidth: 200)
-                                        .foregroundColor(.primary)
-                                } else {
-                                    Text(userLastName)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            Divider()
-
-                            // Email (Static)
-                            HStack {
-                                Text("Email:")
-                                    .fontWeight(.bold)
-                                Spacer()
-                                Text(email)
-                                    .foregroundColor(.secondary)
-                            }
-                            Divider()
-                            
-                            // Bio Section (New)
-                            HStack {
-                                Text("Bio:")
-                                    .fontWeight(.bold)
-                                Spacer()
-                                if isEditMode {
-                                    TextField("Enter Bio", text: $bio)
-                                        .padding(8)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(Color.white)
-                                                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
-                                        )
-                                        .frame(maxWidth: 200)
-                                        .foregroundColor(.primary)
-                                        .lineLimit(4) // Limit number of lines for the bio
-                                } else {
-                                    Text(bio.isEmpty ? "No bio provided" : bio)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
-
-                        // Save Changes Button (Only in Edit Mode)
-                        if isEditMode {
-                            Button(action: {
-                                saveProfileChanges()
-                                isEditMode = false // Exit edit mode after saving
-                            }) {
-                                Text("Save Changes")
-                                    .font(.headline)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                            }
-                            .padding(.top)
-                        }
-                    }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(UIColor.secondarySystemBackground))
-                            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
-                    )
-                    .padding(.horizontal, 20)
-
-                    // Settings Section
-                    VStack(alignment: .leading, spacing: 20) {
-                        Text("Settings")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-
-                        Toggle(isOn: $isOfflineMapEnabled) {
-                            Text("Enable Offline Map")
-                                .font(.subheadline)
-                        }
-                        .padding(.horizontal, 16)
-
-                        Toggle(isOn: $isDarkModeEnabled) {
-                            Text("Enable Dark Mode")
-                                .font(.subheadline)
-                        }
-                        .padding(.horizontal, 16)
-                        .onChange(of: isDarkModeEnabled) { value in
-                            toggleDarkMode(value: value)
-                        }
-                    }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(UIColor.secondarySystemBackground))
-                            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
-                    )
-                    .padding(.horizontal, 20)
-
-                    // SOS Button
-                    VStack {
-                        Button(action: {
-                            showSOSConfirmation = true
-                        }) {
-                            Text("Emergency SOS")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.red)
-                                .cornerRadius(8)
-                        }
-                        .alert(isPresented: $showSOSConfirmation) {
-                            Alert(
-                                title: Text("Are you sure?"),
-                                message: Text("Triggering Emergency SOS will alert local authorities and notify your TrailBlazer friends."),
-                                primaryButton: .destructive(Text("Proceed")) {
-                                    print("SOS triggered")
-                                },
-                                secondaryButton: .cancel()
-                            )
-                        }
-                    }
-
-                    // Log Out Button
-                    VStack {
-                        Button(action: {
-                            showLogoutConfirmation = true
-                        }) {
-                            Text("Log Out")
-                                .font(.headline)
-                                .foregroundColor(.red)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color(UIColor.secondarySystemBackground))
-                                .cornerRadius(8)
-                        }
-                        .alert(isPresented: $showLogoutConfirmation) {
-                            Alert(
-                                title: Text("Log Out"),
-                                message: Text("Are you sure you want to log out?"),
-                                primaryButton: .destructive(Text("Log Out")) {
-                                    performLogout()
-                                },
-                                secondaryButton: .cancel()
-                            )
-                        }
-                    }
-
-                    // Navigation Link to LandingView
                     NavigationLink(
                         destination: LandingView(),
                         isActive: $navigateToLandingView
                     ) {
                         EmptyView()
                     }
-                    Spacer()
-                    
                     
                     HStack {
-                        TabBarItem(
-                            tab: .home,
-                            currentTab: $currentTab,
-                            destination: {HomeView(userName: userName)},
-                            imageName: "house.fill",
-                            label: "Home"
-                        )
-                        
-                        TabBarItem(
-                            tab: .friends,
-                            currentTab: $currentTab,
-                            destination: {FriendView(userName: userName)},
-                            imageName: "person.2.fill",
-                            label: "Friends"
-                        )
-                        
-                        TabBarItem(
-                            tab: .map,
-                            currentTab: $currentTab,
-                            destination: {RouteLandingView(userName: userName)},
-                            imageName: "map.fill",
-                            label: "Map"
-                        )
-                        
-                        TabBarItem(
-                            tab: .metrics,
-                            currentTab: $currentTab,
-                            destination: {PerformanceMetricsView(userName: userName)},
-                            imageName: "chart.bar.fill",
-                            label: "Metrics"
-                        )
-                        
-                        TabBarItem(
-                            tab: .profile,
-                            currentTab: $currentTab,
-                            destination: {ProfileView(userName: userName)},
-                            imageName: "person.fill",
-                            label: "Profile"
-                        )
-                    }
-                    .padding()
-                    .background(Color.white)
-
+                                            TabBarItem(
+                                                tab: .home,
+                                                currentTab: $currentTab,
+                                                destination: {HomeView(userName: userName)},
+                                                imageName: "house.fill",
+                                                label: "Home"
+                                            )
+                                            
+                                            TabBarItem(
+                                                tab: .friends,
+                                                currentTab: $currentTab,
+                                                destination: {FriendView(userName: userName)},
+                                                imageName: "person.2.fill",
+                                                label: "Friends"
+                                            )
+                                            
+                                            TabBarItem(
+                                                tab: .map,
+                                                currentTab: $currentTab,
+                                                destination: {RouteLandingView(userName: userName)},
+                                                imageName: "map.fill",
+                                                label: "Map"
+                                            )
+                                            
+                                            TabBarItem(
+                                                tab: .metrics,
+                                                currentTab: $currentTab,
+                                                destination: {PerformanceMetricsView(userName: userName)},
+                                                imageName: "chart.bar.fill",
+                                                label: "Metrics"
+                                            )
+                                            
+                                            TabBarItem(
+                                                tab: .profile,
+                                                currentTab: $currentTab,
+                                                destination: {ProfileView(userName: userName)},
+                                                imageName: "person.fill",
+                                                label: "Profile"
+                                            )
+                                        }
+                                        .padding()
+                                        .background(Color.white)
                 }
                 .padding(.bottom, 40)
             }
@@ -296,6 +86,153 @@ struct ProfileView: View {
             .navigationTitle("My Profile")
             .navigationBarTitleDisplayMode(.inline)
             .preferredColorScheme(isDarkModeEnabled ? .dark : .light)
+        }
+    }
+
+    // MARK: - Profile Picture
+    private func ProfilePicture() -> some View {
+        VStack {
+            Image("profile")
+                .resizable()
+                .scaledToFill()
+                .frame(width: 150, height: 150)
+                .clipShape(Circle())
+        }
+        .padding(.top, 20)
+    }
+
+    // MARK: - Profile Info
+    private func ProfileInfo() -> some View {
+        VStack(alignment: .leading, spacing: 15) {
+            HStack {
+                Text("Profile Information")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                Spacer()
+                Button(action: {
+                    isEditMode.toggle()
+                }) {
+                    Text(isEditMode ? "Cancel" : "Update Profile")
+                        .foregroundColor(.blue)
+                        .padding(8)
+                        .background(Color(UIColor.systemGray5))
+                        .cornerRadius(8)
+                }
+            }
+
+            EditableField(label: "First Name", value: $userFirstName, isEditable: isEditMode)
+            EditableField(label: "Last Name", value: $userLastName, isEditable: isEditMode)
+            ReadOnlyField(label: "Email", value: email)
+            EditableField(label: "Bio", value: $bio, isEditable: isEditMode)
+
+            if isEditMode {
+                Button(action: {
+                    saveProfileChanges()
+                    isEditMode = false
+                }) {
+                    Text("Save Changes")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .padding(.top)
+            }
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 12)
+            .fill(Color(UIColor.secondarySystemBackground))
+            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
+        )
+        .padding(.horizontal, 20)
+    }
+
+    // MARK: - Settings Section
+    private func SettingsSection() -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Settings")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            NavigationLink(destination: AdminView(userName: userName)) {
+                Text("Admin Page")
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
+                    .padding(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.blue, lineWidth: 1)
+                    )
+            }
+            
+            Toggle(isOn: $isDarkModeEnabled) {
+                Text("Enable Dark Mode")
+                    .font(.subheadline)
+            }
+            .onChange(of: isDarkModeEnabled) { value in
+                toggleDarkMode(value: value)
+            }
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 12)
+            .fill(Color(UIColor.secondarySystemBackground))
+            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
+        )
+        .padding(.horizontal, 20)
+    }
+
+    // MARK: - SOS Button
+    private func SOSButton() -> some View {
+        Button(action: {
+            showSOSConfirmation = true
+        }) {
+            Text("Emergency SOS")
+                .font(.headline)
+                .foregroundColor(.white)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.red)
+                .cornerRadius(8)
+        }
+        .alert(isPresented: $showSOSConfirmation) {
+            Alert(
+                title: Text("Are you sure?"),
+                message: Text("Triggering Emergency SOS will alert local authorities and notify your TrailBlazer friends."),
+                primaryButton: .destructive(Text("Proceed")) {
+                    print("SOS triggered")
+                },
+                secondaryButton: .cancel()
+            )
+        }
+        
+        
+    }
+    
+
+    // MARK: - Logout Button
+    private func LogoutButton() -> some View {
+        Button(action: {
+            showLogoutConfirmation = true
+        }) {
+            Text("Log Out")
+                .font(.headline)
+                .foregroundColor(.red)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color(UIColor.secondarySystemBackground))
+                .cornerRadius(8)
+        }
+        .alert(isPresented: $showLogoutConfirmation) {
+            Alert(
+                title: Text("Log Out"),
+                message: Text("Are you sure you want to log out?"),
+                primaryButton: .destructive(Text("Log Out")) {
+                    performLogout()
+                },
+                secondaryButton: .cancel()
+            )
         }
     }
     private func toggleDarkMode(value: Bool) {
@@ -414,4 +351,43 @@ struct Profile: Codable {
     let lastName: String
     let email: String
     let bio: String
+}
+
+struct EditableField: View {
+    var label: String
+    @Binding var value: String
+    var isEditable: Bool
+
+    var body: some View {
+        HStack {
+            Text("\(label):")
+                .fontWeight(.bold)
+            Spacer()
+            if isEditable {
+                TextField("Enter \(label)", text: $value)
+                    .padding(8)
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .shadow(color: Color.black.opacity(0.1), radius: 2)
+            } else {
+                Text(value).foregroundColor(.secondary)
+            }
+        }
+        Divider()
+    }
+}
+
+struct ReadOnlyField: View {
+    var label: String
+    var value: String
+    
+    var body: some View {
+        HStack {
+            Text("\(label):")
+                .fontWeight(.bold)
+            Spacer()
+            Text(value).foregroundColor(.secondary)
+        }
+        Divider()
+    }
 }
