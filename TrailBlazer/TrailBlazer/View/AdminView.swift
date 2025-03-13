@@ -7,9 +7,15 @@ struct AdminView: View {
     @State private var searchResults: [[String: Any]] = []
     @State private var isLoading = false
     @State private var successMessage: String? = nil
+    @State private var showDeleteConfirmation = false
+    @State private var deleteSuccessMessage: String? = nil
+    @State private var userIdToDelete: String? = nil
     
     var body: some View {
         VStack {
+            
+            
+
             // Search Bar
             HStack {
                 TextField("Search for usernames...", text: $searchText)
@@ -52,7 +58,17 @@ struct AdminView: View {
                     .transition(.opacity)
                     .animation(.easeInOut, value: successMessage)
             }
-
+            
+            if deleteSuccessMessage != nil {  // Show delete success message
+                Text(deleteSuccessMessage ?? "")
+                    .font(.body)
+                    .foregroundColor(.green)
+                    .padding()
+                    .background(Color.green.opacity(0.1))
+                    .cornerRadius(8)
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: deleteSuccessMessage)
+            }
             // Search Results
             if !searchResults.isEmpty {
                 Text("Search Results")
@@ -63,45 +79,72 @@ struct AdminView: View {
                 List(searchResults, id: \.userID) { user in
                     if let username = user["username"] as? String, let userId = user["_id"] as? String {
                         
-                        // Safely handle the case where 'role' might be missing or nil
-                        let role = user["role"] as? String ?? "user" // Default to "user" if role is missing
+                        let role = user["role"] as? String ?? "user"
                         
-                       
-
-                        HStack {
-                            Text(username)
-                                .font(.headline)
-                                .foregroundColor(.primary)
+                        HStack { // Use VStack to stack username and buttons vertically
+                            // Username should not be inside a Button
+                            HStack {
+                                Text(username)
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                
+                                Spacer()
+                            }
+                            .padding(.vertical, 5) // Add some padding to separate from buttons
                             
-                            Spacer()
+                            Button(action: {
+                                userIdToDelete = userId
+                                showDeleteConfirmation = true
+                                deleteUser(userId: userId)
+                            }) {
+                                HStack {
+                                    Image(systemName: "trash.fill")
+                                        .foregroundColor(.white)
+                                        .font(.title2)
+                                }
+                                .padding(8)
+                                .background(Color.red)
+                                .cornerRadius(5)
+                                .shadow(radius: 3)
                             
-                            // Make Mountain Owner Button (only if the user is not already a mountain owner)
+                            // Make Mountain Owner or Demote Button
                             if role != "mountain_owner" {
                                 Button(action: {
                                     makeMountainOwner(userId: userId)
                                 }) {
-                                    Text("Mountain owner")
-                                    Image(systemName: "mountain.2.fill")
-                                        .foregroundColor(.green)
-                                        .font(.title2)
+                                    HStack {
+                                        Text("Promote")
+                                        Image(systemName: "mountain.2.fill")
+                                            .foregroundColor(.green)
+                                            .font(.title3)
+                                    }
                                 }
+                                .padding(.bottom, 5)
+                                .frame(width: 140)
+                                
                             } else {
-                                // Demote User from Mountain Owner Button (if the user is already a mountain owner)
                                 Button(action: {
                                     demoteMountainOwner(userId: userId)
                                 }) {
-                                    Text("Demote")
-                                    Image(systemName: "arrow.down.circle.fill")
-                                        .foregroundColor(.red)
-                                        .font(.title2)
+                                    HStack {
+                                        Text("Demote")
+                                        Image(systemName: "arrow.down.circle.fill")
+                                            .foregroundColor(.red)
+                                            .font(.title3)
+                                    }
                                 }
+                                .padding(.bottom, 5)
+                                .frame(width: 140)
+                            }
+                                
+
                             }
                         }
-                        .padding(.vertical, 5)
                     }
                 }
-
                 .listStyle(PlainListStyle())
+
+
             }
         }
         .navigationTitle("Admin")
@@ -282,9 +325,48 @@ struct AdminView: View {
 
     // MARK: - Delete User
     func deleteUser(userId: String) {
-        guard let url = URL(string: "https://TrailBlazer33:5001/api/users/\(userId)") else { return }
-        //performAdminAction(url: url, method: "DELETE")
-    }
+            guard let url = URL(string: "https://TrailBlazer33:5001/api/admin/delete-user/\(userId)") else {
+                print("Invalid URL")
+                return
+            }
+
+            guard let token = UserDefaults.standard.string(forKey: "authToken") else {
+                print("No token found")
+                return
+            }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "DELETE"
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("Error: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let data = data else {
+                    print("No data received from server")
+                    return
+                }
+
+                do {
+                    let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
+                    if let responseDict = jsonResponse as? [String: Any], let message = responseDict["message"] as? String {
+                        DispatchQueue.main.async {
+                            deleteSuccessMessage = "User has been deleted"  // Set the delete success message
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                                deleteSuccessMessage = nil  // Hide the success message after 5 seconds
+                            }
+                        }
+                    }
+                } catch {
+                    print("Error parsing JSON: \(error.localizedDescription)")
+                }
+            }.resume()
+        }
+    
+    
     
 
 }
