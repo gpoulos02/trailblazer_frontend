@@ -246,12 +246,23 @@ struct FriendRequestsView: View {
             }
 
             do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
+                let json = try JSONSerialization.jsonObject(with: data, options: [])
+                print("Raw JSON response: \(json)")
+                
+                if let array = json as? [[String: Any]] {
                     DispatchQueue.main.async {
-                        searchResults = json
+                        searchResults = array.map { result in
+                                                    var user = result
+                                                    user["userID"] = user["_id"]  // Ensure `userID` is set correctly for each user
+                                                    return user
+                                                }
+                    }
+                } else if let object = json as? [String: Any] {
+                    DispatchQueue.main.async {
+                        searchResults = [object] // Wrap single object in an array
                     }
                 } else {
-                    print("Failed to parse JSON")
+                    print("Unexpected JSON format: \(json)")
                 }
             } catch {
                 print("JSON decoding error: \(error.localizedDescription)")
