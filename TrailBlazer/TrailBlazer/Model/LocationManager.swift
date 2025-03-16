@@ -12,6 +12,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var currentSpeed: Double = 0.0
     @Published var currentElevation: Double = 0.0
     @Published var totalDistance: Double = 0.0
+    @Published var currentCoordinates: String = ""
 
     override init() {
         super.init()
@@ -43,6 +44,16 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
         // Inform delegate of the updated location
         delegate?.didUpdateLocation(location)
+        
+        let latitude = location.coordinate.latitude
+        let longitude = location.coordinate.longitude
+        let formattedCoordinates = "Lat: \(latitude), Lon: \(longitude)"
+        
+        DispatchQueue.main.async {
+            self.delegate?.didUpdateLocation(location)
+            print("Updated current coordinates: \(formattedCoordinates)")
+            self.currentCoordinates = formattedCoordinates
+        }
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

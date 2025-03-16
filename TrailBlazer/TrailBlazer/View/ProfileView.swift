@@ -17,6 +17,9 @@ struct ProfileView: View {
     @State private var showSaveConfirmation = false
     @State private var isEditMode = false
     @State private var currentTab: Tab = .profile
+    @StateObject private var locationManager = LocationManager()
+    @State private var currentCoordinates: String = "Loading..."
+
 
     var body: some View {
         NavigationStack {
@@ -28,8 +31,11 @@ struct ProfileView: View {
                     if role == "admin" {
                         SettingsSection()
                     }
+                    LocationInfo()
                     
                     ButtonsSection()
+                    
+
 
                     NavigationLink(
                         destination: LandingView(),
@@ -105,6 +111,38 @@ struct ProfileView: View {
         }
         .padding(.top, 20)
     }
+    
+    private func LocationInfo() -> some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text("Your Current Coordinates")
+                .font(.title)
+                .fontWeight(.semibold)
+
+            // Debugging statement
+            if locationManager.currentCoordinates.isEmpty {
+                Text("Loading...")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 5)
+                
+            } else {
+                // Display the coordinates if available
+                Text(locationManager.currentCoordinates)
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 5)
+                 // Debug the coordinates value
+            }
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 12)
+            .fill(Color(UIColor.secondarySystemBackground))
+            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
+        )
+        .padding(.horizontal, 20)
+    }
+
+
 
     // MARK: - Profile Info
     private func ProfileInfo() -> some View {
