@@ -17,6 +17,8 @@ struct PerformanceMetricsView: View {
     @State private var isShareSheetPresented: Bool = false
     @State private var shareTitle: String = ""
     @State private var selectedMetricForSharing: MetricsData? = nil
+    @State private var mountainID: Int = UserDefaults.standard.integer(forKey: "selectedMountainID")
+    @State private var previousMountainID: Int = UserDefaults.standard.integer(forKey: "selectedMountainID")
     
     let baseURL = "https://TrailBlazer33:5001/api"
     
@@ -107,20 +109,17 @@ struct PerformanceMetricsView: View {
             // Dropdown for Trail Name
             if selectedFilter == "Trail Name" {
                 VStack {
-                    
-                    
                     if isTrailNameListVisible {
                         Text("Select Trail Name")
                             .font(Font.custom("Inter", size: 16).weight(.bold))
                             .padding(.leading, 20)
+                        
                         List(allTrailNames, id: \.self) { trailName in
                             Button(action: {
                                 selectedTrailName = trailName // Set the selected trail name
                                 filterByTrailName()
                                 metricsData = sortMetricsData()
                                 isTrailNameListVisible = false// Filter metrics by selected trail name
-                              
-                                //GridView(metricsData: metricsData)
                             }) {
                                 Text(trailName)
                             }
@@ -229,9 +228,17 @@ struct PerformanceMetricsView: View {
             .background(Color.white)
         }
         .onAppear {
+            let currentMountainID = UserDefaults.standard.integer(forKey: "selectedMountainID")
+            mountainID = currentMountainID
+            
+            if previousMountainID != mountainID {
+                print("Mountain changed from \(previousMountainID) to \(mountainID)")
+                fetchAllTrailNames()
+                previousMountainID = mountainID
+            }
+
             fetchMetricsData { data in
                 DispatchQueue.main.async {
-                    
                     self.metricsData = data
                     self.originalMetricsData = data
                     self.filteredMetricsData = data
@@ -240,6 +247,7 @@ struct PerformanceMetricsView: View {
                 }
             }
         }
+
     }
     
     private func isToday(dateString: String) -> Bool {
@@ -449,8 +457,9 @@ struct PerformanceMetricsView: View {
     }
     
     private func fetchAllTrailNames() {
+        let currentMountainID = UserDefaults.standard.integer(forKey: "selectedMountainID") // Ensure correct mountainID
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
-              let url = URL(string: "https://TrailBlazer33:5001/api/routes/route-names") else {
+              let url = URL(string: "https://TrailBlazer33:5001/api/metrics/trail-names?mountainID=\(currentMountainID)") else {
             print("Invalid URL or missing token")
             return
         }
@@ -458,41 +467,45 @@ struct PerformanceMetricsView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        print("Fetching trail names with URL: \(url)") // Debugging: Log the request URL
+
+        print("Fetching trail names for mountainID: \(currentMountainID) with URL: \(url)") // Debugging
+
+        DispatchQueue.main.async {
+            self.allTrailNames = [] // Clear old trails before fetching new ones
+        }
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("Error fetching trail names: \(error.localizedDescription)") // Debugging: Log the error
+                print("Error fetching trail names: \(error.localizedDescription)")
                 return
             }
             
             guard let data = data else {
-                print("No data received from the server.") // Debugging: Log if no data received
+                print("No data received from the server.")
                 return
             }
             
             do {
                 let decoder = JSONDecoder()
                 let trailResponse = try decoder.decode(TrailResponse.self, from: data)
-                print("Decoded response: \(trailResponse)") // Debugging: Log the decoded response
-                
+                print("Decoded response for mountainID \(currentMountainID): \(trailResponse.routes)")
+
                 DispatchQueue.main.async {
-                    self.allTrailNames = trailResponse.routes // Extract the routes array
-                    print("Trail names: \(self.allTrailNames)") // Debugging: Log the trail names
+                    if UserDefaults.standard.integer(forKey: "selectedMountainID") == currentMountainID {
+                        self.allTrailNames = trailResponse.routes
+                        print("Trail names updated for selected mountain \(currentMountainID): \(self.allTrailNames)")
+                    } else {
+                        print("Discarding outdated trail data because mountainID changed.")
+                    }
                 }
             } catch {
-                print("Error decoding trail names: \(error.localizedDescription)") // Debugging: Log the error
+                print("Error decoding trail names: \(error.localizedDescription)")
             }
         }.resume()
     }
-
-
     
     private func filterByTrailName() {
         guard let selectedTrailName = selectedTrailName else { return }
-        
-        // Only filter when runNames has been populated for each runID
         filteredMetricsData = originalMetricsData.filter { runNames[$0.runID] == selectedTrailName }
     }
 
