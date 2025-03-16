@@ -206,20 +206,35 @@ struct ProfileView: View {
         }
         .alert(isPresented: $showSOSConfirmation) {
             Alert(
-                title: Text("Are you sure?"),
-                message: Text("Triggering Emergency SOS will alert local authorities and notify your TrailBlazer friends."),
-                primaryButton: .destructive(Text("Proceed")) {
-                    print("SOS triggered")
+                title: Text("Emergency SOS"),
+                message: Text("Triggering Emergency SOS will alert ski patrol. Select the correct mountain."),
+                primaryButton: .default(Text("Blue Mountain Ski Patrol")) {
+                    callResortPhoneNumber(number: "7054450231") // Resort 1's phone number
                 },
-                secondaryButton: .cancel()
+                secondaryButton: .default(Text("Boler Mountain Ski Patrol")) {
+                    callResortPhoneNumber(number: "5196578822") // Resort 2's phone number
+                }
             )
         }
     }
 
-    
+    private func callResortPhoneNumber(number: String) {
+        // Clean the number in case there are any non-numeric characters
+        let cleanedNumber = number.filter { $0.isNumber }// Debug statement
+        if let phoneURL = URL(string: "tel://\(cleanedNumber)") {// Debug statement
+            
+            if UIApplication.shared.canOpenURL(phoneURL) {
+                print("Can open URL: \(phoneURL)") // Debug statement
+                UIApplication.shared.open(phoneURL)
+            } else {
+                print("Cannot make a phone call.")
+            }
+        } else {
+            print("Invalid phone URL") // Debug statement
+        }
+    }
 
 
-    
 
     // MARK: - Logout Button
     private func LogoutButton() -> some View {
