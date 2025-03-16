@@ -191,12 +191,7 @@ struct CreateNewRouteView: View {
 
     private func fetchRoutes() {
         print("Fetch Routes triggered")
-        if let token = UserDefaults.standard.string(forKey: "authToken") {
-            print("Token found: \(token)")
-        } else {
-            print("No Auth Token Found")
-        }
-
+        
         guard !selectedLift.isEmpty else {
             showError = true
             errorMessage = "Please select a lift."
@@ -227,7 +222,7 @@ struct CreateNewRouteView: View {
 
         let requestBody: [String: Any] = [
             "chairliftName": selectedLift,
-            "maxDifficulty": maxDifficulty,
+            "maxDifficulty": finalMaxDifficulty,
             "destination": selectedDestination,
             "mountainID": mountainID
         ]
@@ -245,6 +240,7 @@ struct CreateNewRouteView: View {
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 isLoading = false
+
                 if let error = error {
                     print("Error: \(error.localizedDescription)")
                     self.showError = true
@@ -255,6 +251,7 @@ struct CreateNewRouteView: View {
                 guard let httpResponse = response as? HTTPURLResponse else {
                     print("Invalid Response")
                     self.showError = true
+                    self.errorMessage = "Invalid server response."
                     return
                 }
 
@@ -263,31 +260,49 @@ struct CreateNewRouteView: View {
                 guard let data = data else {
                     print("No Data")
                     self.showError = true
+                    self.errorMessage = "No response data received."
                     return
                 }
 
-                print("Raw Response Data: \(String(data: data, encoding: .utf8) ?? "Invalid Data")")
+                // Debugging - Print Raw Response Data
+                let rawResponse = String(data: data, encoding: .utf8) ?? "Invalid Data"
+                print("Raw Response Data: \(rawResponse)")
 
-                print("Response Body: \(String(data: data, encoding: .utf8) ?? "Invalid Data")")
+                // Handle 404 Error (No Routes Found)
+                if httpResponse.statusCode == 404 {
+                    print("No suitable routes found.")
+                    self.showError = true
+                    self.errorMessage = "No trails exist for that route."
+                    return
+                }
 
                 do {
+                    // Handle JSON response correctly
+                    if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                        if let message = jsonObject["message"] as? String {
+                            // Handle error message from server
+                            self.showError = true
+                            self.errorMessage = message
+                            return
+                        }
+                    }
+
                     let routes = try JSONDecoder().decode([[Trail]].self, from: data)
                     print("Parsed Routes: \(routes)")
                     self.routes = routes
                     self.availableRoutes = routes.compactMap { $0.map { $0.runName } }
                     self.navigateToRoutes = true
                 } catch {
-                    print("Raw Response Data: \(String(data: data, encoding: .utf8) ?? "Invalid Data")")
-
                     print("Error decoding response data: \(error.localizedDescription)")
                     self.showError = true
-                    self.errorMessage = "Failed to decode response."
+                    self.errorMessage = "Unexpected response format."
                 }
             }
         }
-
+        
         task.resume()
     }
+
 
 
 
