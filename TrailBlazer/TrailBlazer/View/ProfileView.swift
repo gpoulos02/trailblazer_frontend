@@ -24,9 +24,12 @@ struct ProfileView: View {
                 VStack(spacing: 30) {
                     ProfilePicture()
                     ProfileInfo()
-                    SettingsSection()
-                    SOSButton()
-                    LogoutButton()
+
+                    if role == "admin" {
+                        SettingsSection()
+                    }
+                    
+                    ButtonsSection()
 
                     NavigationLink(
                         destination: LandingView(),
@@ -151,35 +154,27 @@ struct ProfileView: View {
         .padding(.horizontal, 20)
     }
 
-    // MARK: - Settings Section
+    // MARK: - Settings Section (Only for Admins)
     private func SettingsSection() -> some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Settings")
                 .font(.title2)
                 .fontWeight(.semibold)
-            
-            if role == "admin" {
-                            NavigationLink(destination: AdminView(userName: userName)) {
-                                Text("Admin Page")
-                                    .font(.subheadline)
-                                    .foregroundColor(.blue)
-                                    .padding(6)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .stroke(Color.blue, lineWidth: 1)
-                                    )
-                            }
-                        }
-            
-            Toggle(isOn: $isDarkModeEnabled) {
-                Text("Enable Dark Mode")
+
+            NavigationLink(destination: AdminView(userName: userName)) {
+                Text("Admin Page")
                     .font(.subheadline)
-            }
-            .onChange(of: isDarkModeEnabled) { value in
-                toggleDarkMode(value: value)
+                    .foregroundColor(.blue)
+                    .padding(6)
+                    .frame(maxWidth: .infinity) // Make the button expand full width
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.blue, lineWidth: 1)
+                    )
             }
         }
         .padding()
+        .frame(maxWidth: .infinity) // ✅ Ensures the entire section is as wide as ProfileInfo
         .background(RoundedRectangle(cornerRadius: 12)
             .fill(Color(UIColor.secondarySystemBackground))
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
@@ -187,6 +182,15 @@ struct ProfileView: View {
         .padding(.horizontal, 20)
     }
 
+    // MARK: - SOS and Logout Buttons
+    private func ButtonsSection() -> some View {
+        VStack(spacing: 10) { // Reduced spacing
+            SOSButton()
+            LogoutButton()
+        }
+        .padding(.horizontal, 20) // Matches ProfileInfo padding
+    }
+    
     // MARK: - SOS Button
     private func SOSButton() -> some View {
         Button(action: {
@@ -198,7 +202,7 @@ struct ProfileView: View {
                 .padding()
                 .frame(maxWidth: .infinity)
                 .background(Color.red)
-                .cornerRadius(8)
+                .cornerRadius(10)
         }
         .alert(isPresented: $showSOSConfirmation) {
             Alert(
@@ -210,9 +214,11 @@ struct ProfileView: View {
                 secondaryButton: .cancel()
             )
         }
-        
-        
     }
+
+    
+
+
     
 
     // MARK: - Logout Button
@@ -224,9 +230,9 @@ struct ProfileView: View {
                 .font(.headline)
                 .foregroundColor(.red)
                 .padding()
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity) // ✅ Ensures full width
                 .background(Color(UIColor.secondarySystemBackground))
-                .cornerRadius(8)
+                .cornerRadius(10)
         }
         .alert(isPresented: $showLogoutConfirmation) {
             Alert(
@@ -239,6 +245,7 @@ struct ProfileView: View {
             )
         }
     }
+
     private func toggleDarkMode(value: Bool) {
         UserDefaults.standard.set(value, forKey: "isDarkModeEnabled")
     }
@@ -415,23 +422,29 @@ struct EditableField: View {
     var isEditable: Bool
 
     var body: some View {
-        HStack {
-            Text("\(label):")
-                .fontWeight(.bold)
-            Spacer()
-            if isEditable {
-                TextField("Enter \(label)", text: $value)
-                    .padding(8)
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .shadow(color: Color.black.opacity(0.1), radius: 2)
-            } else {
-                Text(value).foregroundColor(.secondary)
+        VStack(alignment: .leading, spacing: 5) {
+            HStack {
+                Text("\(label):")
+                    .fontWeight(.bold)
+                Spacer()
+                if isEditable {
+                    TextField("Enter \(label)", text: $value)
+                        .padding(8)
+                        .background(Color.white)
+                        .cornerRadius(10)
+                        .shadow(color: Color.black.opacity(0.1), radius: 2)
+                } else {
+                    Text(value).foregroundColor(.secondary)
+                }
+            }
+            
+            if label != "Bio" {
+                Divider()
             }
         }
-        Divider()
     }
 }
+
 
 struct ReadOnlyField: View {
     var label: String

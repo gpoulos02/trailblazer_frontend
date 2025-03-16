@@ -87,7 +87,7 @@ struct PostView: View {
             Divider()
                 .padding(.vertical, 10)
             
-            // Bottom Buttons: Like and Comment
+            // Bottom Buttons: Like
             HStack {
                 
                 Text("\(likeCount)")  // Display the like count
@@ -115,20 +115,6 @@ struct PostView: View {
                         Image(systemName: "trash.fill")
                             .foregroundColor(.red)
                     }
-                }
-
-                
-                Button(action: {
-                    // Handle comment action
-                    print("Commented on post")
-                }) {
-                    HStack {
-                        Image(systemName: "bubble.right.fill")
-                            .foregroundColor(.blue)
-                        Text("Comment")
-                            .foregroundColor(.black)
-                    }
-                    .padding()
                 }
             }
             .font(.subheadline)

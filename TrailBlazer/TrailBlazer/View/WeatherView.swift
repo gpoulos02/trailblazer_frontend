@@ -23,13 +23,6 @@ struct WeatherView: View {
                     .foregroundColor(.black)
                     .padding(.top, 20)
 
-                // Search Bar for Future Use
-                TextField("Search Location...", text: $searchText)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-
                 // Current Weather Information
                 VStack {
                     Image(systemName: conditionIcon(for: condition))
