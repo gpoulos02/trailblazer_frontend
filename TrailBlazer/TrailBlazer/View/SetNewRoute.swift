@@ -8,15 +8,13 @@ struct SetNewRouteView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            // Placeholder for a title or logo
-            
             // Logo at the top
             Image("TextLogo")
                 .resizable()
                 .scaledToFit()
                 .frame(height: 40)
                 .padding(.top, 20)
-            
+
             // Placeholder for map or saved routes section
             Rectangle()
                 .foregroundColor(.clear)
@@ -25,7 +23,7 @@ struct SetNewRouteView: View {
                     AsyncImage(url: URL(string: "https://via.placeholder.com/343x362"))
                 )
                 .cornerRadius(5)
-            
+
             // "Set New Route" Button
             HStack(spacing: 8) {
                 Text("Set New Route")
@@ -42,7 +40,7 @@ struct SetNewRouteView: View {
                     .inset(by: 0.50)
                     .stroke(Color(red: 0.17, green: 0.17, blue: 0.17), lineWidth: 0.50)
             )
-            
+
             // "Saved Routes" Button
             HStack(spacing: 8) {
                 Text("Saved Routes")
@@ -59,55 +57,57 @@ struct SetNewRouteView: View {
                     .inset(by: 0.50)
                     .stroke(Color(red: 0.25, green: 0.61, blue: 1), lineWidth: 0.50)
             )
-            
+
             Spacer()
-            
+
+            // Bottom Navigation Bar with Shadow
             HStack {
                 TabBarItem(
                     tab: .home,
                     currentTab: $currentTab,
-                    destination: {HomeView(userName: userName)},
+                    destination: { HomeView(userName: userName) },
                     imageName: "house.fill",
                     label: "Home"
                 )
-                
+
                 TabBarItem(
                     tab: .friends,
                     currentTab: $currentTab,
-                    destination: {FriendView(userName: userName)},
+                    destination: { FriendView(userName: userName) },
                     imageName: "person.2.fill",
                     label: "Friends"
                 )
-                
+
                 TabBarItem(
                     tab: .map,
                     currentTab: $currentTab,
-                    destination: {RouteLandingView(userName: userName)},
+                    destination: { RouteLandingView(userName: userName) },
                     imageName: "map.fill",
                     label: "Map"
                 )
-                
+
                 TabBarItem(
                     tab: .metrics,
                     currentTab: $currentTab,
-                    destination: {PerformanceMetricsView(userName: userName)},
+                    destination: { PerformanceMetricsView(userName: userName) },
                     imageName: "chart.bar.fill",
                     label: "Metrics"
                 )
-                
+
                 TabBarItem(
                     tab: .profile,
                     currentTab: $currentTab,
-                    destination: {ProfileView(userName: userName)},
+                    destination: { ProfileView(userName: userName) },
                     imageName: "person.fill",
                     label: "Profile"
                 )
             }
             .padding()
             .background(Color.white)
-            .shadow(radius: 5)
+            .shadow(radius: 5) // ✅ Added shadow to match other views
         }
     }
+
 }
 
 struct SetNewRouteView_Previews: PreviewProvider {

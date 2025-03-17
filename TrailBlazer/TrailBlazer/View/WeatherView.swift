@@ -15,117 +15,122 @@ struct WeatherView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                // Location Name at the Top
-                Text(locationName)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
-                    .padding(.top, 20)
-
-                // Current Weather Information
-                VStack {
-                    Image(systemName: conditionIcon(for: condition))
-                        .font(.system(size: 70))
-                        .foregroundColor(.blue)
-
-                    Text(weatherInfo)
-                        .font(.title)
+            ZStack(alignment: .bottom) {
+                VStack(spacing: 20) {
+                    // Location Name at the Top
+                    Text(locationName)
+                        .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.black)
-                        .padding(.top, 10)
-                }
-                .padding()
-                .background(Color.white)
-                .cornerRadius(10)
-                .shadow(radius: 5)
-                .padding(.top, 10)
+                        .padding(.top, 20)
 
-                // Forecast Section with Modern Styling
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Weather Forecast")
-                        .font(.headline)
-                        .padding(.leading, 16)
+                    // Current Weather Information
+                    VStack {
+                        Image(systemName: conditionIcon(for: condition))
+                            .font(.system(size: 70))
+                            .foregroundColor(.blue)
 
-                    ScrollView {
-                        ForEach(forecast) { weather in
-                            HStack(alignment: .center) {
-                                // Weather Icon
-                                Image(systemName: conditionIcon(for: weather.condition))
-                                    .font(.system(size: 30))
-                                    .foregroundColor(.blue)
-                                    .padding(.leading, 16)
+                        Text(weatherInfo)
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(.black)
+                            .padding(.top, 10)
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .shadow(radius: 5)
+                    .padding(.top, 10)
 
-                                // Weather Details
-                                VStack(alignment: .leading, spacing: 5) {
-                                    Text(formatDateTime(weather.time))
-                                        .font(.headline)
-                                        .bold()
-                                        .foregroundColor(.primary)
+                    // Forecast Section with Modern Styling
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Weather Forecast")
+                            .font(.headline)
+                            .padding(.leading, 16)
 
-                                    Text("\(Int(weather.temperature))°C, \(weather.condition.capitalized)")
-                                        .font(.title2) // Larger temperature font
-                                        .foregroundColor(.secondary)
+                        ScrollView {
+                            ForEach(forecast) { weather in
+                                HStack(alignment: .center) {
+                                    // Weather Icon
+                                    Image(systemName: conditionIcon(for: weather.condition))
+                                        .font(.system(size: 30))
+                                        .foregroundColor(.blue)
+                                        .padding(.leading, 16)
+
+                                    // Weather Details
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        Text(formatDateTime(weather.time))
+                                            .font(.headline)
+                                            .bold()
+                                            .foregroundColor(.primary)
+
+                                        Text("\(Int(weather.temperature))°C, \(weather.condition.capitalized)")
+                                            .font(.title2)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding(.leading, 10)
+
+                                    Spacer()
                                 }
-                                .padding(.leading, 10)
-
-                                Spacer()
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(12)
+                                .shadow(color: .gray.opacity(0.3), radius: 5, x: 2, y: 2)
+                                .padding(.horizontal)
                             }
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(color: .gray.opacity(0.3), radius: 5, x: 2, y: 2)
-                            .padding(.horizontal)
                         }
                     }
+                    .padding(.top, 20)
+
+                    Spacer()
                 }
-                .padding(.top, 20)
+                .padding(.bottom, 100) // ✅ Prevents overlap with nav bar
 
-                Spacer()
-                // Navigation Bar at the Bottom
-                HStack {
-                    TabBarItem(
-                        tab: .home,
-                        currentTab: $currentTab,
-                        destination: { HomeView(userName: userName) },
-                        imageName: "house.fill",
-                        label: "Home"
-                    )
-
-                    TabBarItem(
-                        tab: .friends,
-                        currentTab: $currentTab,
-                        destination: { FriendView(userName: userName) },
-                        imageName: "person.2.fill",
-                        label: "Friends"
-                    )
-
-                    TabBarItem(
-                        tab: .map,
-                        currentTab: $currentTab,
-                        destination: { RouteLandingView(userName: userName) },
-                        imageName: "map.fill",
-                        label: "Map"
-                    )
-
-                    TabBarItem(
-                        tab: .metrics,
-                        currentTab: $currentTab,
-                        destination: { PerformanceMetricsView(userName: userName) },
-                        imageName: "chart.bar.fill",
-                        label: "Metrics"
-                    )
-
-                    TabBarItem(
-                        tab: .profile,
-                        currentTab: $currentTab,
-                        destination: { ProfileView(userName: userName) },
-                        imageName: "person.fill",
-                        label: "Profile"
-                    )
+                // ✅ Fixed Bottom Navigation Bar with Shadow
+                VStack {
+                    Divider()
+                    HStack {
+                        TabBarItem(
+                            tab: .home,
+                            currentTab: $currentTab,
+                            destination: { HomeView(userName: userName) },
+                            imageName: "house.fill",
+                            label: "Home"
+                        )
+                        TabBarItem(
+                            tab: .friends,
+                            currentTab: $currentTab,
+                            destination: { FriendView(userName: userName) },
+                            imageName: "person.2.fill",
+                            label: "Friends"
+                        )
+                        TabBarItem(
+                            tab: .map,
+                            currentTab: $currentTab,
+                            destination: { RouteLandingView(userName: userName) },
+                            imageName: "map.fill",
+                            label: "Map"
+                        )
+                        TabBarItem(
+                            tab: .metrics,
+                            currentTab: $currentTab,
+                            destination: { PerformanceMetricsView(userName: userName) },
+                            imageName: "chart.bar.fill",
+                            label: "Metrics"
+                        )
+                        TabBarItem(
+                            tab: .profile,
+                            currentTab: $currentTab,
+                            destination: { ProfileView(userName: userName) },
+                            imageName: "person.fill",
+                            label: "Profile"
+                        )
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .shadow(radius: 5) // ✅ Adds shadow effect
                 }
-                .padding()
-                .background(Color.white)
+                .frame(maxWidth: .infinity)
             }
             .onAppear {
                 fetchWeather()
@@ -133,6 +138,7 @@ struct WeatherView: View {
             }
         }
     }
+
 
     func conditionIcon(for condition: String) -> String {
         switch condition.lowercased() {

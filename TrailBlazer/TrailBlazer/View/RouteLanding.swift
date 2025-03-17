@@ -15,12 +15,10 @@ struct RouteLandingView: View {
     @State private var fixedCoordinates: CLLocationCoordinate2D? = nil
     @StateObject private var locationManager = LocationManager()
 
-
-
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // Map Section
+        ZStack(alignment: .bottom) {
+// ✅ Keeps nav bar fixed at the bottom
+            VStack {
                 if let errorMessage = errorMessage {
                     Text("Error: \(errorMessage)")
                         .foregroundColor(.red)
@@ -31,7 +29,6 @@ struct RouteLandingView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .onAppear {
                             fetchApiKey()
-                            
                         }
                 } else if let apiKey = apiKey {
                     MapViewWrapper(apiKey: apiKey)
@@ -42,103 +39,95 @@ struct RouteLandingView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(Color.gray.opacity(0.2))
                 }
+            }
 
-                // Logo Overlay
-                VStack {
-                    Spacer().frame(height: 20)
+            VStack {
+                Spacer()
 
-                    Image("TB_WhiteLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 40)
-                        .padding(.top, 20)
 
-                    Spacer()
+                Spacer()
+
+                // Buttons Section
+                HStack(spacing: 16) {
+                    NavigationLink(destination: CreateNewRouteView(userName: userName)) {
+                        Text("New Route")
+                            .font(Font.custom("Inter", size: 16))
+                            .foregroundColor(.white)
+                            .frame(width: 144, height: 42)
+                            .background(Color.blue)
+                            .cornerRadius(8)
+                    }
+
+                    Button(action: {
+                        startDownloadOfflineMap()
+                    }) {
+                        Text(isDownloadInProgress ? "Downloading..." : "Download Map")
+                            .font(Font.custom("Inter", size: 16))
+                            .foregroundColor(.white)
+                            .frame(width: 144, height: 42)
+                            .background(isDownloadInProgress ? Color.gray : Color.blue)
+                            .cornerRadius(8)
+                    }
+                    .disabled(isDownloadInProgress || isDownloadComplete)
                 }
+                .padding(.vertical, 16)
 
-                // Button Section
-                VStack {
-                    Spacer()
-                    HStack(spacing: 16) {
-                        NavigationLink(destination: CreateNewRouteView(userName: userName)) {
-                            Text("New Route")
-                                .font(Font.custom("Inter", size: 16))
-                                .foregroundColor(.white)
-                                .frame(width: 144, height: 42)
-                                .background(Color.blue)
-                                .cornerRadius(8)
-                        }
-
-                        Button(action: {
-                            startDownloadOfflineMap()
-                        }) {
-                            Text(isDownloadInProgress ? "Downloading..." : "Download Map")
-                                .font(Font.custom("Inter", size: 16))
-                                .foregroundColor(.white)
-                                .frame(width: 144, height: 42)
-                                .background(isDownloadInProgress ? Color.gray : Color.blue)
-                                .cornerRadius(8)
-                        }
-                        .disabled(isDownloadInProgress || isDownloadComplete)
-                    }
-                    .padding(.vertical, 16)
-
-                    if isDownloadComplete {
-                        Text("Map downloaded")
-                            .font(Font.custom("Inter", size: 14))
-                            .foregroundColor(.green)
-                            .padding(.bottom, 8)
-                    }
-
-                    // Navigation Bar at the Bottom
-                    HStack(){
-                        TabBarItem(
-                            tab: .home,
-                            currentTab: $currentTab,
-                            destination: {HomeView(userName: userName)},
-                            imageName: "house.fill",
-                            label: "Home"
-                        )
-                        
-                        TabBarItem(
-                            tab: .friends,
-                            currentTab: $currentTab,
-                            destination: {FriendView(userName: userName)},
-                            imageName: "person.2.fill",
-                            label: "Friends"
-                        )
-                        
-                        TabBarItem(
-                            tab: .map,
-                            currentTab: $currentTab,
-                            destination: {RouteLandingView(userName: userName)},
-                            imageName: "map.fill",
-                            label: "Map"
-                        )
-                        
-                        TabBarItem(
-                            tab: .metrics,
-                            currentTab: $currentTab,
-                            destination: {PerformanceMetricsView(userName: userName)},
-                            imageName: "chart.bar.fill",
-                            label: "Metrics"
-                        )
-                        
-                        TabBarItem(
-                            tab: .profile,
-                            currentTab: $currentTab,
-                            destination: {ProfileView(userName: userName)},
-                            imageName: "person.fill",
-                            label: "Profile"
-                        )
-                    }
-                    
-                    .padding()
-                    .background(Color.white)
+                if isDownloadComplete {
+                    Text("Map downloaded")
+                        .font(Font.custom("Inter", size: 14))
+                        .foregroundColor(.green)
+                        .padding(.bottom, 8)
                 }
             }
-            .navigationBarBackButtonHidden(true)
+            .padding(.bottom, 100) // ✅ Prevents buttons from overlapping the nav bar
+
+            // ✅ Fixed Bottom Navigation Bar with Shadow
+            VStack {
+                Divider()
+                HStack {
+                    TabBarItem(
+                        tab: .home,
+                        currentTab: $currentTab,
+                        destination: { HomeView(userName: userName) },
+                        imageName: "house.fill",
+                        label: "Home"
+                    )
+                    TabBarItem(
+                        tab: .friends,
+                        currentTab: $currentTab,
+                        destination: { FriendView(userName: userName) },
+                        imageName: "person.2.fill",
+                        label: "Friends"
+                    )
+                    TabBarItem(
+                        tab: .map,
+                        currentTab: $currentTab,
+                        destination: { RouteLandingView(userName: userName) },
+                        imageName: "map.fill",
+                        label: "Map"
+                    )
+                    TabBarItem(
+                        tab: .metrics,
+                        currentTab: $currentTab,
+                        destination: { PerformanceMetricsView(userName: userName) },
+                        imageName: "chart.bar.fill",
+                        label: "Metrics"
+                    )
+                    TabBarItem(
+                        tab: .profile,
+                        currentTab: $currentTab,
+                        destination: { ProfileView(userName: userName) },
+                        imageName: "person.fill",
+                        label: "Profile"
+                    )
+                }
+                .padding()
+                .background(Color.white)
+                .shadow(radius: 5) // ✅ Adds shadow effect
+            }
+            .frame(maxWidth: .infinity)
         }
+        .navigationBarBackButtonHidden(true)
     }
 
     private func fetchApiKey() {

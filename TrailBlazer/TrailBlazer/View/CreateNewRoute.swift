@@ -186,6 +186,7 @@ struct CreateNewRouteView: View {
             }
             .padding()
             .background(Color.white)
+            .shadow(radius: 5)
         }
     }
 

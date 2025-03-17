@@ -23,216 +23,190 @@ struct PerformanceMetricsView: View {
     let baseURL = "https://TrailBlazer33:5001/api"
     
     var body: some View {
-        VStack {
-            // Logo at the top
-            Image("TextLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 40)
-                .padding(.top, 20)
-            
-            // "Today at a glance" Rectangle
+        ZStack(alignment: .bottom) {
             VStack {
-                Text("Today at a glance:")
-                    .font(Font.custom("Inter", size: 16))
-                    .padding(.leading, 15)
-                    .padding(.top, 15)
-                
-                GridView(metricsData: metricsData)
-            }
-            .padding(.top, 20)
-            
-            Spacer()
-            
-            // Metrics Data Header
-            HStack {
-                Text("All Metrics Data:")
-                    .font(Font.custom("Inter", size: 18).weight(.bold))
-                    .padding(.leading, 20)
-                Spacer()
-                
-                Menu {
-                    Button("Date") {
-                        selectedFilter = "Date"
-                        resetFilter()
-                        sortMetricsData()
-                        sortLabel = "Sorted by Date"
-                    }
-                    Button("Trail Name") {
-                        selectedFilter = "Trail Name"
-                        fetchAllTrailNames()
-                        isTrailNameListVisible = true
-                        sortLabel = "Sorted by Trail Name"
-                    }
-                    Button("Speed") {
-                        selectedFilter = "Speed"
-                        resetFilter()
-                        sortMetricsData()
-                        sortLabel = "Sorted by Speed"
-                    }
-                    Button("Distance") {
-                        selectedFilter = "Distance"
-                        resetFilter()
-                        sortMetricsData()
-                        sortLabel = "Sorted by Distance"
-                    }
-                    Button("Elevation") {
-                        selectedFilter = "Elevation"
-                        resetFilter()
-                        sortMetricsData()
-                        sortLabel = "Sorted by Elevation"
-                    }
-                    Button("Duration") {
-                        selectedFilter = "Duration"
-                        resetFilter()
-                        sortMetricsData()
-                        sortLabel = "Sorted by Duration"
-                    }
-                } label: {
-                    HStack {
-                        Text(selectedFilter ?? "Filter by")
-                            .foregroundColor(.gray)
-                        Image(systemName: "arrowtriangle.down.fill")
-                            .foregroundColor(.gray)
-                    }
-                    .padding(.trailing, 20)
-                }
-            }
-            if !sortLabel.isEmpty {
-                Text(sortLabel)
-                    .font(Font.custom("Inter", size: 16).weight(.bold))
-                    .padding(.top, 10)
-                    .padding(.leading, 20)
-                    .foregroundColor(.gray)
-            }
-            
-            // Dropdown for Trail Name
-            if selectedFilter == "Trail Name" {
-                VStack {
-                    if isTrailNameListVisible {
-                        Text("Select Trail Name")
-                            .font(Font.custom("Inter", size: 16).weight(.bold))
-                            .padding(.leading, 20)
-                        
-                        List(allTrailNames, id: \.self) { trailName in
-                            Button(action: {
-                                selectedTrailName = trailName // Set the selected trail name
-                                filterByTrailName()
-                                metricsData = sortMetricsData()
-                                isTrailNameListVisible = false// Filter metrics by selected trail name
-                            }) {
-                                Text(trailName)
-                            }
-                        }
-                        .frame(height: 200)
-                    }
-                }
-            }
-            
-            // Metrics Data Display
-            if isLoading {
-                ProgressView("Loading Metrics...")
-                    .padding(.top, 30)
-            } else if metricsData.isEmpty {
-                Text("No metrics available.")
-                    .padding(.top, 30)
-                    .foregroundColor(.gray)
-            } else {
                 ScrollView {
-                    VStack(spacing: 15) {
-                        ForEach(sortMetricsData(), id: \.sessionID) { metric in
-                            VStack(alignment: .leading, spacing: 10) {
-                                if let runName = runNames[metric.runID] {
-                                    Text("\(runName)")
-                                        .font(.headline)
-                                        .padding(.bottom, 5)
-                                } else {
-                                    Text("Loading...")
-                                        .font(.headline)
+                    VStack {
+                        // Logo at the top
+                        Image("TextLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 40)
+                            .padding(.top, 20)
+
+                        // "Today at a glance" Rectangle
+                        VStack {
+                            Text("Today at a glance:")
+                                .font(Font.custom("Inter", size: 16))
+                                .padding(.leading, 15)
+                                .padding(.top, 15)
+
+                            GridView(metricsData: metricsData)
+                        }
+                        .padding(.top, 20)
+
+                        Spacer()
+
+                        // Metrics Data Header
+                        HStack {
+                            Text("All Metrics Data:")
+                                .font(Font.custom("Inter", size: 18).weight(.bold))
+                                .padding(.leading, 20)
+                            Spacer()
+
+                            Menu {
+                                Button("Date") {
+                                    selectedFilter = "Date"
+                                    resetFilter()
+                                    sortMetricsData()
+                                    sortLabel = "Sorted by Date"
                                 }
-
-                                Text(formattedDate(for: metric))
-                                    .font(.headline)
-                                    .foregroundColor(.gray)
-
-                                MetricRowView(title: "Top Speed", value: metric.sessionData.topSpeed)
-                                MetricRowView(title: "Elevation Gain", value: metric.sessionData.elevationGain)
-                                MetricRowView(title: "Distance", value: metric.sessionData.distance)
-                                MetricRowView(title: "Duration", value: metric.sessionData.duration)
-
-                                // Add Share Icon Button here
-                                Button(action: {
-                                    selectedMetricForSharing = metric
-                                    isShareSheetPresented = true
-                                }) {
-                                    Image(systemName: "square.and.arrow.up")
-                                        .font(.title)
-                                        .padding()
-                                }.sheet(isPresented: $isShareSheetPresented) {
-                                    VStack {
-                                        Text("Enter a title for your session")
-                                            .font(.headline)
-                                            .padding()
-
-                                        TextField("Session Title", text: $shareTitle)
-                                            .padding()
-                                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                                        
-                                        Button(action: {
-                                            if let metric = selectedMetricForSharing {
-                                                // Set shareTitle and sessionID here
-                                                sharePerformanceSession(sessionID: metric.sessionID, title: shareTitle)
-                                                isShareSheetPresented = false
-                                                shareTitle = "" // Reset the title
-                                            }
-                                        }) {
-                                            Text("Post Session")
-                                                .padding()
-                                                .background(Color.blue)
-                                                .foregroundColor(.white)
-                                                .cornerRadius(8)
-                                        }
-                                        .padding()
-                                        
-                                        Button("Cancel") {
-                                            isShareSheetPresented = false
-                                            shareTitle = "" // Reset the title if canceled
-                                        }
-                                        .padding()
-                                    }
-                                    .padding()
+                                Button("Trail Name") {
+                                    selectedFilter = "Trail Name"
+                                    fetchAllTrailNames()
+                                    isTrailNameListVisible = true
+                                    sortLabel = "Sorted by Trail Name"
                                 }
-
+                                Button("Speed") {
+                                    selectedFilter = "Speed"
+                                    resetFilter()
+                                    sortMetricsData()
+                                    sortLabel = "Sorted by Speed"
+                                }
+                                Button("Distance") {
+                                    selectedFilter = "Distance"
+                                    resetFilter()
+                                    sortMetricsData()
+                                    sortLabel = "Sorted by Distance"
+                                }
+                                Button("Elevation") {
+                                    selectedFilter = "Elevation"
+                                    resetFilter()
+                                    sortMetricsData()
+                                    sortLabel = "Sorted by Elevation"
+                                }
+                                Button("Duration") {
+                                    selectedFilter = "Duration"
+                                    resetFilter()
+                                    sortMetricsData()
+                                    sortLabel = "Sorted by Duration"
+                                }
+                            } label: {
+                                HStack {
+                                    Text(selectedFilter ?? "Filter by")
+                                        .foregroundColor(.gray)
+                                    Image(systemName: "arrowtriangle.down.fill")
+                                        .foregroundColor(.gray)
+                                }
+                                .padding(.trailing, 20)
                             }
-                            .padding(15)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(10)
-                            .padding(.horizontal, 20)
+                        }
+                        if !sortLabel.isEmpty {
+                            Text(sortLabel)
+                                .font(Font.custom("Inter", size: 16).weight(.bold))
+                                .padding(.top, 10)
+                                .padding(.leading, 20)
+                                .foregroundColor(.gray)
                         }
 
+                        // Dropdown for Trail Name
+                        if selectedFilter == "Trail Name" {
+                            VStack {
+                                if isTrailNameListVisible {
+                                    Text("Select Trail Name")
+                                        .font(Font.custom("Inter", size: 16).weight(.bold))
+                                        .padding(.leading, 20)
+
+                                    List(allTrailNames, id: \.self) { trailName in
+                                        Button(action: {
+                                            selectedTrailName = trailName
+                                            filterByTrailName()
+                                            metricsData = sortMetricsData()
+                                            isTrailNameListVisible = false
+                                        }) {
+                                            Text(trailName)
+                                        }
+                                    }
+                                    .frame(height: 200)
+                                }
+                            }
+                        }
+
+                        // Metrics Data Display
+                        if isLoading {
+                            ProgressView("Loading Metrics...")
+                                .padding(.top, 30)
+                        } else if metricsData.isEmpty {
+                            Text("No metrics available.")
+                                .padding(.top, 30)
+                                .foregroundColor(.gray)
+                        } else {
+                            ScrollView {
+                                VStack(spacing: 15) {
+                                    ForEach(sortMetricsData(), id: \.sessionID) { metric in
+                                        VStack(alignment: .leading, spacing: 10) {
+                                            if let runName = runNames[metric.runID] {
+                                                Text("\(runName)")
+                                                    .font(.headline)
+                                                    .padding(.bottom, 5)
+                                            } else {
+                                                Text("Loading...")
+                                                    .font(.headline)
+                                            }
+
+                                            Text(formattedDate(for: metric))
+                                                .font(.headline)
+                                                .foregroundColor(.gray)
+
+                                            MetricRowView(title: "Top Speed", value: metric.sessionData.topSpeed)
+                                            MetricRowView(title: "Elevation Gain", value: metric.sessionData.elevationGain)
+                                            MetricRowView(title: "Distance", value: metric.sessionData.distance)
+                                            MetricRowView(title: "Duration", value: metric.sessionData.duration)
+
+                                            // Add Share Icon Button here
+                                            Button(action: {
+                                                selectedMetricForSharing = metric
+                                                isShareSheetPresented = true
+                                            }) {
+                                                Image(systemName: "square.and.arrow.up")
+                                                    .font(.title)
+                                                    .padding()
+                                            }
+                                        }
+                                        .padding(15)
+                                        .background(Color.gray.opacity(0.1))
+                                        .cornerRadius(10)
+                                        .padding(.horizontal, 20)
+                                    }
+                                }
+                            }
+                        }
                     }
+                    .padding(.bottom, 100) // ✅ Prevents last content from overlapping nav bar
                 }
             }
-            
-            Spacer()
-            
-            // Navigation Bar at the Bottom
-            HStack {
-                TabBarItem(tab: .home, currentTab: $currentTab, destination: { HomeView(userName: userName) }, imageName: "house.fill", label: "Home")
-                TabBarItem(tab: .friends, currentTab: $currentTab, destination: { FriendView(userName: userName) }, imageName: "person.2.fill", label: "Friends")
-                TabBarItem(tab: .map, currentTab: $currentTab, destination: { RouteLandingView(userName: userName) }, imageName: "map.fill", label: "Map")
-                TabBarItem(tab: .metrics, currentTab: $currentTab, destination: { PerformanceMetricsView(userName: userName) }, imageName: "chart.bar.fill", label: "Metrics")
-                TabBarItem(tab: .profile, currentTab: $currentTab, destination: { ProfileView(userName: userName) }, imageName: "person.fill", label: "Profile")
+
+            // ✅ Fixed Bottom Navigation Bar with Shadow
+            VStack {
+                Divider()
+                HStack {
+                    TabBarItem(tab: .home, currentTab: $currentTab, destination: { HomeView(userName: userName) }, imageName: "house.fill", label: "Home")
+                    TabBarItem(tab: .friends, currentTab: $currentTab, destination: { FriendView(userName: userName) }, imageName: "person.2.fill", label: "Friends")
+                    TabBarItem(tab: .map, currentTab: $currentTab, destination: { RouteLandingView(userName: userName) }, imageName: "map.fill", label: "Map")
+                    TabBarItem(tab: .metrics, currentTab: $currentTab, destination: { PerformanceMetricsView(userName: userName) }, imageName: "chart.bar.fill", label: "Metrics")
+                    TabBarItem(tab: .profile, currentTab: $currentTab, destination: { ProfileView(userName: userName) }, imageName: "person.fill", label: "Profile")
+                }
+                .padding()
+                .background(Color.white)
+                .shadow(radius: 5) // ✅ Adds shadow effect
             }
-            .padding()
-            .background(Color.white)
+            .frame(maxWidth: .infinity)
         }
         .onAppear {
             let currentMountainID = UserDefaults.standard.integer(forKey: "selectedMountainID")
             mountainID = currentMountainID
-            
+
             if previousMountainID != mountainID {
-                print("Mountain changed from \(previousMountainID) to \(mountainID)")
                 fetchAllTrailNames()
                 previousMountainID = mountainID
             }
@@ -247,7 +221,6 @@ struct PerformanceMetricsView: View {
                 }
             }
         }
-
     }
     
     private func isToday(dateString: String) -> Bool {
