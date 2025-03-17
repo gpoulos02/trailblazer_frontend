@@ -117,6 +117,8 @@ struct FriendView: View {
     @State private var pendingRequestsCount: Int = 0
     @State private var notifications: [NotificationItem] = []
     
+    @State private var showInactivityAlert = false
+    
     
     var body: some View {
         ZStack {
@@ -303,6 +305,13 @@ struct FriendView: View {
         }
     }
     
+    private func markNotificationAsDeleted(notificationID: String) {
+        var dismissedNotifications = UserDefaults.standard.array(forKey: "dismissedNotifications") as? [String] ?? []
+        dismissedNotifications.append(notificationID)
+        UserDefaults.standard.set(dismissedNotifications, forKey: "dismissedNotifications")
+    }
+
+    
     // Remove notification after 20 seconds
     private func scheduleNotificationRemoval() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
@@ -310,12 +319,15 @@ struct FriendView: View {
         }
     }
     
-    // Function to remove the first notification
     private func removeNotification() {
+        guard let firstNotification = notifications.first else { return }
+        
         withAnimation {
-            notifications = Array(notifications.dropFirst()) // Removes first notification
+            markNotificationAsDeleted(notificationID: firstNotification.id) // Store in UserDefaults
+            notifications = Array(notifications.dropFirst()) // Remove from UI
         }
     }
+
 
 
     func fetchInactivityAlerts() {
@@ -342,15 +354,23 @@ struct FriendView: View {
 
             do {
                 let fetchedNotifications = try JSONDecoder().decode([NotificationItem].self, from: data)
+                let dismissedNotifications = UserDefaults.standard.array(forKey: "dismissedNotifications") as? [String] ?? []
+
                 DispatchQueue.main.async {
-                    self.notifications = fetchedNotifications
-                    scheduleNotificationRemoval() // Schedule auto-dismiss
+                    // Filter out notifications that have been dismissed
+                    self.notifications = fetchedNotifications.filter { !dismissedNotifications.contains($0.id) }
+                    
+                    // Schedule auto-removal for non-dismissed notifications
+                    if !self.notifications.isEmpty {
+                        self.scheduleNotificationRemoval()
+                    }
                 }
             } catch {
                 print("Failed to decode inactivity alerts:", error.localizedDescription)
             }
         }.resume()
     }
+
 
     
     
@@ -593,7 +613,7 @@ struct FriendView: View {
             } catch {
                 print("Failed to decode user role:", error.localizedDescription)
                 if let dataString = String(data: data, encoding: .utf8) {
-                    print("📥 Received response:", dataString)
+                    print("Received response:", dataString)
                 }
             }
         }.resume()
