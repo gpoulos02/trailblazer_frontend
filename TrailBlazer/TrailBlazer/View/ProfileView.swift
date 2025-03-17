@@ -1,9 +1,9 @@
 import SwiftUI
-
+import CoreMotion
 
 struct ProfileView: View {
     var userName: String
-
+    
     @State private var userFirstName = ""
     @State private var userLastName = ""
     @State private var email = ""
@@ -18,17 +18,24 @@ struct ProfileView: View {
     @State private var showSaveConfirmation = false
     @State private var isEditMode = false
     @State private var currentTab: Tab = .profile
-    @StateObject private var locationManager = LocationManager()
     @State private var currentCoordinates: String = "Loading..."
-
-
+    
+    @StateObject private var locationManager = LocationManager()
+    @StateObject private var motionManager = MotionManager()
+    
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 30) {
                     ProfilePicture()
                     ProfileInfo()
-
+                    
+                    // Show current coordinates
+                    Text("📍 Location: \(locationManager.currentCoordinates)")
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                        .padding()
+                    
                     if role == "admin" {
                         SettingsSection()
                     }
@@ -36,12 +43,28 @@ struct ProfileView: View {
                     if role == "mountain_owner" {
                         MountainOwnerSection()
                     }
-                    LocationInfo()
                     
                     ButtonsSection()
                     
-
-
+                    if motionManager.isUserInactive {
+                        Text("🚨 You have been inactive for too long! Alert sent to friends.")
+                            .foregroundColor(.red)
+                            .padding()
+                            .background(Color.yellow)
+                            .cornerRadius(10)
+                    }
+                    
+                    Button(action: {
+                        motionManager.sendInactivityAlert()
+                    }) {
+                        Text("🚨 Alert Friends")
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.gray)
+                            .cornerRadius(8)
+                    }
+                    
+                    
                     NavigationLink(
                         destination: LandingView(),
                         isActive: $navigateToLandingView
@@ -50,48 +73,48 @@ struct ProfileView: View {
                     }
                     
                     HStack {
-                                            TabBarItem(
-                                                tab: .home,
-                                                currentTab: $currentTab,
-                                                destination: {HomeView(userName: userName)},
-                                                imageName: "house.fill",
-                                                label: "Home"
-                                            )
-                                            
-                                            TabBarItem(
-                                                tab: .friends,
-                                                currentTab: $currentTab,
-                                                destination: {FriendView(userName: userName)},
-                                                imageName: "person.2.fill",
-                                                label: "Friends"
-                                            )
-                                            
-                                            TabBarItem(
-                                                tab: .map,
-                                                currentTab: $currentTab,
-                                                destination: {RouteLandingView(userName: userName)},
-                                                imageName: "map.fill",
-                                                label: "Map"
-                                            )
-                                            
-                                            TabBarItem(
-                                                tab: .metrics,
-                                                currentTab: $currentTab,
-                                                destination: {PerformanceMetricsView(userName: userName)},
-                                                imageName: "chart.bar.fill",
-                                                label: "Metrics"
-                                            )
-                                            
-                                            TabBarItem(
-                                                tab: .profile,
-                                                currentTab: $currentTab,
-                                                destination: {ProfileView(userName: userName)},
-                                                imageName: "person.fill",
-                                                label: "Profile"
-                                            )
-                                        }
-                                        .padding()
-                                        .background(Color.white)
+                        TabBarItem(
+                            tab: .home,
+                            currentTab: $currentTab,
+                            destination: {HomeView(userName: userName)},
+                            imageName: "house.fill",
+                            label: "Home"
+                        )
+                        
+                        TabBarItem(
+                            tab: .friends,
+                            currentTab: $currentTab,
+                            destination: {FriendView(userName: userName)},
+                            imageName: "person.2.fill",
+                            label: "Friends"
+                        )
+                        
+                        TabBarItem(
+                            tab: .map,
+                            currentTab: $currentTab,
+                            destination: {RouteLandingView(userName: userName)},
+                            imageName: "map.fill",
+                            label: "Map"
+                        )
+                        
+                        TabBarItem(
+                            tab: .metrics,
+                            currentTab: $currentTab,
+                            destination: {PerformanceMetricsView(userName: userName)},
+                            imageName: "chart.bar.fill",
+                            label: "Metrics"
+                        )
+                        
+                        TabBarItem(
+                            tab: .profile,
+                            currentTab: $currentTab,
+                            destination: {ProfileView(userName: userName)},
+                            imageName: "person.fill",
+                            label: "Profile"
+                        )
+                    }
+                    .padding()
+                    .background(Color.white)
                 }
                 .padding(.bottom, 40)
             }
@@ -104,7 +127,7 @@ struct ProfileView: View {
             .preferredColorScheme(isDarkModeEnabled ? .dark : .light)
         }
     }
-
+    
     // MARK: - Profile Picture
     private func ProfilePicture() -> some View {
         VStack {
@@ -117,38 +140,6 @@ struct ProfileView: View {
         .padding(.top, 20)
     }
     
-    private func LocationInfo() -> some View {
-        VStack(alignment: .leading, spacing: 15) {
-            Text("Your Current Coordinates")
-                .font(.title)
-                .fontWeight(.semibold)
-
-            // Debugging statement
-            if locationManager.currentCoordinates.isEmpty {
-                Text("Loading...")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .padding(.top, 5)
-                
-            } else {
-                // Display the coordinates if available
-                Text(locationManager.currentCoordinates)
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .padding(.top, 5)
-                 // Debug the coordinates value
-            }
-        }
-        .padding()
-        .background(RoundedRectangle(cornerRadius: 12)
-            .fill(Color(UIColor.secondarySystemBackground))
-            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
-        )
-        .padding(.horizontal, 20)
-    }
-
-
-
     // MARK: - Profile Info
     private func ProfileInfo() -> some View {
         VStack(alignment: .leading, spacing: 15) {
@@ -167,12 +158,12 @@ struct ProfileView: View {
                         .cornerRadius(8)
                 }
             }
-
+            
             EditableField(label: "First Name", value: $userFirstName, isEditable: isEditMode)
             EditableField(label: "Last Name", value: $userLastName, isEditable: isEditMode)
             ReadOnlyField(label: "Email", value: email)
             EditableField(label: "Bio", value: $bio, isEditable: isEditMode)
-
+            
             if isEditMode {
                 Button(action: {
                     saveProfileChanges()
@@ -196,14 +187,14 @@ struct ProfileView: View {
         )
         .padding(.horizontal, 20)
     }
-
+    
     // MARK: - Settings Section (Only for Admins)
     private func SettingsSection() -> some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Settings")
                 .font(.title2)
                 .fontWeight(.semibold)
-
+            
             NavigationLink(destination: AdminView(userName: userName)) {
                 Text("Admin Page")
                     .font(.subheadline)
@@ -224,6 +215,7 @@ struct ProfileView: View {
         )
         .padding(.horizontal, 20)
     }
+    
     private func MountainOwnerSection() -> some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Settings")
@@ -250,7 +242,7 @@ struct ProfileView: View {
         )
         .padding(.horizontal, 20)
     }
-
+    
     // MARK: - SOS and Logout Buttons
     private func ButtonsSection() -> some View {
         VStack(spacing: 10) { // Reduced spacing
@@ -287,6 +279,35 @@ struct ProfileView: View {
         }
     }
 
+    // MARK: - Logout Button
+    private func LogoutButton() -> some View {
+        Button(action: {
+            showLogoutConfirmation = true
+        }) {
+            Text("Log Out")
+                .font(.headline)
+                .foregroundColor(.red)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color(UIColor.secondarySystemBackground))
+                .cornerRadius(10)
+        }
+        .alert(isPresented: $showLogoutConfirmation) {
+            Alert(
+                title: Text("Log Out"),
+                message: Text("Are you sure you want to log out?"),
+                primaryButton: .destructive(Text("Log Out")) {
+                    performLogout()
+                },
+                secondaryButton: .cancel()
+            )
+        }
+    }
+    
+    private func toggleDarkMode(value: Bool) {
+        UserDefaults.standard.set(value, forKey: "isDarkModeEnabled")
+    }
+    
     private func callResortPhoneNumber(number: String) {
         // Clean the number in case there are any non-numeric characters
         let cleanedNumber = number.filter { $0.isNumber }// Debug statement
@@ -302,60 +323,29 @@ struct ProfileView: View {
             print("Invalid phone URL") // Debug statement
         }
     }
-
-
-
-    // MARK: - Logout Button
-    private func LogoutButton() -> some View {
-        Button(action: {
-            showLogoutConfirmation = true
-        }) {
-            Text("Log Out")
-                .font(.headline)
-                .foregroundColor(.red)
-                .padding()
-                .frame(maxWidth: .infinity) // ✅ Ensures full width
-                .background(Color(UIColor.secondarySystemBackground))
-                .cornerRadius(10)
-        }
-        .alert(isPresented: $showLogoutConfirmation) {
-            Alert(
-                title: Text("Log Out"),
-                message: Text("Are you sure you want to log out?"),
-                primaryButton: .destructive(Text("Log Out")) {
-                    performLogout()
-                },
-                secondaryButton: .cancel()
-            )
-        }
-    }
-
-    private func toggleDarkMode(value: Bool) {
-        UserDefaults.standard.set(value, forKey: "isDarkModeEnabled")
-    }
-
+    
     func fetchProfileData() {
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
               let url = URL(string: "https://TrailBlazer33:5001/api/auth/profile") else {
             print("Invalid URL or missing token")
             return
         }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("Error fetching profile:", error.localizedDescription)
                 return
             }
-
+            
             guard let data = data else {
                 print("No data received")
                 return
             }
-
+            
             do {
                 let profile = try JSONDecoder().decode(Profile.self, from: data)
                 DispatchQueue.main.async {
@@ -372,103 +362,103 @@ struct ProfileView: View {
             }
         }.resume()
     }
-
+    
     func performLogout() {
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
               let url = URL(string: "https://TrailBlazer33:5001/api/auth/logout") else {
             print("Invalid URL or missing token")
             return
         }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
                     print("Logout failed:", error.localizedDescription)
                     return
                 }
-
+                
                 guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                     print("Logout failed with response:", response.debugDescription)
                     return
                 }
-
+                
                 UserDefaults.standard.removeObject(forKey: "authToken") // Clear token
                 self.navigateToLandingView = true // Trigger navigation to LandingView
             }
         }.resume()
     }
-
+    
     func saveProfileChanges() {
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
               let url = URL(string: "https://TrailBlazer33:5001/api/auth/update-profile") else {
             print("Invalid URL or missing token")
             return
         }
-
+        
         let body: [String: Any] = [
             "firstName": userFirstName,
             "lastName": userLastName,
             "bio": bio
         ]
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
-
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
                     print("Error updating profile:", error.localizedDescription)
                     return
                 }
-
+                
                 guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                     print("Update failed with response:", response.debugDescription)
                     return
                 }
-
+                
                 self.showSaveConfirmation = true
             }
         }.resume()
     }
     
     func fetchUserRole() {
-//        guard let userIDFromToken = getUserIDFromToken() else {
-//            return false
-//        }
+        //        guard let userIDFromToken = getUserIDFromToken() else {
+        //            return false
+        //        }
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
               let url = URL(string: "https://TrailBlazer33:5001/api/admin/userTypeByID") else {
             print("Invalid URL or missing token")
             return
         }
-
+        
         print("Fetching user role from:", url)
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("Error fetching user role:", error.localizedDescription)
                 return
             }
-
+            
             guard let data = data else {
                 print("No data received")
                 return
             }
-
+            
             if let httpResponse = response as? HTTPURLResponse {
                 print("Status Code:", httpResponse.statusCode)
             }
-
+            
             do {
                 let roleResponse = try JSONDecoder().decode(RoleResponse.self, from: data)
                 DispatchQueue.main.async {
@@ -484,10 +474,112 @@ struct ProfileView: View {
         }.resume()
     }
     
-
-
+    
+    // MARK: - MotionManager (Handles Inactivity)
+    class MotionManager: NSObject, ObservableObject {
+        private let motionManager = CMMotionManager()
+        private var lastActivityTime = Date()
+        private var inactivityTimer: Timer?
+        private let inactivityThreshold: TimeInterval = 300 // 10 seconds
+        private let locationManager = LocationManager()
+        
+        @Published var isUserInactive = false
+        
+        override init() {
+            super.init()
+            print("✅ MotionManager initialized!")  // Debug log
+            startMotionUpdates()
+            startInactivityTimer()
+        }
+        
+        private func startMotionUpdates() {
+            if motionManager.isAccelerometerAvailable {
+                motionManager.accelerometerUpdateInterval = 1.0
+                motionManager.startAccelerometerUpdates(to: OperationQueue.main) { [weak self] (data, error) in
+                    guard let self = self, let data = data else { return }
+                    
+                    let acceleration = abs(data.acceleration.x) + abs(data.acceleration.y) + abs(data.acceleration.z)
+                    
+                    if acceleration > 0.05 {
+                        print("Movement detected - Resetting inactivity timer")
+                        self.lastActivityTime = Date()
+                        self.isUserInactive = false
+                    }
+                }
+            }
+        }
+        
+        private func startInactivityTimer() {
+            print("⏳ Inactivity timer started!")
+            
+            inactivityTimer?.invalidate()
+            inactivityTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                self.checkInactivity()
+            }
+            
+            // 🚀 Force an immediate check on startup
+            checkInactivity()
+        }
+        
+        private func checkInactivity() {
+            let elapsed = Date().timeIntervalSince(lastActivityTime)
+            print("🔍 Checking inactivity... Elapsed time: \(elapsed) seconds (Threshold: \(inactivityThreshold))")
+            
+            if elapsed >= inactivityThreshold {
+                if !isUserInactive {
+                    print("🚨 User inactive for too long! Sending alert...")
+                    isUserInactive = true
+                    sendInactivityAlert()
+                }
+            } else {
+                isUserInactive = false
+            }
+        }
+        
+        public func sendInactivityAlert() {
+            guard let location = locationManager.currentLocation else {
+                print("No location available, cannot send alert.")
+                return
+            }
+            
+            let latitude = location.coordinate.latitude
+            let longitude = location.coordinate.longitude
+            
+            print("Sending inactivity alert for location: \(latitude), \(longitude)")
+            
+            sendAlertToFriends(latitude: latitude, longitude: longitude)
+        }
+        
+        private func sendAlertToFriends(latitude: Double, longitude: Double) {
+            guard let token = UserDefaults.standard.string(forKey: "authToken"),
+                  let url = URL(string: "https://TrailBlazer33:5001/api/notifications/inactivity") else {
+                print("Invalid URL or missing token")
+                return
+            }
+            
+            let body: [String: Any] = [
+                "latitude": latitude,
+                "longitude": longitude
+            ]
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("Error sending alert:", error.localizedDescription)
+                    return
+                }
+                print("Alert sent successfully!")
+            }.resume()
+        }
+    }
 }
-
+    
 struct RoleResponse: Codable {
     let role: String
 }
