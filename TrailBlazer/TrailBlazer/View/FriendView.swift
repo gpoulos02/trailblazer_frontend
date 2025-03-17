@@ -181,17 +181,38 @@ struct FriendView: View {
                 // Posts Section (Below Location Section)
                 ScrollView {
                     VStack(spacing: 10) {
-                        // 🚨 Show Inactivity Alerts First
+                        // Show Inactivity Alerts First
                         if let firstNotification = notifications.first {
-                            VStack(alignment: .leading) {
+                            ZStack(alignment: .topLeading) {
+                                // Notification Background (Now Matches Post Width)
+                                VStack(alignment: .leading) {
+                                    Text(firstNotification.message)
+                                        .font(.body)
+                                        .padding(.top, 10) // Creates space for the close button inside
+                                        .padding(.horizontal, 20)
+                                        .padding(.bottom, 10)
+                                }
+                                .frame(maxWidth: .infinity) // Ensures same width as post section
+                                .background(Color.yellow.opacity(0.3))
+                                .cornerRadius(8)
+                                .padding(.horizontal) // Matches post section padding
 
-                                Text(firstNotification.message)
-                                    .font(.body)
-                                    .padding()
-                                    .background(Color.yellow.opacity(0.3))
-                                    .cornerRadius(8)
+                                // Close Button (Now Fully Inside)
+                                Button(action: {
+                                    removeNotification()
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .resizable()
+                                        .frame(width: 18, height: 18)
+                                        .foregroundColor(.gray)
+                                        .background(Color.white) // Ensures visibility
+                                        .clipShape(Circle())
+                                        .shadow(radius: 1)
+                                }
+                                .offset(x: 20, y: 13) // Moves it fully inside the box
                             }
-                            .padding(.horizontal)
+                            .padding(.horizontal) // Matches post section
+                            .transition(.opacity) // Fade-out effect when removed
                         }
 
                         ForEach(posts) { post in
@@ -199,8 +220,8 @@ struct FriendView: View {
                         }
                     }
                     .padding(.horizontal)
-                    
                 }
+
                 
                 // Bottom Navigation Bar
                 HStack {
@@ -278,8 +299,24 @@ struct FriendView: View {
             fetchFriendsPosts()
             checkPendingRequests()
             fetchAllPostsIfAdmin()
+            scheduleNotificationRemoval()
         }
     }
+    
+    // Remove notification after 20 seconds
+    private func scheduleNotificationRemoval() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
+            removeNotification()
+        }
+    }
+    
+    // Function to remove the first notification
+    private func removeNotification() {
+        withAnimation {
+            notifications = Array(notifications.dropFirst()) // Removes first notification
+        }
+    }
+
 
     func fetchInactivityAlerts() {
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
@@ -303,16 +340,11 @@ struct FriendView: View {
                 return
             }
 
-            // Print response for debugging
-            if let jsonString = String(data: data, encoding: .utf8) {
-                print("Received inactivity alerts JSON:", jsonString)
-            }
-
             do {
                 let fetchedNotifications = try JSONDecoder().decode([NotificationItem].self, from: data)
                 DispatchQueue.main.async {
                     self.notifications = fetchedNotifications
-                    print("Successfully fetched inactivity alerts:", self.notifications)
+                    scheduleNotificationRemoval() // Schedule auto-dismiss
                 }
             } catch {
                 print("Failed to decode inactivity alerts:", error.localizedDescription)
