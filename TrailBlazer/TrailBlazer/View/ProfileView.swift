@@ -22,6 +22,8 @@ struct ProfileView: View {
     
     @StateObject private var locationManager = LocationManager()
     @StateObject private var motionManager = MotionManager()
+    @State private var isAlertSent = false // ✅ Track if alert was sent
+
     
     var body: some View {
         NavigationStack {
@@ -47,7 +49,7 @@ struct ProfileView: View {
                     ButtonsSection()
                     
                     if motionManager.isUserInactive {
-                        Text("🚨 You have been inactive for too long! Alert sent to friends.")
+                        Text("You have been inactive for too long! Alert sent to friends.")
                             .foregroundColor(.red)
                             .padding()
                             .background(Color.yellow)
@@ -56,13 +58,19 @@ struct ProfileView: View {
                     
                     Button(action: {
                         motionManager.sendInactivityAlert()
+                        isAlertSent = true
+
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                            isAlertSent = false
+                        }
                     }) {
-                        Text("🚨 Alert Friends")
+                        Text(isAlertSent ? "Alert Sent" : "🚨 Alert Friends")
                             .foregroundColor(.white)
                             .padding()
-                            .background(Color.gray)
+                            .background(isAlertSent ? Color.green : Color.gray)
                             .cornerRadius(8)
                     }
+
                     
                     
                     NavigationLink(
@@ -487,7 +495,7 @@ struct ProfileView: View {
         
         override init() {
             super.init()
-            print("✅ MotionManager initialized!")  // Debug log
+            print("MotionManager initialized!")  // Debug log
             startMotionUpdates()
             startInactivityTimer()
         }
@@ -518,17 +526,17 @@ struct ProfileView: View {
                 self.checkInactivity()
             }
             
-            // 🚀 Force an immediate check on startup
+            // Force an immediate check on startup
             checkInactivity()
         }
         
         private func checkInactivity() {
             let elapsed = Date().timeIntervalSince(lastActivityTime)
-            print("🔍 Checking inactivity... Elapsed time: \(elapsed) seconds (Threshold: \(inactivityThreshold))")
+            print("Checking inactivity... Elapsed time: \(elapsed) seconds (Threshold: \(inactivityThreshold))")
             
             if elapsed >= inactivityThreshold {
                 if !isUserInactive {
-                    print("🚨 User inactive for too long! Sending alert...")
+                    print("User inactive for too long! Sending alert...")
                     isUserInactive = true
                     sendInactivityAlert()
                 }
@@ -636,4 +644,3 @@ struct ReadOnlyField: View {
         Divider()
     }
 }
-
