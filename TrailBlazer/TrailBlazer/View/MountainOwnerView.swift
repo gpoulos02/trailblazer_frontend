@@ -4,12 +4,12 @@ import UniformTypeIdentifiers
 struct MountainOwnerView: View {
     var userName: String
 
-    @State private var geoJsonFile: Data? = nil
     @State private var trailsFile: Data? = nil
     @State private var pointsOfInterestFile: Data? = nil
     @State private var chairliftsFile: Data? = nil
     @State private var name: String = ""
-    @State private var location: String = ""
+    @State private var latitude: String = ""
+    @State private var longitude: String = ""
     @State private var description: String = ""
     
     @State private var successMessage: String? = nil
@@ -24,31 +24,24 @@ struct MountainOwnerView: View {
                 Text("As a Mountain Owner, you can send a request to the admin.")
                     .padding()
 
-                // Mountain Name Field
                 TextField("Mountain Name", text: $name)
                     .padding()
                     .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                // Location Field
-                TextField("Location (JSON)", text: $location)
+                TextField("Latitude", text: $latitude)
                     .padding()
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .keyboardType(.decimalPad)
 
-                // Description Field
+                TextField("Longitude", text: $longitude)
+                    .padding()
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .keyboardType(.decimalPad)
+
                 TextField("Description", text: $description)
                     .padding()
                     .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                // File Picker for JSON files
-                Button("Choose GeoJSON File") {
-                    selectedFileType = .geoJson
-                    showingFileImporter = true
-                }
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-                
                 Button("Choose Trails File") {
                     selectedFileType = .trails
                     showingFileImporter = true
@@ -76,7 +69,6 @@ struct MountainOwnerView: View {
                 .foregroundColor(.white)
                 .cornerRadius(8)
 
-                // Submit Button
                 Button(action: {
                     submitRequest()
                 }) {
@@ -87,9 +79,8 @@ struct MountainOwnerView: View {
                         .background(isSubmitting ? Color.gray : Color.green)
                         .cornerRadius(8)
                 }
-                .disabled(isSubmitting || geoJsonFile == nil || trailsFile == nil || pointsOfInterestFile == nil || chairliftsFile == nil)
+                .disabled(isSubmitting || trailsFile == nil || pointsOfInterestFile == nil || chairliftsFile == nil)
 
-                // Success/Error Messages
                 if let successMessage = successMessage {
                     Text(successMessage)
                         .foregroundColor(.green)
@@ -123,12 +114,8 @@ struct MountainOwnerView: View {
     }
 
     private func handleFileSelection(_ fileData: Data) {
-        // Assign the selected file data to the correct file based on type
         guard let selectedFileType = selectedFileType else { return }
-
         switch selectedFileType {
-        case .geoJson:
-            geoJsonFile = fileData
         case .trails:
             trailsFile = fileData
         case .pointsOfInterest:
@@ -139,12 +126,16 @@ struct MountainOwnerView: View {
     }
 
     private func submitRequest() {
-        guard let geoJsonFile = geoJsonFile,
-              let trailsFile = trailsFile,
+        guard let trailsFile = trailsFile,
               let pointsOfInterestFile = pointsOfInterestFile,
               let chairliftsFile = chairliftsFile,
-              !name.isEmpty, !location.isEmpty, !description.isEmpty else {
+              !name.isEmpty, !latitude.isEmpty, !longitude.isEmpty, !description.isEmpty else {
             errorMessage = "Please fill in all fields and select all files."
+            return
+        }
+
+        guard let lat = Double(latitude), let lon = Double(longitude) else {
+            errorMessage = "Please enter valid latitude and longitude values."
             return
         }
 
@@ -152,24 +143,21 @@ struct MountainOwnerView: View {
         errorMessage = nil
         successMessage = nil
 
-        // Prepare the form data for the API request
         let formData = [
             "name": name,
-            "location": location,
+            "latitude": latitude,
+            "longitude": longitude,
             "description": description
         ]
         
         let files: [String: Data] = [
-            "geoJsonFile": geoJsonFile,
             "trailsFile": trailsFile,
             "pointsOfInterestFile": pointsOfInterestFile,
             "chairliftsFile": chairliftsFile
         ]
 
-        // Send the API request
         sendRequestToAdmin(formData: formData, files: files) { result in
             isSubmitting = false
-
             switch result {
             case .success:
                 successMessage = "Request submitted successfully!"
@@ -180,26 +168,38 @@ struct MountainOwnerView: View {
     }
     
     private func sendRequestToAdmin(formData: [String: String], files: [String: Data], completion: @escaping (Result<Void, Error>) -> Void) {
-        // Prepare the multipart/form-data request
-        let url = URL(string: "https://TrailBlazer33:5001/api/mountain-owner/request")! // Replace with your actual endpoint
+        let url = URL(string: "https://TrailBlazer33:5001/api/mountain-owner/request")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
-        // Create the boundary string
+        // Add JWT token from UserDefaults
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            print("Token found: \(token)") // Log token
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            print("No Auth Token Found") // Log missing token
+            errorMessage = "Authentication token missing."
+            completion(.failure(NSError(domain: "com.yourapp", code: 401, userInfo: [NSLocalizedDescriptionKey: "Authentication token missing"])))
+            return
+        }
+
         let boundary = "Boundary-\(UUID().uuidString)"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
         var body = Data()
         
-        // Add form fields
+        // Log form data
+        print("Form Data: \(formData)")
         for (key, value) in formData {
             body.append("--\(boundary)\r\n".data(using: .utf8)!)
             body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".data(using: .utf8)!)
             body.append("\(value)\r\n".data(using: .utf8)!)
         }
         
-        // Add files
+        // Log file data sizes
+        print("Files being sent:")
         for (key, fileData) in files {
+            print("\(key): \(fileData.count) bytes")
             body.append("--\(boundary)\r\n".data(using: .utf8)!)
             body.append("Content-Disposition: form-data; name=\"\(key)\"; filename=\"\(key).json\"\r\n".data(using: .utf8)!)
             body.append("Content-Type: application/json\r\n\r\n".data(using: .utf8)!)
@@ -207,29 +207,47 @@ struct MountainOwnerView: View {
             body.append("\r\n".data(using: .utf8)!)
         }
         
-        // End the body
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
         request.httpBody = body
         
-        // Perform the network request
+        // Log the full request
+        print("Sending request to: \(url)")
+        print("HTTP Method: \(request.httpMethod ?? "N/A")")
+        print("Headers: \(request.allHTTPHeaderFields ?? [:])")
+        print("Body size: \(body.count) bytes")
+
         URLSession.shared.dataTask(with: request) { data, response, error in
+            // Log response details
             if let error = error {
+                print("Request failed with error: \(error.localizedDescription)")
                 completion(.failure(error))
                 return
             }
             
-            if let response = response as? HTTPURLResponse, response.statusCode == 201 {
-                completion(.success(()))
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Response status code: \(httpResponse.statusCode)")
+                if let responseData = data, let responseString = String(data: responseData, encoding: .utf8) {
+                    print("Response body: \(responseString)")
+                }
+                
+                if httpResponse.statusCode == 201 {
+                    print("Request succeeded")
+                    completion(.success(()))
+                } else {
+                    let error = NSError(domain: "com.yourapp", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Server error with status code \(httpResponse.statusCode)"])
+                    print("Request failed with status code: \(httpResponse.statusCode)")
+                    completion(.failure(error))
+                }
             } else {
-                completion(.failure(NSError(domain: "com.yourapp", code: 500, userInfo: [NSLocalizedDescriptionKey: "Server error"])))
+                let error = NSError(domain: "com.yourapp", code: 500, userInfo: [NSLocalizedDescriptionKey: "Unknown server response"])
+                print("Unknown server response")
+                completion(.failure(error))
             }
         }.resume()
     }
-    
 }
 
 enum FileType {
-    case geoJson
     case trails
     case pointsOfInterest
     case chairlifts
