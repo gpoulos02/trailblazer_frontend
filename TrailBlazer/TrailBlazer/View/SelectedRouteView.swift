@@ -31,232 +31,230 @@ struct SelectedRouteView: View {
     var userName: String
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                HStack {
-                    // Left-aligned route name
-                    Text("\(routeName)")
-                        .font(Font.custom("Inter", size: 20).weight(.bold))
-                        .foregroundColor(.black)
-
-                    Spacer()
-
-                    // Right-aligned "Share with friends" button
-                    Button(action: {
-                        showSharePrompt.toggle()
-                    }) {
-                        Text("Share")
-                            .font(Font.custom("Inter", size: 16).weight(.bold))
-                            .foregroundColor(.blue)
+        ZStack(alignment: .bottom) {
+            NavigationView {
+                VStack(spacing: 20) {
+                    HStack {
+                        // Left-aligned route name
+                        Text("\(routeName)")
+                            .font(Font.custom("Inter", size: 20).weight(.bold))
+                            .foregroundColor(.black)
+                        
+                        Spacer()
+                        
+                        // Right-aligned "Share with friends" button
+                        Button(action: {
+                            showSharePrompt.toggle()
+                        }) {
+                            Text("Share")
+                                .font(Font.custom("Inter", size: 16).weight(.bold))
+                                .foregroundColor(.blue)
+                                .padding()
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(8)
+                        }
+                        .sheet(isPresented: $showSharePrompt) {
+                            VStack(spacing: 20) {
+                                Text("Enter Title")
+                                    .font(Font.custom("Inter", size: 20).weight(.bold))
+                                    .padding(.top)
+                                
+                                TextField("Enter title", text: $shareTitle)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .padding()
+                                
+                                HStack {
+                                    Button("Cancel") {
+                                        showSharePrompt = false
+                                    }
+                                    .padding()
+                                    
+                                    Button("Share") {
+                                        shareRoute()
+                                        showSharePrompt = false
+                                    }
+                                    .padding()
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                                }
+                            }
                             .padding()
-                            .background(Color.gray.opacity(0.2))
+                        }
+                    }
+                    
+                    ZStack {
+                        if let errorMessage = errorMessage {
+                            Text("Error: \(errorMessage)")
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .background(Color.red.opacity(0.2))
+                        } else if isLoading {
+                            ProgressView("Loading map...")
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .onAppear {
+                                    fetchApiKey()
+                                }
+                        } else if let apiKey = apiKey {
+                            // Display the MapViewWrapper with the user's location
+                            MapViewWrapper(apiKey: apiKey)
+                                .edgesIgnoringSafeArea(.all)
+                        } else {
+                            Text("Failed to load map.")
+                                .foregroundColor(.gray)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .background(Color.gray.opacity(0.2))
+                        }
+                    }
+                    
+                    // Metrics Section
+                    HStack(spacing: 40) {
+                        VStack {
+                            Text("Speed")
+                                .font(Font.custom("Inter", size: 16))
+                                .foregroundColor(.black)
+                            Text("\(String(format: "%.1f", locationManager.currentSpeed)) m/s")
+                                .font(Font.custom("Inter", size: 16).weight(.bold))
+                                .foregroundColor(.blue)
+                        }
+                        
+                        VStack {
+                            Text("Elevation")
+                                .font(Font.custom("Inter", size: 16))
+                                .foregroundColor(.black)
+                            Text("\(String(format: "%.1f", locationManager.currentElevation)) m")
+                                .font(Font.custom("Inter", size: 16).weight(.bold))
+                                .foregroundColor(.blue)
+                        }
+                        
+                        VStack {
+                            Text("Distance")
+                                .font(Font.custom("Inter", size: 16))
+                                .foregroundColor(.black)
+                            Text("\(String(format: "%.2f", locationManager.totalDistance)) meters")
+                                .font(Font.custom("Inter", size: 16).weight(.bold))
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    
+                    // Timer
+                    Text("\(formatTime(elapsedTime))")
+                        .font(Font.custom("Inter", size: 16))
+                        .foregroundColor(.black)
+                    
+                    // Start/End Route Button
+                    Button(action: toggleTimer) {
+                        Text(timerRunning ? "End Route" : "Start Route")
+                            .font(Font.custom("Inter", size: 16).weight(.bold))
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(timerRunning ? Color.red : Color.blue)
                             .cornerRadius(8)
                     }
-                    .sheet(isPresented: $showSharePrompt) {
-                        VStack(spacing: 20) {
-                            Text("Enter Title")
-                                .font(Font.custom("Inter", size: 20).weight(.bold))
-                                .padding(.top)
-
-                            TextField("Enter title", text: $shareTitle)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .padding()
-
-                            HStack {
-                                Button("Cancel") {
-                                    showSharePrompt = false
-                                }
-                                .padding()
-
-                                Button("Share") {
-                                    shareRoute()
-                                    showSharePrompt = false
-                                }
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                            }
-                        }
-                        .padding()
-                    }
-                }
-
-                ZStack {
-                    if let errorMessage = errorMessage {
-                        Text("Error: \(errorMessage)")
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.red.opacity(0.2))
-                    } else if isLoading {
-                        ProgressView("Loading map...")
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .onAppear {
-                                fetchApiKey()
-                            }
-                    } else if let apiKey = apiKey {
-                        // Display the MapViewWrapper with the user's location
-                        MapViewWrapper(apiKey: apiKey)
-                            .edgesIgnoringSafeArea(.all)
-                    } else {
-                        Text("Failed to load map.")
-                            .foregroundColor(.gray)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.gray.opacity(0.2))
-                    }
-                }
-
-                // Metrics Section
-                HStack(spacing: 40) {
-                    VStack {
-                        Text("Speed")
-                            .font(Font.custom("Inter", size: 16))
-                            .foregroundColor(.black)
-                        Text("\(String(format: "%.1f", locationManager.currentSpeed)) m/s")
-                            .font(Font.custom("Inter", size: 16).weight(.bold))
-                            .foregroundColor(.blue)
-                    }
-
-                    VStack {
-                        Text("Elevation")
-                            .font(Font.custom("Inter", size: 16))
-                            .foregroundColor(.black)
-                        Text("\(String(format: "%.1f", locationManager.currentElevation)) m")
-                            .font(Font.custom("Inter", size: 16).weight(.bold))
-                            .foregroundColor(.blue)
-                    }
-
-                    VStack {
-                        Text("Distance")
-                            .font(Font.custom("Inter", size: 16))
-                            .foregroundColor(.black)
-                        Text("\(String(format: "%.2f", locationManager.totalDistance)) meters")
-                            .font(Font.custom("Inter", size: 16).weight(.bold))
-                            .foregroundColor(.blue)
-                    }
-                }
-
-                // Timer
-                Text("\(formatTime(elapsedTime))")
-                    .font(Font.custom("Inter", size: 16))
-                    .foregroundColor(.black)
-
-                // Start/End Route Button
-                Button(action: toggleTimer) {
-                    Text(timerRunning ? "End Route" : "Start Route")
-                        .font(Font.custom("Inter", size: 16).weight(.bold))
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(timerRunning ? Color.red : Color.blue)
-                        .cornerRadius(8)
-                }
-                .padding(.vertical)
-
-                // Save/Delete Buttons (Visible after End Route is clicked)
-                if showSaveDeleteButtons {
-                    HStack(spacing: 20) {
-                        // Save Route Button
-                        Button(action: { saveSessionData() }) {
-                            Text("Save")
-                                .font(Font.custom("Inter", size: 16).weight(.bold))
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.green)
-                                .cornerRadius(8)
-                        }
-
-                        // Delete Route Button
-                        Button(action: deleteRoute) {
-                            Text("Delete")
-                                .font(Font.custom("Inter", size: 16).weight(.bold))
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.red)
-                                .cornerRadius(8)
-                        }
-                    }
                     .padding(.vertical)
-
-                    if let statusMessage = routeStatusMessage {
-                        Text(statusMessage)
-                            .font(Font.custom("Inter", size: 14))
-                            .foregroundColor(.gray)
-                            .padding(.top, 5)
+                    
+                    // Save/Delete Buttons (Visible after End Route is clicked)
+                    if showSaveDeleteButtons {
+                        HStack(spacing: 20) {
+                            // Save Route Button
+                            Button(action: { saveSessionData() }) {
+                                Text("Save")
+                                    .font(Font.custom("Inter", size: 16).weight(.bold))
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.green)
+                                    .cornerRadius(8)
+                            }
+                            
+                            // Delete Route Button
+                            Button(action: deleteRoute) {
+                                Text("Delete")
+                                    .font(Font.custom("Inter", size: 16).weight(.bold))
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.red)
+                                    .cornerRadius(8)
+                            }
+                        }
+                        .padding(.vertical)
+                        
+                        if let statusMessage = routeStatusMessage {
+                            Text(statusMessage)
+                                .font(Font.custom("Inter", size: 14))
+                                .foregroundColor(.gray)
+                                .padding(.top, 5)
+                        }
                     }
+                    
+                    Spacer()
+                    
+                    // Performance Metrics Button (Always interactive and grey)
+                    NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
+                        Text("Performance Metrics")
+                            .font(Font.custom("Inter", size: 16).weight(.bold))
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.gray)
+                            .cornerRadius(8)
+                            .padding(.horizontal)
+                    }
+                    
+                .padding()
+                .onDisappear {
+                    stopTimer()
+                    locationManager.stopUpdatingLocation()
                 }
-
-                Spacer()
-
-                // Performance Metrics Button (Always interactive and grey)
-                NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
-                    Text("Performance Metrics")
-                        .font(Font.custom("Inter", size: 16).weight(.bold))
-                        .foregroundColor(.white)
+                    
+                    // Custom Tab Bar with Proper Shadow
+                    VStack {
+                        Divider()
+                        HStack {
+                            TabBarItem(
+                                tab: .home,
+                                currentTab: $currentTab,
+                                destination: { HomeView(userName: userName) },
+                                imageName: "house.fill",
+                                label: "Home"
+                            )
+                            TabBarItem(
+                                tab: .friends,
+                                currentTab: $currentTab,
+                                destination: { FriendView(userName: userName) },
+                                imageName: "person.2.fill",
+                                label: "Friends"
+                            )
+                            TabBarItem(
+                                tab: .map,
+                                currentTab: $currentTab,
+                                destination: { RouteLandingView(userName: userName) },
+                                imageName: "map.fill",
+                                label: "Map"
+                            )
+                            TabBarItem(
+                                tab: .metrics,
+                                currentTab: $currentTab,
+                                destination: { PerformanceMetricsView(userName: userName) },
+                                imageName: "chart.bar.fill",
+                                label: "Metrics"
+                            )
+                            TabBarItem(
+                                tab: .profile,
+                                currentTab: $currentTab,
+                                destination: { ProfileView(userName: userName) },
+                                imageName: "person.fill",
+                                label: "Profile"
+                            )
+                        }
                         .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.gray)
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                }
-                .padding(.bottom)
-
-                // Custom Tab Bar with Proper Shadow
-                ZStack {
-                    Color.white
-                        .edgesIgnoringSafeArea(.bottom)
-
-                    HStack {
-                        TabBarItem(
-                            tab: .home,
-                            currentTab: $currentTab,
-                            destination: { HomeView(userName: userName) },
-                            imageName: "house.fill",
-                            label: "Home"
-                        )
-
-                        TabBarItem(
-                            tab: .friends,
-                            currentTab: $currentTab,
-                            destination: { FriendView(userName: userName) },
-                            imageName: "person.2.fill",
-                            label: "Friends"
-                        )
-
-                        TabBarItem(
-                            tab: .map,
-                            currentTab: $currentTab,
-                            destination: { RouteLandingView(userName: userName) },
-                            imageName: "map.fill",
-                            label: "Map"
-                        )
-
-                        TabBarItem(
-                            tab: .metrics,
-                            currentTab: $currentTab,
-                            destination: { PerformanceMetricsView(userName: userName) },
-                            imageName: "chart.bar.fill",
-                            label: "Metrics"
-                        )
-
-                        TabBarItem(
-                            tab: .profile,
-                            currentTab: $currentTab,
-                            destination: { ProfileView(userName: userName) },
-                            imageName: "person.fill",
-                            label: "Profile"
-                        )
+                        .background(Color.white)
+                        .shadow(radius: 5) // ✅ Adds the same shadow as the ProfileView
                     }
-                    .padding()
-                    .shadow(radius: 5) // Adds consistent shadow without a box effect
+                    .frame(maxWidth: .infinity)
                 }
-            }
-            .padding()
-            .onDisappear {
-                stopTimer()
-                locationManager.stopUpdatingLocation()
             }
         }
     }
