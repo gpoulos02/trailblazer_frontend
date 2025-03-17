@@ -12,6 +12,10 @@ struct RouteLandingView: View {
     @State private var isDownloadInProgress = false
     @State private var isDownloadComplete = false
     @State private var currentTab: Tab = .map
+    @State private var fixedCoordinates: CLLocationCoordinate2D? = nil
+    @StateObject private var locationManager = LocationManager()
+
+
 
     var body: some View {
         NavigationStack {
@@ -27,6 +31,7 @@ struct RouteLandingView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .onAppear {
                             fetchApiKey()
+                            
                         }
                 } else if let apiKey = apiKey {
                     MapViewWrapper(apiKey: apiKey)
@@ -144,26 +149,29 @@ struct RouteLandingView: View {
         }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    errorMessage = error.localizedDescription
-                    isLoading = false
-                    return
-                }
+                DispatchQueue.main.async {
+                    if let error = error {
+                        errorMessage = error.localizedDescription
+                        isLoading = false
+                        print("Debug: Error fetching API key - \(error.localizedDescription)")
+                        return
+                    }
 
-                guard let data = data,
-                      let result = try? JSONDecoder().decode([String: String].self, from: data),
-                      let key = result["key"] else {
-                    errorMessage = "Failed to decode API response"
-                    isLoading = false
-                    return
-                }
+                    guard let data = data,
+                          let result = try? JSONDecoder().decode([String: String].self, from: data),
+                          let key = result["key"] else {
+                        errorMessage = "Failed to decode API response"
+                        isLoading = false
+                        print("Debug: Failed to decode API response or no key found")
+                        return
+                    }
 
-                apiKey = key
-                isLoading = false
-            }
-        }.resume()
-    }
+                    apiKey = key
+                    isLoading = false
+                    print("Debug: Successfully fetched API key")
+                }
+            }.resume()
+        }
     
     
     private func startDownloadOfflineMap() {
@@ -260,42 +268,11 @@ struct RouteLandingView: View {
 
     
 
-//    private func clearDownloadedMapData() {
-//        fetchOfflineRegions { regions in
-//            if regions.isEmpty {
-//                DispatchQueue.main.async {
-//                    self.errorMessage = "No offline regions found to delete."
-//                }
-//                return
-//            }
-//
-//            for region in regions {
-//                region.delete { result in
-//                    switch result {
-//                    case .success:
-//                        DispatchQueue.main.async {
-//                            print("Offline region deleted successfully.")
-//                        }
-//                    case .failure(let error):
-//                        DispatchQueue.main.async {
-//                            self.errorMessage = "Error deleting offline region: \(error.localizedDescription)"
-//                        }
-//                    }
-//                }
-//            }
-//
-//            // Optionally, you can reset state after deleting all regions:
-//            DispatchQueue.main.async {
-//                self.isDownloadComplete = false
-//                self.isMapCleared = true
-//            }
-//        }
-//    }
-    
 }
 
 struct MapViewWrapper: UIViewRepresentable {
     var apiKey: String
+    
     @ObservedObject var locationManager = LocationManager()
 
     func makeUIView(context: Context) -> MapView {
@@ -309,6 +286,8 @@ struct MapViewWrapper: UIViewRepresentable {
         // Initial camera options
         let cameraOptions = CameraOptions(zoom: 14.0, bearing: 0.0, pitch: 45.0)
         mapView.mapboxMap.setCamera(to: cameraOptions)
+        
+        
 
         // Assign Coordinator to handle location updates
         context.coordinator.mapView = mapView
@@ -332,27 +311,32 @@ struct MapViewWrapper: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        return Coordinator()
-    }
+          return Coordinator()
+      }
+
 
     class Coordinator: NSObject, LocationManagerDelegate {
         var mapView: MapView?
 
+
         func didUpdateLocation(_ location: CLLocation) {
             guard let mapView = mapView else { return }
 
-            // Center the map on the new location
             let coordinate = location.coordinate
+            print("Debug: Updated location - Lat: \(coordinate.latitude), Lon: \(coordinate.longitude)")
+            
+            // Center the map on the new location
             let cameraOptions = CameraOptions(
-                center: CLLocationCoordinate2D(latitude: coordinate.latitude, longitude: coordinate.longitude),
-                zoom: 14.0,
-                bearing: 0.0,
-                pitch: 45.0
-            )
+                           center: CLLocationCoordinate2D(latitude: coordinate.latitude, longitude: coordinate.longitude),
+                           zoom: 14.0,
+                           bearing: 0.0,
+                           pitch: 45.0
+                       )
             mapView.mapboxMap.setCamera(to: cameraOptions)
 
             // Log the updated location
-            print("Updated location: \(coordinate.latitude), \(coordinate.longitude)")
+            
         }
+
     }
 }

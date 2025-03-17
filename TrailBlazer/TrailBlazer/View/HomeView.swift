@@ -7,6 +7,7 @@ struct HomeView: View {
     @State private var mountains: [Mountain] = []
     @State private var selectedMountainID: Int? = nil
     @State private var selectedMountainImage: String = ""
+    @StateObject private var locationManager = LocationManager()
     
     var body: some View {
         VStack(spacing: 20) {
@@ -29,6 +30,7 @@ struct HomeView: View {
                     selectedMountainID = newValue
                     UserDefaults.standard.set(newValue, forKey: "selectedMountainID")
                     updateSelectedMountainImage(for: newValue)// Store in local storage
+                    setMountainCoordinates(for: newValue)
                 }
             )) {
                 Text("Select a Mountain...").tag(0)
@@ -47,6 +49,7 @@ struct HomeView: View {
                 let savedID = UserDefaults.standard.integer(forKey: "selectedMountainID")
                 selectedMountainID = savedID
                 updateSelectedMountainImage(for: savedID) // Retrieve from local storage
+                setMountainCoordinates(for: savedID)
             }
             
             VStack(spacing: 15) {
@@ -121,6 +124,20 @@ struct HomeView: View {
             selectedMountainImage = "FullLogo" // Default image
         }
     }
+    private func setMountainCoordinates(for mountainID: Int) {
+        locationManager.stopUpdatingLocation()
+        locationManager.useFixedLocation = true
+        switch mountainID {
+        case 1:
+            locationManager.setFixedLocation(latitude: 44.5011, longitude: -80.3161) // Blue Mountain coordinates
+            
+        case 2:
+            locationManager.setFixedLocation(latitude: 42.9444, longitude: -81.3394) // Boler Mountain coordinates
+        default:
+            print("No fixed coordinates for this mountain")
+        }
+    }
+    
     
     private func fetchMountains() {
         guard let url = URL(string: "https://TrailBlazer33:5001/api/mountains") else { return }

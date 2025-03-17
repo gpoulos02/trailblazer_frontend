@@ -13,6 +13,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var currentElevation: Double = 0.0
     @Published var totalDistance: Double = 0.0
     @Published var currentCoordinates: String = ""
+    @Published var fixedLocation: CLLocationCoordinate2D?
+    
+    var useFixedLocation = false // New flag
 
     override init() {
         super.init()
@@ -59,4 +62,19 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Failed to get location: \(error.localizedDescription)")
     }
+    
+    func setFixedLocation(latitude: Double, longitude: Double) {
+        useFixedLocation = true
+        let fixedLocation = CLLocation(latitude: latitude, longitude: longitude)
+        self.currentLocation = fixedLocation
+        self.fixedLocation = fixedLocation.coordinate
+        currentSpeed = 0
+        currentElevation = 0
+        
+        let latitude = fixedLocation.coordinate.latitude
+        let longitude = fixedLocation.coordinate.longitude
+        currentCoordinates = "Lat: \(latitude), Lon: \(longitude)"
+        print("Fixed coordinates set: \(currentCoordinates)")
+    }
+
 }
