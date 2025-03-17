@@ -32,6 +32,10 @@ struct ProfileView: View {
                     if role == "admin" {
                         SettingsSection()
                     }
+                    
+                    if role == "mountain_owner" {
+                        MountainOwnerSection()
+                    }
                     LocationInfo()
                     
                     ButtonsSection()
@@ -202,6 +206,32 @@ struct ProfileView: View {
 
             NavigationLink(destination: AdminView(userName: userName)) {
                 Text("Admin Page")
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
+                    .padding(6)
+                    .frame(maxWidth: .infinity) // Make the button expand full width
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.blue, lineWidth: 1)
+                    )
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity) // ✅ Ensures the entire section is as wide as ProfileInfo
+        .background(RoundedRectangle(cornerRadius: 12)
+            .fill(Color(UIColor.secondarySystemBackground))
+            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
+        )
+        .padding(.horizontal, 20)
+    }
+    private func MountainOwnerSection() -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Settings")
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            NavigationLink(destination: MountainOwnerView(userName: userName)) {
+                Text("Mountain Owner Page")
                     .font(.subheadline)
                     .foregroundColor(.blue)
                     .padding(6)
