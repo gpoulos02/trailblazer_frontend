@@ -10,6 +10,8 @@ struct FriendRequestsView: View {
     
     @State private var showUnfriendAlert = false
     @State private var userToUnfriend: (username: String, userId: String)?
+    
+    @State private var friendRequestSentMessage: String?
 
     var body: some View {
         NavigationView {
@@ -51,6 +53,7 @@ struct FriendRequestsView: View {
                         .progressViewStyle(CircularProgressViewStyle(tint: .blue))
                         .padding()
                 }
+
                 
                 // Friends List
                 if !friends.isEmpty {
@@ -80,6 +83,12 @@ struct FriendRequestsView: View {
                     }
                     .listStyle(PlainListStyle())
                 }
+                if let message = friendRequestSentMessage {
+                                Text(message)
+                                    .foregroundColor(.green)
+                                    .fontWeight(.semibold)
+                                    .padding()
+                            }
 
                 // Search Results List
                 if !searchResults.isEmpty {
@@ -89,24 +98,29 @@ struct FriendRequestsView: View {
                         .padding(.horizontal)
                     
                     List(searchResults, id: \.userID) { user in
-                        if let username = user["username"] as? String, let userId = user["_id"] as? String {
-                            HStack {
-                                Text(username)
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-                                Spacer()
-                                Button(action: {
-                                    sendFriendRequest(to: username)
-                                }) {
-                                    Image(systemName: "plus.circle")
-                                        .foregroundColor(.blue)
-                                        .font(.title2)
-                                }
-                            }
-                            .padding(.vertical, 5)
-                        }
-                    }
-                    .listStyle(PlainListStyle())
+                           if let username = user["username"] as? String, let userId = user["userID"] as? String {
+                               HStack {
+                                   Text(username)
+                                       .font(.headline)
+                                       .foregroundColor(.primary)
+                                   Spacer()
+                                   
+                                   // Only show the "add friend" button if the user is not already a friend
+                                   if let isFriend = user["isFriend"] as? Int, isFriend == 0 {
+                                       Button(action: {
+                                           sendFriendRequest(to: username)
+                                       }) {
+                                           Image(systemName: "plus.circle")
+                                               .foregroundColor(.blue)
+                                               .font(.title2)
+                                       }
+                                   }
+                               }
+                               .padding(.vertical, 5)
+                           }
+                       }
+                       .listStyle(PlainListStyle())
+
                 }
 
                 // Navigate to Pending Requests
@@ -213,19 +227,19 @@ struct FriendRequestsView: View {
     func searchUsers() {
         guard !searchText.isEmpty else { return }
         isLoading = true
-        
+
         guard let encodedQuery = searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let url = URL(string: "https://TrailBlazer33:5001/api/friends/search?query=\(encodedQuery)") else {
             print("Invalid URL")
             return
         }
-        
+
         guard let token = UserDefaults.standard.string(forKey: "authToken") else {
             print("No token found")
             isLoading = false
             return
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -234,7 +248,7 @@ struct FriendRequestsView: View {
             DispatchQueue.main.async {
                 isLoading = false
             }
-            
+
             if let error = error {
                 print("Search error: \(error.localizedDescription)")
                 return
@@ -248,14 +262,14 @@ struct FriendRequestsView: View {
             do {
                 let json = try JSONSerialization.jsonObject(with: data, options: [])
                 print("Raw JSON response: \(json)")
-                
+
                 if let array = json as? [[String: Any]] {
                     DispatchQueue.main.async {
                         searchResults = array.map { result in
-                                                    var user = result
-                                                    user["userID"] = user["_id"]  // Ensure `userID` is set correctly for each user
-                                                    return user
-                                                }
+                            var user = result
+                            user["userID"] = user["_id"]  // Map `_id` to `userID`
+                            return user
+                        }
                     }
                 } else if let object = json as? [String: Any] {
                     DispatchQueue.main.async {
@@ -269,6 +283,8 @@ struct FriendRequestsView: View {
             }
         }.resume()
     }
+
+
 
     func sendFriendRequest(to username: String) {
         guard let token = UserDefaults.standard.string(forKey: "authToken") else {
@@ -328,7 +344,18 @@ struct FriendRequestsView: View {
             }
 
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                friendRequestSentMessage = "Friend request has been sent."
                 print("Friend request sent successfully")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                        friendRequestSentMessage = nil
+                                    }
+            }
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 400 {
+                friendRequestSentMessage = "Friend request is pending."
+                print("Friend request already sent")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                        friendRequestSentMessage = nil
+                                    }
             }
         }.resume()
     }
