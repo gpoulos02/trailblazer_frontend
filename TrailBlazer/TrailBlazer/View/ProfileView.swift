@@ -636,4 +636,3 @@ struct ReadOnlyField: View {
         Divider()
     }
 }
-
