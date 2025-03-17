@@ -33,7 +33,7 @@ struct ProfileView: View {
                     // Show current coordinates
                     Text("📍 Location: \(locationManager.currentCoordinates)")
                         .font(.footnote)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.black)
                         .padding()
                     
                     if role == "admin" {
