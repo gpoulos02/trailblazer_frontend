@@ -76,6 +76,7 @@ struct AvailableRoutesView: View {
         }
         .padding()
         .background(Color.white)
+        .shadow(radius: 5)
     }
     
     // Fetch trail difficulties

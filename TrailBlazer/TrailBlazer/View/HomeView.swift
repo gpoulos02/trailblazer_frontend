@@ -10,105 +10,116 @@ struct HomeView: View {
     @StateObject private var locationManager = LocationManager()
     
     var body: some View {
-        VStack(spacing: 20) {
-            // Text Logo at the top
-            Image("TextLogo") // Replace with the name of your text logo asset
-                .resizable()
-                .scaledToFit()
-                .frame(height: 40)
-                .padding(.top, 20)
-            
-            // Welcome message
-            Text("Welcome, \(userName)")
-                .font(.title)
-                .fontWeight(.bold)
-            
-            // Mountain selection dropdown
-            Picker("Select a mountain", selection: Binding(
-                get: { selectedMountainID ?? 0 },
-                set: { newValue in
-                    selectedMountainID = newValue
-                    UserDefaults.standard.set(newValue, forKey: "selectedMountainID")
-                    updateSelectedMountainImage(for: newValue)// Store in local storage
-                    setMountainCoordinates(for: newValue)
-                }
-            )) {
-                Text("Select a Mountain...").tag(0)
-                ForEach(mountains, id: \ .mountainID) { mountain in
-                    Text(mountain.name).tag(mountain.mountainID)
+        ZStack(alignment: .bottom) { // ✅ Keeps nav bar fixed at the bottom
+            VStack {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Text Logo at the top
+                        Image("TextLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 40)
+                            .padding(.top, 20)
+                        
+                        // Welcome message
+                        Text("Welcome, \(userName)")
+                            .font(.title)
+                            .fontWeight(.bold)
+                        
+                        // Mountain selection dropdown
+                        Picker("Select a mountain", selection: Binding(
+                            get: { selectedMountainID ?? 0 },
+                            set: { newValue in
+                                selectedMountainID = newValue
+                                UserDefaults.standard.set(newValue, forKey: "selectedMountainID")
+                                updateSelectedMountainImage(for: newValue)
+                                setMountainCoordinates(for: newValue)
+                            }
+                        )) {
+                            Text("Select a Mountain...").tag(0)
+                            ForEach(mountains, id: \.mountainID) { mountain in
+                                Text(mountain.name).tag(mountain.mountainID)
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                        .frame(width: 200, height: 40)
+                        .background(Color.white)
+                        .cornerRadius(10)
+                        .shadow(radius: 5)
+                        .onAppear {
+                            fetchMountains()
+                            selectedMountainID = UserDefaults.standard.integer(forKey: "selectedMountainID")
+                            updateSelectedMountainImage(for: selectedMountainID ?? 0)
+                            setMountainCoordinates(for: selectedMountainID ?? 0)
+                        }
+                        
+                        VStack(spacing: 15) {
+                            NavigationLink(destination: RouteLandingView(userName: userName)) {
+                                MapButton(imageName: selectedMountainImage)
+                                    .navigationBarBackButtonHidden(false)
+                            }
+                            NavigationLink(destination: CreateNewRouteView(userName: userName)) {
+                                HomeButton(title: "Create Route", imageName: "plus.circle.fill")
+                            }
+                            NavigationLink(destination: WeatherView(userName: userName)) {
+                                HomeButton(title: "Weather", imageName: "cloud.sun.fill")
+                            }
+                        }
+                        .padding(.top, 20)
+                        .padding(.horizontal, 20)
+                        
+                        Spacer()
+                            .navigationBarHidden(true)
+                    }
+                    .padding(.bottom, 100) // ✅ Prevents last content from overlapping nav bar
                 }
             }
-            .pickerStyle(MenuPickerStyle())
-            .frame(width: 200, height: 40)
-            .background(Color.white)
-            .cornerRadius(10)
-            .shadow(radius: 5)
-            .onAppear {
-                fetchMountains()
-                selectedMountainID = UserDefaults.standard.integer(forKey: "selectedMountainID")
-                let savedID = UserDefaults.standard.integer(forKey: "selectedMountainID")
-                selectedMountainID = savedID
-                updateSelectedMountainImage(for: savedID) // Retrieve from local storage
-                setMountainCoordinates(for: savedID)
-            }
             
-            VStack(spacing: 15) {
-                NavigationLink(destination: RouteLandingView(userName: userName)) {
-                    MapButton(imageName: selectedMountainImage) // Pass the selected image to MapButton
-                        .navigationBarBackButtonHidden(false)
+            // ✅ Fixed Bottom Navigation Bar with Shadow
+            VStack {
+                Divider()
+                HStack {
+                    TabBarItem(
+                        tab: .home,
+                        currentTab: $currentTab,
+                        destination: { HomeView(userName: userName) },
+                        imageName: "house.fill",
+                        label: "Home"
+                    )
+                    TabBarItem(
+                        tab: .friends,
+                        currentTab: $currentTab,
+                        destination: { FriendView(userName: userName) },
+                        imageName: "person.2.fill",
+                        label: "Friends"
+                    )
+                    TabBarItem(
+                        tab: .map,
+                        currentTab: $currentTab,
+                        destination: { RouteLandingView(userName: userName) },
+                        imageName: "map.fill",
+                        label: "Map"
+                    )
+                    TabBarItem(
+                        tab: .metrics,
+                        currentTab: $currentTab,
+                        destination: { PerformanceMetricsView(userName: userName) },
+                        imageName: "chart.bar.fill",
+                        label: "Metrics"
+                    )
+                    TabBarItem(
+                        tab: .profile,
+                        currentTab: $currentTab,
+                        destination: { ProfileView(userName: userName) },
+                        imageName: "person.fill",
+                        label: "Profile"
+                    )
                 }
-                NavigationLink(destination: CreateNewRouteView(userName: userName)) {
-                    HomeButton(title: "Create Route", imageName: "plus.circle.fill")
-                }
-                NavigationLink(destination: WeatherView(userName: userName)) {
-                    HomeButton(title: "Weather", imageName: "cloud.sun.fill")
-                }
+                .padding()
+                .background(Color.white)
+                .shadow(radius: 5) // ✅ Adds the same shadow as the ProfileView
             }
-            .padding(.top, 20)
-            .padding(.horizontal, 20)
-            
-            Spacer()
-                .navigationBarHidden(true)
-            
-            HStack {
-                TabBarItem(
-                    tab: .home,
-                    currentTab: $currentTab,
-                    destination: { HomeView(userName: userName) },
-                    imageName: "house.fill",
-                    label: "Home"
-                )
-                TabBarItem(
-                    tab: .friends,
-                    currentTab: $currentTab,
-                    destination: { FriendView(userName: userName) },
-                    imageName: "person.2.fill",
-                    label: "Friends"
-                )
-                TabBarItem(
-                    tab: .map,
-                    currentTab: $currentTab,
-                    destination: { RouteLandingView(userName: userName) },
-                    imageName: "map.fill",
-                    label: "Map"
-                )
-                TabBarItem(
-                    tab: .metrics,
-                    currentTab: $currentTab,
-                    destination: { PerformanceMetricsView(userName: userName) },
-                    imageName: "chart.bar.fill",
-                    label: "Metrics"
-                )
-                TabBarItem(
-                    tab: .profile,
-                    currentTab: $currentTab,
-                    destination: { ProfileView(userName: userName) },
-                    imageName: "person.fill",
-                    label: "Profile"
-                )
-            }
-            .padding()
-            .background(Color.white)
+            .frame(maxWidth: .infinity)
         }
         .navigationBarBackButtonHidden(true)
     }

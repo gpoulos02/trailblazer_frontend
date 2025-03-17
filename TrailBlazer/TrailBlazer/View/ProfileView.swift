@@ -22,118 +22,115 @@ struct ProfileView: View {
     
     @StateObject private var locationManager = LocationManager()
     @StateObject private var motionManager = MotionManager()
-    @State private var isAlertSent = false // ✅ Track if alert was sent
+    @State private var isAlertSent = false
 
-    
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 30) {
-                    ProfilePicture()
-                    ProfileInfo()
-                    
-                    // Show current coordinates
-                    Text("📍 Location: \(locationManager.currentCoordinates)")
-                        .font(.footnote)
-                        .foregroundColor(.black)
-                        .padding()
-                    
-                    if role == "admin" {
-                        SettingsSection()
-                    }
-                    
-                    if role == "mountain_owner" {
-                        MountainOwnerSection()
-                    }
-                    
-                    ButtonsSection()
-                    
-                    if motionManager.isUserInactive {
-                        Text("You have been inactive for too long! Alert sent to friends.")
-                            .foregroundColor(.red)
+        ZStack(alignment: .bottom) {
+            VStack {
+                ScrollView {
+                    VStack(spacing: 30) {
+                        ProfilePicture()
+                        ProfileInfo()
+                        
+                        // Show current coordinates
+                        Text("📍 Location: \(locationManager.currentCoordinates)")
+                            .font(.footnote)
+                            .foregroundColor(.black)
                             .padding()
-                            .background(Color.yellow)
-                            .cornerRadius(10)
-                    }
-                    
-                    Button(action: {
-                        motionManager.sendInactivityAlert()
-                        isAlertSent = true
-
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                            isAlertSent = false
+                        
+                        if role == "admin" {
+                            SettingsSection()
                         }
-                    }) {
-                        Text(isAlertSent ? "Alert Sent" : "🚨 Alert Friends")
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(isAlertSent ? Color.green : Color.gray)
-                            .cornerRadius(8)
-                    }
+                        
+                        if role == "mountain_owner" {
+                            MountainOwnerSection()
+                        }
+                        
+                        ButtonsSection()
+                        
+                        if motionManager.isUserInactive {
+                            Text("You have been inactive for too long! Alert sent to friends.")
+                                .foregroundColor(.red)
+                                .padding()
+                                .background(Color.yellow)
+                                .cornerRadius(10)
+                        }
+                        
+                        Button(action: {
+                            motionManager.sendInactivityAlert()
+                            isAlertSent = true
 
-                    
-                    
-                    NavigationLink(
-                        destination: LandingView(),
-                        isActive: $navigateToLandingView
-                    ) {
-                        EmptyView()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                                isAlertSent = false
+                            }
+                        }) {
+                            Text(isAlertSent ? "Alert Sent" : "🚨 Alert Friends")
+                                .foregroundColor(.white)
+                                .padding()
+                                .background(isAlertSent ? Color.green : Color.gray)
+                                .cornerRadius(8)
+                        }
                     }
-                    
-                    HStack {
-                        TabBarItem(
-                            tab: .home,
-                            currentTab: $currentTab,
-                            destination: {HomeView(userName: userName)},
-                            imageName: "house.fill",
-                            label: "Home"
-                        )
-                        
-                        TabBarItem(
-                            tab: .friends,
-                            currentTab: $currentTab,
-                            destination: {FriendView(userName: userName)},
-                            imageName: "person.2.fill",
-                            label: "Friends"
-                        )
-                        
-                        TabBarItem(
-                            tab: .map,
-                            currentTab: $currentTab,
-                            destination: {RouteLandingView(userName: userName)},
-                            imageName: "map.fill",
-                            label: "Map"
-                        )
-                        
-                        TabBarItem(
-                            tab: .metrics,
-                            currentTab: $currentTab,
-                            destination: {PerformanceMetricsView(userName: userName)},
-                            imageName: "chart.bar.fill",
-                            label: "Metrics"
-                        )
-                        
-                        TabBarItem(
-                            tab: .profile,
-                            currentTab: $currentTab,
-                            destination: {ProfileView(userName: userName)},
-                            imageName: "person.fill",
-                            label: "Profile"
-                        )
-                    }
-                    .padding()
-                    .background(Color.white)
+                    .padding(.bottom, 100) 
                 }
-                .padding(.bottom, 40)
             }
-            .onAppear {
-                fetchProfileData()
-                fetchUserRole()
+            
+            VStack {
+                Divider() // Adds a separation line above the nav bar
+                HStack {
+                    TabBarItem(
+                        tab: .home,
+                        currentTab: $currentTab,
+                        destination: {HomeView(userName: userName)},
+                        imageName: "house.fill",
+                        label: "Home"
+                    )
+                    
+                    TabBarItem(
+                        tab: .friends,
+                        currentTab: $currentTab,
+                        destination: {FriendView(userName: userName)},
+                        imageName: "person.2.fill",
+                        label: "Friends"
+                    )
+                    
+                    TabBarItem(
+                        tab: .map,
+                        currentTab: $currentTab,
+                        destination: {RouteLandingView(userName: userName)},
+                        imageName: "map.fill",
+                        label: "Map"
+                    )
+                    
+                    TabBarItem(
+                        tab: .metrics,
+                        currentTab: $currentTab,
+                        destination: {PerformanceMetricsView(userName: userName)},
+                        imageName: "chart.bar.fill",
+                        label: "Metrics"
+                    )
+                    
+                    TabBarItem(
+                        tab: .profile,
+                        currentTab: $currentTab,
+                        destination: {ProfileView(userName: userName)},
+                        imageName: "person.fill",
+                        label: "Profile"
+                    )
+                }
+                .padding()
+                .background(Color.white)
+                .shadow(radius: 5)
             }
-            .navigationTitle("My Profile")
-            .navigationBarTitleDisplayMode(.inline)
-            .preferredColorScheme(isDarkModeEnabled ? .dark : .light)
+            .frame(maxWidth: .infinity)
         }
+        .onAppear {
+            fetchProfileData()
+            fetchUserRole()
+        }
+        .navigationTitle("My Profile")
+        .navigationBarTitleDisplayMode(.inline)
+        .preferredColorScheme(isDarkModeEnabled ? .dark : .light)
     }
     
     // MARK: - Profile Picture

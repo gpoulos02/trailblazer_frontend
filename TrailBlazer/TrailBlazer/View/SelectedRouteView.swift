@@ -38,9 +38,9 @@ struct SelectedRouteView: View {
                     Text("\(routeName)")
                         .font(Font.custom("Inter", size: 20).weight(.bold))
                         .foregroundColor(.black)
-                    
+
                     Spacer()
-                    
+
                     // Right-aligned "Share with friends" button
                     Button(action: {
                         showSharePrompt.toggle()
@@ -83,30 +83,30 @@ struct SelectedRouteView: View {
                 }
 
                 ZStack {
-                                if let errorMessage = errorMessage {
-                                    Text("Error: \(errorMessage)")
-                                        .foregroundColor(.red)
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                        .background(Color.red.opacity(0.2))
-                                } else if isLoading {
-                                    ProgressView("Loading map...")
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                        .onAppear {
-                                            fetchApiKey()
-                                        }
-                                } else if let apiKey = apiKey {
-                                    // Display the MapViewWrapper with the user's location
-                                    MapViewWrapper(apiKey: apiKey)
-                                        .edgesIgnoringSafeArea(.all)
-                                } else {
-                                    Text("Failed to load map.")
-                                        .foregroundColor(.gray)
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                        .background(Color.gray.opacity(0.2))
-                                }
+                    if let errorMessage = errorMessage {
+                        Text("Error: \(errorMessage)")
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color.red.opacity(0.2))
+                    } else if isLoading {
+                        ProgressView("Loading map...")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .onAppear {
+                                fetchApiKey()
                             }
-                
-                // Metrics
+                    } else if let apiKey = apiKey {
+                        // Display the MapViewWrapper with the user's location
+                        MapViewWrapper(apiKey: apiKey)
+                            .edgesIgnoringSafeArea(.all)
+                    } else {
+                        Text("Failed to load map.")
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color.gray.opacity(0.2))
+                    }
+                }
+
+                // Metrics Section
                 HStack(spacing: 40) {
                     VStack {
                         Text("Speed")
@@ -116,7 +116,7 @@ struct SelectedRouteView: View {
                             .font(Font.custom("Inter", size: 16).weight(.bold))
                             .foregroundColor(.blue)
                     }
-                    
+
                     VStack {
                         Text("Elevation")
                             .font(Font.custom("Inter", size: 16))
@@ -125,7 +125,7 @@ struct SelectedRouteView: View {
                             .font(Font.custom("Inter", size: 16).weight(.bold))
                             .foregroundColor(.blue)
                     }
-                    
+
                     VStack {
                         Text("Distance")
                             .font(Font.custom("Inter", size: 16))
@@ -135,13 +135,13 @@ struct SelectedRouteView: View {
                             .foregroundColor(.blue)
                     }
                 }
-                
+
                 // Timer
                 Text("\(formatTime(elapsedTime))")
                     .font(Font.custom("Inter", size: 16))
                     .foregroundColor(.black)
-                
-                // Start/End Button
+
+                // Start/End Route Button
                 Button(action: toggleTimer) {
                     Text(timerRunning ? "End Route" : "Start Route")
                         .font(Font.custom("Inter", size: 16).weight(.bold))
@@ -152,13 +152,12 @@ struct SelectedRouteView: View {
                         .cornerRadius(8)
                 }
                 .padding(.vertical)
-                
+
                 // Save/Delete Buttons (Visible after End Route is clicked)
                 if showSaveDeleteButtons {
                     HStack(spacing: 20) {
                         // Save Route Button
-                        Button(action: { saveSessionData()
-                            }) {
+                        Button(action: { saveSessionData() }) {
                             Text("Save")
                                 .font(Font.custom("Inter", size: 16).weight(.bold))
                                 .foregroundColor(.white)
@@ -167,7 +166,7 @@ struct SelectedRouteView: View {
                                 .background(Color.green)
                                 .cornerRadius(8)
                         }
-                        
+
                         // Delete Route Button
                         Button(action: deleteRoute) {
                             Text("Delete")
@@ -180,18 +179,17 @@ struct SelectedRouteView: View {
                         }
                     }
                     .padding(.vertical)
-                    
+
                     if let statusMessage = routeStatusMessage {
                         Text(statusMessage)
                             .font(Font.custom("Inter", size: 14))
                             .foregroundColor(.gray)
                             .padding(.top, 5)
                     }
-
                 }
-                
+
                 Spacer()
-                
+
                 // Performance Metrics Button (Always interactive and grey)
                 NavigationLink(destination: PerformanceMetricsView(userName: userName)) {
                     Text("Performance Metrics")
@@ -204,59 +202,65 @@ struct SelectedRouteView: View {
                         .padding(.horizontal)
                 }
                 .padding(.bottom)
-                
-                // Custom Tab Bar
-                HStack {
-                    TabBarItem(
-                        tab: .home,
-                        currentTab: $currentTab,
-                        destination: { HomeView(userName: userName) },
-                        imageName: "house.fill",
-                        label: "Home"
-                    )
-                    
-                    TabBarItem(
-                        tab: .friends,
-                        currentTab: $currentTab,
-                        destination: { FriendView(userName: userName) },
-                        imageName: "person.2.fill",
-                        label: "Friends"
-                    )
-                    
-                    TabBarItem(
-                        tab: .map,
-                        currentTab: $currentTab,
-                        destination: { RouteLandingView(userName: userName) },
-                        imageName: "map.fill",
-                        label: "Map"
-                    )
-                    
-                    TabBarItem(
-                        tab: .metrics,
-                        currentTab: $currentTab,
-                        destination: { PerformanceMetricsView(userName: userName) },
-                        imageName: "chart.bar.fill",
-                        label: "Metrics"
-                    )
-                    
-                    TabBarItem(
-                        tab: .profile,
-                        currentTab: $currentTab,
-                        destination: { ProfileView(userName: userName) },
-                        imageName: "person.fill",
-                        label: "Profile"
-                    )
+
+                // Custom Tab Bar with Proper Shadow
+                ZStack {
+                    Color.white
+                        .edgesIgnoringSafeArea(.bottom)
+
+                    HStack {
+                        TabBarItem(
+                            tab: .home,
+                            currentTab: $currentTab,
+                            destination: { HomeView(userName: userName) },
+                            imageName: "house.fill",
+                            label: "Home"
+                        )
+
+                        TabBarItem(
+                            tab: .friends,
+                            currentTab: $currentTab,
+                            destination: { FriendView(userName: userName) },
+                            imageName: "person.2.fill",
+                            label: "Friends"
+                        )
+
+                        TabBarItem(
+                            tab: .map,
+                            currentTab: $currentTab,
+                            destination: { RouteLandingView(userName: userName) },
+                            imageName: "map.fill",
+                            label: "Map"
+                        )
+
+                        TabBarItem(
+                            tab: .metrics,
+                            currentTab: $currentTab,
+                            destination: { PerformanceMetricsView(userName: userName) },
+                            imageName: "chart.bar.fill",
+                            label: "Metrics"
+                        )
+
+                        TabBarItem(
+                            tab: .profile,
+                            currentTab: $currentTab,
+                            destination: { ProfileView(userName: userName) },
+                            imageName: "person.fill",
+                            label: "Profile"
+                        )
+                    }
+                    .padding()
+                    .shadow(radius: 5) // Adds consistent shadow without a box effect
                 }
-                .padding()
             }
             .padding()
-
             .onDisappear {
                 stopTimer()
                 locationManager.stopUpdatingLocation()
             }
         }
     }
+
     private func fetchApiKey() {
             guard let url = URL(string: "https://TrailBlazer33:5001/api/map/key") else {
                 errorMessage = "Invalid API URL"
