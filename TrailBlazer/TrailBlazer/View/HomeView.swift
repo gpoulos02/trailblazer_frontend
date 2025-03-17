@@ -6,6 +6,7 @@ struct HomeView: View {
     @State private var currentTab: Tab = .home
     @State private var mountains: [Mountain] = []
     @State private var selectedMountainID: Int? = nil
+    @State private var selectedMountainImage: String = ""
     
     var body: some View {
         VStack(spacing: 20) {
@@ -26,7 +27,8 @@ struct HomeView: View {
                 get: { selectedMountainID ?? 0 },
                 set: { newValue in
                     selectedMountainID = newValue
-                    UserDefaults.standard.set(newValue, forKey: "selectedMountainID") // Store in local storage
+                    UserDefaults.standard.set(newValue, forKey: "selectedMountainID")
+                    updateSelectedMountainImage(for: newValue)// Store in local storage
                 }
             )) {
                 Text("Select a Mountain...").tag(0)
@@ -41,12 +43,15 @@ struct HomeView: View {
             .shadow(radius: 5)
             .onAppear {
                 fetchMountains()
-                selectedMountainID = UserDefaults.standard.integer(forKey: "selectedMountainID") // Retrieve from local storage
+                selectedMountainID = UserDefaults.standard.integer(forKey: "selectedMountainID")
+                let savedID = UserDefaults.standard.integer(forKey: "selectedMountainID")
+                selectedMountainID = savedID
+                updateSelectedMountainImage(for: savedID) // Retrieve from local storage
             }
             
             VStack(spacing: 15) {
                 NavigationLink(destination: RouteLandingView(userName: userName)) {
-                    MapButton()
+                    MapButton(imageName: selectedMountainImage) // Pass the selected image to MapButton
                         .navigationBarBackButtonHidden(false)
                 }
                 NavigationLink(destination: CreateNewRouteView(userName: userName)) {
@@ -105,6 +110,18 @@ struct HomeView: View {
         .navigationBarBackButtonHidden(true)
     }
     
+    private func updateSelectedMountainImage(for mountainID: Int) {
+        // Map mountain ID to the correct image
+        switch mountainID {
+        case 1:
+            selectedMountainImage = "blueMountainLogo" // Replace with actual image name
+        case 2:
+            selectedMountainImage = "bolerMountainLogo" // Replace with actual image name
+        default:
+            selectedMountainImage = "FullLogo" // Default image
+        }
+    }
+    
     private func fetchMountains() {
         guard let url = URL(string: "https://TrailBlazer33:5001/api/mountains") else { return }
         
@@ -154,9 +171,11 @@ struct HomeButton: View {
 }
 
 struct MapButton: View {
+    var imageName: String
+    
     var body: some View {
         VStack {
-            Image("map")
+            Image(imageName) // Display the image passed
                 .resizable()
                 .scaledToFit()
                 .frame(height: 150)
@@ -178,6 +197,7 @@ struct MapButton: View {
         .shadow(radius: 5)
     }
 }
+
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
