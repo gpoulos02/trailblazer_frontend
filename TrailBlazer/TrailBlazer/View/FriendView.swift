@@ -13,7 +13,7 @@ struct Post: Identifiable, Codable {
     var route: String?
     var createdAt: String
     var likes: [String]
-    
+
 
     
     struct Comment: Codable {
@@ -85,6 +85,23 @@ struct Post: Identifiable, Codable {
     }
 }
 
+struct NotificationItem: Identifiable, Codable {
+    let id: String
+    let user: String
+    let type: String
+    let message: String
+    let createdAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case user
+        case type
+        case message
+        case createdAt
+    }
+}
+
+
 
 
 struct FriendView: View {
@@ -98,6 +115,8 @@ struct FriendView: View {
     @State private var newPostContent: String = ""
     @State private var hasPendingRequests = false
     @State private var pendingRequestsCount: Int = 0
+    @State private var notifications: [NotificationItem] = []
+    
     
     var body: some View {
         ZStack {
@@ -162,6 +181,19 @@ struct FriendView: View {
                 // Posts Section (Below Location Section)
                 ScrollView {
                     VStack(spacing: 10) {
+                        // 🚨 Show Inactivity Alerts First
+                        if let firstNotification = notifications.first {
+                            VStack(alignment: .leading) {
+
+                                Text(firstNotification.message)
+                                    .font(.body)
+                                    .padding()
+                                    .background(Color.yellow.opacity(0.3))
+                                    .cornerRadius(8)
+                            }
+                            .padding(.horizontal)
+                        }
+
                         ForEach(posts) { post in
                             PostView(post: post, posts: $posts)
                         }
@@ -241,17 +273,53 @@ struct FriendView: View {
             .position(x: UIScreen.main.bounds.width - 40, y: UIScreen.main.bounds.height - 230) // Position the button at the bottom-right
         }
         .onAppear {
+            fetchInactivityAlerts()
             fetchAllPosts()
             fetchFriendsPosts()
             checkPendingRequests()
-            
             fetchAllPostsIfAdmin()
         }
     }
 
-    
-    
-    
+    func fetchInactivityAlerts() {
+        guard let token = UserDefaults.standard.string(forKey: "authToken"),
+              let url = URL(string: "https://TrailBlazer33:5001/api/notifications/inactivity-alerts") else {
+            print("Invalid URL or missing token")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error fetching inactivity alerts:", error.localizedDescription)
+                return
+            }
+
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+
+            // Print response for debugging
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("Received inactivity alerts JSON:", jsonString)
+            }
+
+            do {
+                let fetchedNotifications = try JSONDecoder().decode([NotificationItem].self, from: data)
+                DispatchQueue.main.async {
+                    self.notifications = fetchedNotifications
+                    print("Successfully fetched inactivity alerts:", self.notifications)
+                }
+            } catch {
+                print("Failed to decode inactivity alerts:", error.localizedDescription)
+            }
+        }.resume()
+    }
+
     
     
     struct FriendsPostsResponse: Codable {
