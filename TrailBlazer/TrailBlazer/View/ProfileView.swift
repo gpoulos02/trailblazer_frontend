@@ -18,6 +18,7 @@ struct ProfileView: View {
     @State private var showSaveConfirmation = false
     @State private var isEditMode = false
     @State private var currentTab: Tab = .profile
+    @State private var currentCoordinates: String = "Loading..."
     
     @StateObject private var locationManager = LocationManager()
     @StateObject private var motionManager = MotionManager()
@@ -39,6 +40,10 @@ struct ProfileView: View {
                         SettingsSection()
                     }
                     
+                    if role == "mountain_owner" {
+                        MountainOwnerSection()
+                    }
+                    
                     ButtonsSection()
                     
                     if motionManager.isUserInactive {
@@ -49,15 +54,15 @@ struct ProfileView: View {
                             .cornerRadius(10)
                     }
                     
-//                    Button(action: {
-//                        motionManager.sendInactivityAlert()
-//                    }) {
-//                        Text("🚨 Send Manual Inactivity Alert")
-//                            .foregroundColor(.white)
-//                            .padding()
-//                            .background(Color.red)
-//                            .cornerRadius(8)
-//                    }
+                    Button(action: {
+                        motionManager.sendInactivityAlert()
+                    }) {
+                        Text("🚨 Alert Friends")
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.gray)
+                            .cornerRadius(8)
+                    }
                     
                     
                     NavigationLink(
@@ -211,6 +216,33 @@ struct ProfileView: View {
         .padding(.horizontal, 20)
     }
     
+    private func MountainOwnerSection() -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Settings")
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            NavigationLink(destination: MountainOwnerView(userName: userName)) {
+                Text("Mountain Owner Page")
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
+                    .padding(6)
+                    .frame(maxWidth: .infinity) // Make the button expand full width
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.blue, lineWidth: 1)
+                    )
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity) // ✅ Ensures the entire section is as wide as ProfileInfo
+        .background(RoundedRectangle(cornerRadius: 12)
+            .fill(Color(UIColor.secondarySystemBackground))
+            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
+        )
+        .padding(.horizontal, 20)
+    }
+    
     // MARK: - SOS and Logout Buttons
     private func ButtonsSection() -> some View {
         VStack(spacing: 10) { // Reduced spacing
@@ -235,21 +267,18 @@ struct ProfileView: View {
         }
         .alert(isPresented: $showSOSConfirmation) {
             Alert(
-                title: Text("Are you sure?"),
-                message: Text("Triggering Emergency SOS will alert local authorities and notify your TrailBlazer friends."),
-                primaryButton: .destructive(Text("Proceed")) {
-                    print("SOS triggered")
+                title: Text("Emergency SOS"),
+                message: Text("Triggering Emergency SOS will alert ski patrol. Select the correct mountain."),
+                primaryButton: .default(Text("Blue Mountain Ski Patrol")) {
+                    callResortPhoneNumber(number: "7054450231") // Resort 1's phone number
                 },
-                secondaryButton: .cancel()
+                secondaryButton: .default(Text("Boler Mountain Ski Patrol")) {
+                    callResortPhoneNumber(number: "5196578822") // Resort 2's phone number
+                }
             )
         }
     }
-    
-    
-    
-    
-    
-    
+
     // MARK: - Logout Button
     private func LogoutButton() -> some View {
         Button(action: {
@@ -277,6 +306,22 @@ struct ProfileView: View {
     
     private func toggleDarkMode(value: Bool) {
         UserDefaults.standard.set(value, forKey: "isDarkModeEnabled")
+    }
+    
+    private func callResortPhoneNumber(number: String) {
+        // Clean the number in case there are any non-numeric characters
+        let cleanedNumber = number.filter { $0.isNumber }// Debug statement
+        if let phoneURL = URL(string: "tel://\(cleanedNumber)") {// Debug statement
+            
+            if UIApplication.shared.canOpenURL(phoneURL) {
+                print("Can open URL: \(phoneURL)") // Debug statement
+                UIApplication.shared.open(phoneURL)
+            } else {
+                print("Cannot make a phone call.")
+            }
+        } else {
+            print("Invalid phone URL") // Debug statement
+        }
     }
     
     func fetchProfileData() {
