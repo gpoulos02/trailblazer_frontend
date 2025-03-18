@@ -25,7 +25,7 @@ struct ProfileView: View {
     @State private var isAlertSent = false
 
     var body: some View {
-            NavigationStack { // Wrap in NavigationStack
+            NavigationStack {
                 ZStack(alignment: .bottom) {
                     VStack {
                         ScrollView {
@@ -213,7 +213,7 @@ struct ProfileView: View {
                     .font(.subheadline)
                     .foregroundColor(.blue)
                     .padding(6)
-                    .frame(maxWidth: .infinity) // Make the button expand full width
+                    .frame(maxWidth: .infinity)
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
                             .stroke(Color.blue, lineWidth: 1)
@@ -221,7 +221,7 @@ struct ProfileView: View {
             }
         }
         .padding()
-        .frame(maxWidth: .infinity) // ✅ Ensures the entire section is as wide as ProfileInfo
+        .frame(maxWidth: .infinity) // Ensures the entire section is as wide as ProfileInfo
         .background(RoundedRectangle(cornerRadius: 12)
             .fill(Color(UIColor.secondarySystemBackground))
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
@@ -248,7 +248,7 @@ struct ProfileView: View {
             }
         }
         .padding()
-        .frame(maxWidth: .infinity) // ✅ Ensures the entire section is as wide as ProfileInfo
+        .frame(maxWidth: .infinity) // Ensures the entire section is as wide as ProfileInfo
         .background(RoundedRectangle(cornerRadius: 12)
             .fill(Color(UIColor.secondarySystemBackground))
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
@@ -442,9 +442,6 @@ struct ProfileView: View {
     }
     
     func fetchUserRole() {
-        //        guard let userIDFromToken = getUserIDFromToken() else {
-        //            return false
-        //        }
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
               let url = URL(string: "https://TrailBlazer33:5001/api/admin/userTypeByID") else {
             print("Invalid URL or missing token")

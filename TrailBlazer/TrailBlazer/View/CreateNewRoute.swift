@@ -118,14 +118,14 @@ struct CreateNewRouteView: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 16) // Reduced padding on sides
                             .padding(.vertical, 8)    // Reduced vertical padding
-                            .frame(maxWidth: 200)     // Limiting the width of the button (or you can set a specific width like 200)
+                            .frame(maxWidth: 200)
                             .background(Color.blue)
                             .cornerRadius(8)
                     }
                 }
                 .padding(.vertical)
                 
-                // Show error message if there is one
+                // Show error message
                 if showError {
                     Text(errorMessage)
                         .foregroundColor(.red)
@@ -308,12 +308,12 @@ struct CreateNewRouteView: View {
 
 
     private func fetchDropdownData() {
-        // Updated lift URL to include mountainID
+        // Lift URL to include mountainID
         guard let liftUrl = URL(string: "https://TrailBlazer33:5001/api/chairlifts/\(mountainID)/lift-names/") else { return }
         var liftRequest = URLRequest(url: liftUrl)
         liftRequest.httpMethod = "GET"
         
-        // Updated POI URL to include mountainID
+        // POI URL to include mountainID
         guard let poiUrl = URL(string: "https://TrailBlazer33:5001/api/pois/\(mountainID)") else { return }
         var poiRequest = URLRequest(url: poiUrl)
         poiRequest.httpMethod = "GET"
@@ -377,28 +377,20 @@ struct CreateNewRouteView: View {
         let POI_name: String
         let type: String
     }
-//    struct Trail: Codable {
-//        let runID: Int
-//        let runName: String
-//        let difficulty: String
-//        let startingLift: Int
-//        let endingPoints: [Int]
-//        let isEnd: Bool
-//        let mergesTo: [Int]
-//    }
+
     struct Trail: Decodable {
         let runID: Int
         let runName: String
         let difficulty: String
-        let startingLift: Int? // Make optional if it can be null
-        let endingPoints: [Int]? // Make optional and array of Ints
-        let isEnd: Bool? // Make optional
-        let mergesTo: [Int]? // Make optional and array of Ints
+        let startingLift: Int? // Optional
+        let endingPoints: [Int]? // Optional and array of Ints
+        let isEnd: Bool? // Optional
+        let mergesTo: [Int]? // Optional and array of Ints
     }
 }
 
 struct CreateNewRouteView_Previews: PreviewProvider {
     static var previews: some View {
-        CreateNewRouteView(userName: "John Doe") // Provide sample userName
+        CreateNewRouteView(userName: "John Doe") 
     }
 }

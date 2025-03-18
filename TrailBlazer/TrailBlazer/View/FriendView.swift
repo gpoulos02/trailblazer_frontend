@@ -110,7 +110,7 @@ struct FriendView: View {
     @State private var navigateToFriendRequests = false
     @State private var currentTab: Tab = .friends
     @State private var showNewPostSheet = false
-    @State private var posts: [Post] = [] // Now we use Post objects
+    @State private var posts: [Post] = [] // Post objects
     @State private var newPostTitle: String = ""
     @State private var newPostContent: String = ""
     @State private var hasPendingRequests = false
@@ -161,14 +161,9 @@ struct FriendView: View {
                 .background(
                     NavigationLink("", destination: FriendRequestsView(userName: userName), isActive: $navigateToFriendRequests)
                 )
-                
-
-                
+                                
                 // Scrollable Friends Section
                 HStack(spacing: 10) {
-
-                
-                    
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 15) {
                             Text("Your Feed")
@@ -186,7 +181,7 @@ struct FriendView: View {
                         // Show Inactivity Alerts First
                         if let firstNotification = notifications.first {
                             ZStack(alignment: .topLeading) {
-                                // Notification Background (Now Matches Post Width)
+                                // Notification Background
                                 VStack(alignment: .leading) {
                                     Text(firstNotification.message)
                                         .font(.body)
@@ -199,7 +194,7 @@ struct FriendView: View {
                                 .cornerRadius(8)
                                 .padding(.horizontal) // Matches post section padding
 
-                                // Close Button (Now Fully Inside)
+                                // Close Button
                                 Button(action: {
                                     removeNotification()
                                 }) {
@@ -207,7 +202,7 @@ struct FriendView: View {
                                         .resizable()
                                         .frame(width: 18, height: 18)
                                         .foregroundColor(.gray)
-                                        .background(Color.white) // Ensures visibility
+                                        .background(Color.white)
                                         .clipShape(Circle())
                                         .shadow(radius: 1)
                                 }
@@ -287,10 +282,10 @@ struct FriendView: View {
                         .shadow(radius: 5)
                 }
                 .frame(width: 40, height: 40)
-                .padding(.bottom, 40) // Adjust this for desired distance from the bottom
-                .padding(.trailing, 25) // Adjust this for desired distance from the right
+                .padding(.bottom, 40)
+                .padding(.trailing, 25)
             }
-            .zIndex(1) // Ensures it appears above other elements
+            .zIndex(1) // Appears above other elements
 //            .padding(.bottom, 40) // Add padding to avoid overlap with the bottom navigation bar
 //            .padding(.trailing, 20) // Controls distance from the right side
             .position(x: UIScreen.main.bounds.width - 40, y: UIScreen.main.bounds.height - 230) // Position the button at the bottom-right
@@ -311,7 +306,6 @@ struct FriendView: View {
         UserDefaults.standard.set(dismissedNotifications, forKey: "dismissedNotifications")
     }
 
-    
     // Remove notification after 20 seconds
     private func scheduleNotificationRemoval() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
@@ -327,8 +321,6 @@ struct FriendView: View {
             notifications = Array(notifications.dropFirst()) // Remove from UI
         }
     }
-
-
 
     func fetchInactivityAlerts() {
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
@@ -371,9 +363,6 @@ struct FriendView: View {
         }.resume()
     }
 
-
-    
-    
     struct FriendsPostsResponse: Codable {
         var posts: [Post] // Array of Post objects
     }
@@ -405,7 +394,6 @@ struct FriendView: View {
                 return
             }
             
-            //print("Received data for friends' posts:", String(data: data, encoding: .utf8) ?? "Invalid data")
             
             do {
                 let decodedResponse = try JSONDecoder().decode([Post].self, from: data)
@@ -413,16 +401,13 @@ struct FriendView: View {
                 DispatchQueue.main.async {
                     self.posts.append(contentsOf: decodedResponse) // Append instead of replacing
                     self.posts.sort { $0.createdAt > $1.createdAt } // Sort posts by newest first
-                    //print("Merged friends' posts:", self.posts)
                 }
             } catch {
                 print("Error decoding friends' posts:", error)
             }
         }.resume()
     }
-    
-    
-    
+        
     // This function is responsible for submitting the post
     func submitPost() {
         guard !newPostContent.isEmpty else {
@@ -469,11 +454,10 @@ struct FriendView: View {
                 if let data = data {
                     // Print the raw JSON for debugging
                     if let jsonString = String(data: data, encoding: .utf8) {
-                        //print("DEBUG: Post creation response: \(jsonString)")
+                        
                     }
                 }
                 
-                // Optionally, fetch the updated posts after creating the new post
                 
                 fetchAllPosts()
             }
@@ -536,7 +520,7 @@ struct FriendView: View {
                 var request = URLRequest(url: url)
                 request.httpMethod = "GET"
 
-                // Add the authorization token if available
+                // Add the authorization token
                 if let token = UserDefaults.standard.string(forKey: "authToken") {
                     request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
                 }
@@ -576,6 +560,7 @@ struct FriendView: View {
         }
     }
 
+    // Get role type of the user
     func fetchUserRole(completion: @escaping (String) -> Void) {
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
               let url = URL(string: "https://TrailBlazer33:5001/api/admin/userTypeByID") else {
@@ -632,7 +617,7 @@ struct FriendView: View {
         var pendingRequests: [PendingRequest]
     }
     
-    
+    // Fetch any pending requests 
     func checkPendingRequests() {
         guard let url = URL(string: "https://TrailBlazer33:5001/api/friends/pending-requests") else {
             print("Invalid URL for checking pending requests")

@@ -163,7 +163,7 @@ struct PerformanceMetricsView: View {
                                             MetricRowView(title: "Distance", value: metric.sessionData.distance)
                                             MetricRowView(title: "Duration", value: metric.sessionData.duration)
 
-                                            // Add Share Icon Button here
+                                            // Share Icon Button
                                             Button(action: {
                                                 selectedMetricForSharing = metric
                                                 isShareSheetPresented = true
@@ -182,11 +182,11 @@ struct PerformanceMetricsView: View {
                             }
                         }
                     }
-                    .padding(.bottom, 100) // ✅ Prevents last content from overlapping nav bar
+                    .padding(.bottom, 100) // Prevents last content from overlapping nav bar
                 }
             }
 
-            // ✅ Fixed Bottom Navigation Bar with Shadow
+            // Fixed Bottom Navigation Bar with Shadow
             VStack {
                 Divider()
                 HStack {
@@ -198,7 +198,7 @@ struct PerformanceMetricsView: View {
                 }
                 .padding()
                 .background(Color.white)
-                .shadow(radius: 5) // ✅ Adds shadow effect
+                .shadow(radius: 5) // Adds shadow effect
             }
             .frame(maxWidth: .infinity)
         }
@@ -299,7 +299,7 @@ struct PerformanceMetricsView: View {
     }
     private func formattedDate(for metric: MetricsData) -> String {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ" // This is the input format for the ISO 8601 string
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ" // Input format for the ISO 8601 string
 
         if let date = dateFormatter.date(from: metric.createdAt) {
             let outputFormatter = DateFormatter()
@@ -385,8 +385,6 @@ struct PerformanceMetricsView: View {
 
         task.resume()
     }
-
-
     
     private func fetchRunName(runID: Int, completion: @escaping (String) -> Void) {
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
@@ -482,7 +480,6 @@ struct PerformanceMetricsView: View {
         filteredMetricsData = originalMetricsData.filter { runNames[$0.runID] == selectedTrailName }
     }
 
-
     // Sorting based on selected filter
     private func sortMetricsData() -> [MetricsData] {
         switch selectedFilter {
@@ -530,8 +527,6 @@ struct PerformanceMetricsView: View {
         
         let baseURL = "https://TrailBlazer33:5001/api"
         @State private var averageDifficulty: String = "Loading..."  // State to hold the fetched difficulty
-
-
         
         var metricsData: [MetricsData]
 

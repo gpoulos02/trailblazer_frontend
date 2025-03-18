@@ -10,18 +10,17 @@ struct NewPostView: View {
         VStack {
             Spacer() // Push content to the center vertically
 
-            // Post Title Field (Ensure both have the same width and padding)
+            // Post Title Field
             TextField("Post Title", text: $postTitle)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                //.padding(.horizontal) // Same padding for consistency
                 .font(.title3)
                 .background(Color.white)
                 .cornerRadius(10)
                 .shadow(radius: 5)
-                .frame(width: 350) // Ensure both have full width
+                .frame(width: 350)
             
 
-            // Post Body TextEditor (Ensure it has the same width and padding as the title field)
+            // Post Body TextEditor
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $postBody)
                     .frame(height: 180)
@@ -32,7 +31,7 @@ struct NewPostView: View {
                     .font(.body)
                     .frame(width: 350)
 
-                // Placeholder Text
+                // Text in textbox
                 if postBody.isEmpty {
                     Text("What's on your mind?")
                         .foregroundColor(.gray)
@@ -54,7 +53,7 @@ struct NewPostView: View {
                     Text("Cancel")
                                             .font(.body)
                                             .padding(.vertical, 10) // Reduce the height of the button
-                                            .frame(maxWidth: .infinity) // Ensure same width
+                                            .frame(maxWidth: .infinity)
                                             .background(Color.red)
                                             .foregroundColor(.white)
                                             .cornerRadius(8)
@@ -67,7 +66,7 @@ struct NewPostView: View {
                     Text(isSubmitting ? "Posting..." : "Post")
                         .font(.body)
                         .padding(.vertical, 10) // Reduce the height of the button
-                        .frame(maxWidth: .infinity) // Ensure same width
+                        .frame(maxWidth: .infinity) 
                         .background(isSubmitting ? Color.gray : Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(8)

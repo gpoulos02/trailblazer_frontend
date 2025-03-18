@@ -10,9 +10,9 @@ struct WeatherView: View {
     @State private var forecast: [ForecastWeather] = []
     @State private var currentTab: Tab = .home
     @State private var searchText: String = ""
-
+    
     var userName: String
-
+    
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
@@ -23,13 +23,13 @@ struct WeatherView: View {
                         .fontWeight(.bold)
                         .foregroundColor(.black)
                         .padding(.top, 20)
-
+                    
                     // Current Weather Information
                     VStack {
                         Image(systemName: conditionIcon(for: condition))
                             .font(.system(size: 70))
                             .foregroundColor(.blue)
-
+                        
                         Text(weatherInfo)
                             .font(.title)
                             .fontWeight(.bold)
@@ -41,13 +41,13 @@ struct WeatherView: View {
                     .cornerRadius(10)
                     .shadow(radius: 5)
                     .padding(.top, 10)
-
+                    
                     // Forecast Section with Modern Styling
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Weather Forecast")
                             .font(.headline)
                             .padding(.leading, 16)
-
+                        
                         ScrollView {
                             ForEach(forecast) { weather in
                                 HStack(alignment: .center) {
@@ -56,20 +56,20 @@ struct WeatherView: View {
                                         .font(.system(size: 30))
                                         .foregroundColor(.blue)
                                         .padding(.leading, 16)
-
+                                    
                                     // Weather Details
                                     VStack(alignment: .leading, spacing: 5) {
                                         Text(formatDateTime(weather.time))
                                             .font(.headline)
                                             .bold()
                                             .foregroundColor(.primary)
-
+                                        
                                         Text("\(Int(weather.temperature))°C, \(weather.condition.capitalized)")
                                             .font(.title2)
                                             .foregroundColor(.secondary)
                                     }
                                     .padding(.leading, 10)
-
+                                    
                                     Spacer()
                                 }
                                 .padding()
@@ -81,12 +81,12 @@ struct WeatherView: View {
                         }
                     }
                     .padding(.top, 20)
-
+                    
                     Spacer()
                 }
-                .padding(.bottom, 100) // ✅ Prevents overlap with nav bar
-
-                // ✅ Fixed Bottom Navigation Bar with Shadow
+                .padding(.bottom, 100) // Prevents overlap with nav bar
+                
+                // Fixed Bottom Navigation Bar with Shadow
                 VStack {
                     Divider()
                     HStack {
@@ -128,7 +128,7 @@ struct WeatherView: View {
                     }
                     .padding()
                     .background(Color.white)
-                    .shadow(radius: 5) // ✅ Adds shadow effect
+                    .shadow(radius: 5)
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -138,8 +138,7 @@ struct WeatherView: View {
             }
         }
     }
-
-
+    
     func conditionIcon(for condition: String) -> String {
         switch condition.lowercased() {
         case "clear": return "sun.max.fill"
@@ -149,41 +148,41 @@ struct WeatherView: View {
         default: return "cloud.fill"
         }
     }
-
+    
     func fetchWeather() {
         guard let location = locationManager.currentLocation else {
             weatherInfo = "Unable to get location"
             print("Debug: Location is nil")
             return
         }
-
+        
         let latitude = location.coordinate.latitude
         let longitude = location.coordinate.longitude
-
+        
         guard let url = URL(string: "https://TrailBlazer33:5001/api/weather?latitude=\(latitude)&longitude=\(longitude)") else {
             print("Debug: URL creation failed")
             return
         }
-
+        
         print("Debug: Fetching weather data from \(url)")
-
+        
         URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
                 print("Debug: Error occurred - \(error.localizedDescription)")
                 return
             }
-
+            
             guard let httpResponse = response as? HTTPURLResponse else {
                 print("Debug: No HTTP response")
                 return
             }
             print("Debug: HTTP Response Code - \(httpResponse.statusCode)")
-
+            
             guard let data = data else {
                 print("Debug: Data is nil")
                 return
             }
-
+            
             do {
                 let weatherData = try JSONDecoder().decode(WeatherData.self, from: data)
                 DispatchQueue.main.async {
@@ -197,20 +196,20 @@ struct WeatherView: View {
             }
         }.resume()
     }
-
+    
     func fetchLocationName() {
         guard let location = locationManager.currentLocation else {
             locationName = "Unknown Location"
             return
         }
-
+        
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { placemarks, error in
             if let error = error {
                 print("Debug: Reverse geocoding failed - \(error.localizedDescription)")
                 return
             }
-
+            
             if let placemark = placemarks?.first {
                 DispatchQueue.main.async {
                     self.locationName = placemark.locality ?? "Unknown Location"
@@ -218,18 +217,18 @@ struct WeatherView: View {
             }
         }
     }
-
+    
     func formatDateTime(_ dateTime: String) -> String {
         let dateFormatter = ISO8601DateFormatter()
         guard let date = dateFormatter.date(from: dateTime) else { return dateTime }
-
+        
         // Custom date format "Mar 7, 2025"
         let displayFormatter = DateFormatter()
         displayFormatter.dateFormat = "MMM d, yyyy"
         return displayFormatter.string(from: date)
     }
-
 }
+
 
 struct WeatherData: Codable {
     let current: CurrentWeather

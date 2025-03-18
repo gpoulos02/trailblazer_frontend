@@ -15,7 +15,6 @@ struct SetNewRouteView: View {
                 .frame(height: 40)
                 .padding(.top, 20)
 
-            // Placeholder for map or saved routes section
             Rectangle()
                 .foregroundColor(.clear)
                 .frame(width: 343, height: 362)

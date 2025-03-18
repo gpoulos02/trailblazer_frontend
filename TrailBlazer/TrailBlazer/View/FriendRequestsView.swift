@@ -21,14 +21,14 @@ struct FriendRequestsView: View {
                     TextField("Search for users...", text: $searchText)
                                         .padding(.leading, 30) // Space for the magnifying glass
                                         .frame(height: 45)
-                                        .padding(.horizontal, 15) // Adjust the horizontal padding
+                                        .padding(.horizontal, 15)
                                         .background(Color(.systemGray6))
                                         .cornerRadius(12)
                                         .overlay(
                                             HStack {
                                                 Image(systemName: "magnifyingglass")
                                                     .foregroundColor(.gray)
-                                                    .padding(.leading, 8) // Adjust the padding to avoid overlap
+                                                    .padding(.leading, 8)
                                                 Spacer()
                                             }
                                         )
@@ -363,8 +363,9 @@ struct FriendRequestsView: View {
 
 
 
+//MARK: - Pending request view
 struct PendingRequestsView: View {
-    @State private var friendRequests: [[String: Any]] = []  // Make this mutable
+    @State private var friendRequests: [[String: Any]] = []  // Mutable
 
     var body: some View {
         if friendRequests.isEmpty {
@@ -381,7 +382,7 @@ struct PendingRequestsView: View {
                             
                             Spacer()
                             
-                            // Reject Button (X)
+                            // Reject Button
                             Button(action: {
                                                     rejectFriendRequest(for: userID)
                                                 }) {
@@ -391,7 +392,7 @@ struct PendingRequestsView: View {
                                                 }
                                                 .buttonStyle(PlainButtonStyle())
 
-                                                // Accept Button (checkmark)
+                                                // Accept Button
                                                 Button(action: {
                                                     acceptFriendRequest(for: userID)
                                                 }) {
@@ -431,7 +432,7 @@ struct PendingRequestsView: View {
                     if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                        let friendRequests = jsonResponse["friendRequests"] as? [[String: Any]] {
                         DispatchQueue.main.async {
-                            print("Friend requests fetched: \(friendRequests)") // Debugging line
+                            print("Friend requests fetched: \(friendRequests)") // Debugging
                             self.friendRequests = friendRequests
                         }
                     }

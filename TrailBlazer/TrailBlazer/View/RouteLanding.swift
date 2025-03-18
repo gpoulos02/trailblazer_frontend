@@ -6,7 +6,7 @@ import Turf
 struct RouteLandingView: View {
     var userName: String // Accept the logged-in user's name as a parameter
 
-    @State private var isLoading = true // Simulate loading state
+    @State private var isLoading = true
     @State private var apiKey: String? = nil // Store the API key
     @State private var errorMessage: String? = nil // Store any error message
     @State private var isDownloadInProgress = false
@@ -17,7 +17,7 @@ struct RouteLandingView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-// ✅ Keeps nav bar fixed at the bottom
+// Keeps nav bar fixed at the bottom
             VStack {
                 if let errorMessage = errorMessage {
                     Text("Error: \(errorMessage)")
@@ -79,9 +79,9 @@ struct RouteLandingView: View {
                         .padding(.bottom, 8)
                 }
             }
-            .padding(.bottom, 100) // ✅ Prevents buttons from overlapping the nav bar
+            .padding(.bottom, 100) // Prevents buttons from overlapping the nav bar
 
-            // ✅ Fixed Bottom Navigation Bar with Shadow
+            // Fixed Bottom Navigation Bar with Shadow
             VStack {
                 Divider()
                 HStack {
@@ -123,7 +123,7 @@ struct RouteLandingView: View {
                 }
                 .padding()
                 .background(Color.white)
-                .shadow(radius: 5) // ✅ Adds shadow effect
+                .shadow(radius: 5) // Adds shadow effect
             }
             .frame(maxWidth: .infinity)
         }
@@ -167,14 +167,13 @@ struct RouteLandingView: View {
         isDownloadInProgress = true
         let offlineManager = OfflineRegionManager()
         
-        // Define the region to download (example with a 10 km radius around a coordinate)
+        // Define the region to download
         let centerCoordinate = CLLocationCoordinate2D(latitude: 44.4280, longitude: -80.3020) // Change to your target region
         let zoomLevel = 10.0
-        let radius = 10000.0 // Radius in meters (optional, can be omitted for default)
+        let radius = 10000.0 // Radius in meters
         
         // Define the bounding box using the BoundingBox structure
-        // Define the geometry directly using the coordinates (you can modify this depending on the SDK's expected geometry format)
-        // Define the bounding box using the BoundingBox structure
+        // Define the geometry directly using the coordinates
         let southWest = CLLocationCoordinate2D(latitude: centerCoordinate.latitude - 0.05, longitude: centerCoordinate.longitude - 0.05)
         let northEast = CLLocationCoordinate2D(latitude: centerCoordinate.latitude + 0.05, longitude: centerCoordinate.longitude + 0.05)
 
@@ -191,7 +190,7 @@ struct RouteLandingView: View {
             let closedPolygonCoordinates = polygonCoordinates.flatMap { $0 }
             let polygon = try Polygon([closedPolygonCoordinates])
             
-            // Manually create a Geometry from the Polygon (if needed by the SDK)
+            // Manually create a Geometry from the Polygon
             let geometry = Geometry(polygon)  // Assuming you have this conversion available
             
             let styleURL = "mapbox://styles/gpoulakos/cm3nt0prt00m801r25h8wajy5"
@@ -229,7 +228,6 @@ struct RouteLandingView: View {
                                         // If the error is not a Mapbox error, print it
                                         print("Unexpected error: \(error.localizedDescription)")
                                     }
-                        
                     }
                 }
             }
@@ -253,9 +251,6 @@ struct RouteLandingView: View {
             }
         }
     }
-    
-
-    
 
 }
 
@@ -275,8 +270,6 @@ struct MapViewWrapper: UIViewRepresentable {
         // Initial camera options
         let cameraOptions = CameraOptions(zoom: 14.0, bearing: 0.0, pitch: 45.0)
         mapView.mapboxMap.setCamera(to: cameraOptions)
-        
-        
 
         // Assign Coordinator to handle location updates
         context.coordinator.mapView = mapView
@@ -322,8 +315,6 @@ struct MapViewWrapper: UIViewRepresentable {
                            pitch: 45.0
                        )
             mapView.mapboxMap.setCamera(to: cameraOptions)
-
-            // Log the updated location
             
         }
 

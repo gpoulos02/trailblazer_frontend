@@ -115,11 +115,11 @@ struct OnApplyRouteView: View {
                     .frame(width: 125, height: 38)
                 }
             }
-            .padding(.bottom, 100) // ✅ Prevents overlap with nav bar
+            .padding(.bottom, 100) // Prevents overlap with nav bar
 
             Spacer()
 
-            // ✅ Fixed Bottom Navigation Bar with Shadow
+            // Fixed Bottom Navigation Bar with Shadow
             VStack {
                 Divider()
                 HStack {
@@ -167,12 +167,6 @@ struct OnApplyRouteView: View {
         }
         .navigationBarBackButtonHidden(true)
     }
-
-//}
-//            }
-//        }
-//        .padding(.horizontal)
-//    }
 
     // Start Route: Initialize metrics and start a timer
     private func startRoute() {

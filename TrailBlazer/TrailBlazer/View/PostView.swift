@@ -14,12 +14,10 @@ struct PostView: View {
     @State private var showDeleteButton: Bool = false
     
     
-        
-    
     // DateFormatter to format the ISO date string
     private var formattedDate: String {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ" // Assuming the API uses this format
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
         if let date = dateFormatter.date(from: post.createdAt) {
             dateFormatter.dateStyle = .medium
             dateFormatter.timeStyle = .short
@@ -36,7 +34,6 @@ struct PostView: View {
                 Text(username.isEmpty ? "Loading..." : username)
                     .font(.headline)
                     .fontWeight(.bold)
-                //print("Current User ID: \(currentUserID)")
                 
                 Spacer()
                 
@@ -73,8 +70,6 @@ struct PostView: View {
                         .font(.body)
                         .foregroundColor(.black)
                 }
-                
-
             } else if post.type == "route" {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Run: \(routeName.isEmpty ? "Loading..." : routeName)")
@@ -89,7 +84,6 @@ struct PostView: View {
             
             // Bottom Buttons: Like
             HStack {
-                
                 Text("\(likeCount)")  // Display the like count
                     .foregroundColor(.black)
                 
@@ -108,7 +102,7 @@ struct PostView: View {
                 }
                 
                 Spacer()
-                if shouldShowDeleteButton() {  // Use shouldShowDeleteButton() to check the condition
+                if shouldShowDeleteButton() {  // Use to check the condition
                     Button(action: {
                         deletePost()
                     }) {
@@ -129,7 +123,6 @@ struct PostView: View {
             fetchLikeCount()
             fetchUserRole()
             
-        
             if let routeID = post.routeID {
                 fetchRouteName(routeID: routeID)
             }
@@ -143,8 +136,7 @@ struct PostView: View {
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        
-        // Add the token (replace `yourTokenHere` with the actual token)
+    
         if let token = UserDefaults.standard.string(forKey: "authToken") {
             request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
@@ -166,6 +158,7 @@ struct PostView: View {
             }
         }.resume()
     }
+    
     func getUserIDFromToken() -> String? {
             guard let token = UserDefaults.standard.string(forKey: "authToken") else {
                 print("Auth token is missing")
@@ -233,7 +226,6 @@ struct PostView: View {
         }.resume()
     }
     
-
     func deletePost() {
             guard let postID = post.postID else {return}
             guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/delete/\(postID)") else {return}
@@ -284,9 +276,7 @@ struct PostView: View {
         }
     
     func fetchUserRole() {
-//        guard let userIDFromToken = getUserIDFromToken() else {
-//            return false
-//        }
+
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
               let url = URL(string: "https://TrailBlazer33:5001/api/admin/userTypeByID") else {
             print("Invalid URL or missing token")
@@ -329,52 +319,40 @@ struct PostView: View {
         }.resume()
     }
     
-    
-    
-    // Updated toggleLike function to handle the response correctly
+    // toggleLike function to handle the response correctly
     func toggleLike() {
-            guard let postID = post.postID else { return }
-            
-            //print("Sending like request for post ID: \(postID)")
-            //print("current user:  \(currentUserID)")
-            
-            guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(postID)/like") else {
-                print("Invalid URL")
-                return
-            }
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            
-            // Add the token for authentication
-            if let token = UserDefaults.standard.string(forKey: "authToken") {
-                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            } else {
-                print("Auth token is missing")
-                return
-            }
-            
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    print("Error making request:", error)
-                    return
-                }
-                
-                guard let data = data else {
-                    print("No data received from request")
-                    return
-                }
-                
-                do {
-                    if let responseJson = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                        if let likesArray = responseJson["likes"] as? [String] { // Extract array
+        guard let postID = post.postID else { return }
+        
+        guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(postID)/like") else {
+            print("Invalid URL")
+            return
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        // Add the token for authentication
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            print("Auth token is missing")
+            return
+        }
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error making request:", error)
+                return
+            }
+            guard let data = data else {
+                print("No data received from request")
+                return
+            }
+            do {
+                if let responseJson = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                    if let likesArray = responseJson["likes"] as? [String] { // Extract array
                             let newLikeCount = likesArray.count // Count elements in array
                             
                             DispatchQueue.main.async {
                                 self.isLiked.toggle()
                                 self.likeCount = newLikeCount
-                                //likeCount = likeCount + 1// Update UI with backend count
-                                //fetchLikeCount()
                             }
                         }
                     }
@@ -391,8 +369,6 @@ struct PostView: View {
     
     func fetchLikeCount() {
             guard let postID = post.postID else { return }
-            
-            //print("Fetching like count for post ID: \(postID)")  // Debugging
             
             guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(postID)/getLikeCount") else {
                 print("Invalid URL")
@@ -419,16 +395,13 @@ struct PostView: View {
                 }
                 
                 do {
-                    // Debugging: Print raw response data
                     let rawResponseString = String(data: data, encoding: .utf8) ?? "Invalid response"
-                    //print("Raw response data: \(rawResponseString)")
                     
                     // Decode the response assuming likeCount is a simple key
                     if let responseJson = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                         if let likeCount = responseJson["likeCount"] as? Int {
                             DispatchQueue.main.async {
                                 self.likeCount = likeCount  // Set the like count
-                                //print("Fetched like count: \(self.likeCount)")  // Debugging
                             }
                         } else {
                             print("No 'likeCount' key found in response.")
@@ -441,17 +414,11 @@ struct PostView: View {
                 }
             }.resume()
         }
-
-
-
-
     
     // New function to unlike a post
     func unlikePost() {
             guard let postID = post.postID else { return }
-            
-            //print("Sending unlike request for post ID: \(postID)")
-            
+
             guard let url = URL(string: "https://TrailBlazer33:5001/api/posts/\(postID)/unlike") else {
                 print("Invalid URL")
                 return
@@ -497,10 +464,6 @@ struct PostView: View {
             }.resume()
         }
     }
-
-
-
-
 
 struct LikePostResponse: Codable {
     var message: String

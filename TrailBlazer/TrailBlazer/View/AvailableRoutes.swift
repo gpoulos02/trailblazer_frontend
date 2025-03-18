@@ -152,7 +152,7 @@ struct AvailableRoutesView: View {
                     .foregroundColor(.gray)
             }
         }
-        .frame(width: 50)  // Ensure that this view fits in the expected layout.
+        .frame(width: 50)  
     }
 
 }

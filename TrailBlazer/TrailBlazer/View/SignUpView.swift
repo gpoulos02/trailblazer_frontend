@@ -85,17 +85,6 @@ struct SignUpView: View {
                             }
                         }
                         .padding()
-                    
-            
-                
-
-
-                // Only show the navigation to login when the email is verified
-//                if isEmailVerified {
-//                    NavigationLink(destination: LogInView(), isActive: $navigateToLogin) {
-//                        EmptyView()  // Hidden, just to trigger navigation
-//                    }
-//                }
             }
             .padding()
             .navigationBarTitle("Sign Up", displayMode: .inline)

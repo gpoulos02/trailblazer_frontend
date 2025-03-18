@@ -14,8 +14,8 @@ struct LandingView: View {
                 Text("Your all-in-one ski and snowboarding companion")
                     .multilineTextAlignment(.center)
                 
-                // Image Placeholder
-                Image("FullLogo") // Reference the image in the Assets folder
+                
+                Image("FullLogo") 
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 360, height: 360) // Adjust size to fit

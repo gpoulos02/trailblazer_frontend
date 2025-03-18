@@ -26,7 +26,6 @@ struct SelectedRouteView: View {
 
     
     @State private var mountainID: Int = UserDefaults.standard.integer(forKey: "selectedMountainID")
-
     
     var userName: String
     
@@ -332,7 +331,6 @@ struct SelectedRouteView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         endRouteDate = formatter.string(from: Date())
-//        print("Saving metrics: \(elapsedTime) seconds, Speed: \(locationManager.currentSpeed), Elevation: \(locationManager.currentElevation), Date: \(endRouteDate), distance: \(locationManager.totalDistance)")
         finalTime = elapsedTime
         finalSpeed = locationManager.currentSpeed
         finalElevation = locationManager.currentElevation
@@ -422,18 +420,11 @@ struct SelectedRouteView: View {
                     return
                 }
                 
-    //            let sessionData: [String: Any] = [
-    //                "topSpeed": locationManager.currentSpeed,
-    //                "distance": locationManager.totalDistance,
-    //                "elevationGain": locationManager.currentElevation,
-    //                "duration": elapsedTime
-    //            ]
-                
-            // Generate random values for session data
-            let topSpeed = Double.random(in: 10...50) // Random speed between 10 and 50
-            let distance = Double.random(in: 10...500) // Random distance between 10 and 500
-            let elevationGain = Double.random(in: 10...500) // Random elevation gain between 10 and 500
-            let duration = Double.random(in: 10...300) // Random duration between 10 and 300 minutes
+            // Generate random values for session data to simulate
+            let topSpeed = Double.random(in: 10...50)
+            let distance = Double.random(in: 10...500)
+            let elevationGain = Double.random(in: 10...500)
+            let duration = Double.random(in: 10...300)
             
             let sessionData: [String: Any] = [
                 "topSpeed": topSpeed,
@@ -481,7 +472,6 @@ struct SelectedRouteView: View {
                             routeStatusMessage = "Route did not save."
                         }
                         
-                        // Optional: Log server response if data is returned
                         if let data = data, let responseString = String(data: data, encoding: .utf8) {
                             print("Server response:", responseString)
                         }
@@ -604,10 +594,6 @@ struct SelectedRouteView: View {
             }
         }
     }
-
-
-
-
     
     struct SelectedRouteView_Previews: PreviewProvider {
         static var previews: some View {

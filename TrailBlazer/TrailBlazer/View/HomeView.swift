@@ -10,7 +10,7 @@ struct HomeView: View {
     @StateObject private var locationManager = LocationManager()
     
     var body: some View {
-        ZStack(alignment: .bottom) { // ✅ Keeps nav bar fixed at the bottom
+        ZStack(alignment: .bottom) { //Keeps nav bar fixed at the bottom
             VStack {
                 ScrollView {
                     VStack(spacing: 20) {
@@ -71,11 +71,11 @@ struct HomeView: View {
                         Spacer()
                             .navigationBarHidden(true)
                     }
-                    .padding(.bottom, 100) // ✅ Prevents last content from overlapping nav bar
+                    .padding(.bottom, 100) // Prevents last content from overlapping nav bar
                 }
             }
             
-            // ✅ Fixed Bottom Navigation Bar with Shadow
+            // Navigation Bar
             VStack {
                 Divider()
                 HStack {
@@ -117,7 +117,7 @@ struct HomeView: View {
                 }
                 .padding()
                 .background(Color.white)
-                .shadow(radius: 5) // ✅ Adds the same shadow as the ProfileView
+                .shadow(radius: 5) // Adds the same shadow as the ProfileView
             }
             .frame(maxWidth: .infinity)
         }
@@ -128,13 +128,14 @@ struct HomeView: View {
         // Map mountain ID to the correct image
         switch mountainID {
         case 1:
-            selectedMountainImage = "blueMountainLogo" // Replace with actual image name
+            selectedMountainImage = "blueMountainLogo"
         case 2:
-            selectedMountainImage = "bolerMountainLogo" // Replace with actual image name
+            selectedMountainImage = "bolerMountainLogo"
         default:
-            selectedMountainImage = "FullLogo" // Default image
+            selectedMountainImage = "FullLogo"
         }
     }
+    
     private func setMountainCoordinates(for mountainID: Int) {
         locationManager.stopUpdatingLocation()
         locationManager.useFixedLocation = true
