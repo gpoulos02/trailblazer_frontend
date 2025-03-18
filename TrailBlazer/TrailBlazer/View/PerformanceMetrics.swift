@@ -526,7 +526,7 @@ struct PerformanceMetricsView: View {
     struct GridView: View {
         
         let baseURL = "https://TrailBlazer33:5001/api"
-        @State private var averageDifficulty: String = "Loading..."  // State to hold the fetched difficulty
+        @State private var averageDifficulty: String = "--"  // State to hold the fetched difficulty
         
         var metricsData: [MetricsData]
 
