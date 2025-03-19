@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9455778D2D5003BB0087150A /* ImagePicker in Frameworks */ = {isa = PBXBuildFile; productRef = 9455778C2D5003BB0087150A /* ImagePicker */; };
+		9494ACFC2D8A07A60039F9EF /* xyz.gpx in Resources */ = {isa = PBXBuildFile; fileRef = 9494ACFB2D8A07970039F9EF /* xyz.gpx */; };
 		B83239942CF8FF0200F0C241 /* MapboxMaps in Frameworks */ = {isa = PBXBuildFile; productRef = B83239932CF8FF0200F0C241 /* MapboxMaps */; };
 		B8EB5A162D78AE2B0093EEC5 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = B8EB5A152D78AE2B0093EEC5 /* FirebaseAnalytics */; };
 		B8EB5A182D78AE2B0093EEC5 /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = B8EB5A172D78AE2B0093EEC5 /* FirebaseAnalyticsOnDeviceConversion */; };
@@ -57,6 +58,8 @@
 		4EAE89042CE3F2670086F310 /* TrailBlazer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TrailBlazer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4EAE89152CE3F2690086F310 /* TrailBlazerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrailBlazerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4EAE891F2CE3F2690086F310 /* TrailBlazerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrailBlazerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9494ACFB2D8A07970039F9EF /* xyz.gpx */ = {isa = PBXFileReference; lastKnownFileType = text; path = xyz.gpx; sourceTree = "<group>"; };
+		9494ACFD2D8A0B190039F9EF /* TrailBlazer.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = TrailBlazer.xctestplan; path = ../TrailBlazer.xctestplan; sourceTree = "<group>"; };
 		B8EB5A452D78B3270093EEC5 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -145,6 +148,8 @@
 		4EAE88FB2CE3F2670086F310 = {
 			isa = PBXGroup;
 			children = (
+				9494ACFB2D8A07970039F9EF /* xyz.gpx */,
+				9494ACFD2D8A0B190039F9EF /* TrailBlazer.xctestplan */,
 				4EAE89062CE3F2670086F310 /* TrailBlazer */,
 				4EAE89182CE3F2690086F310 /* TrailBlazerTests */,
 				4EAE89222CE3F2690086F310 /* TrailBlazerUITests */,
@@ -323,6 +328,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B8EB5A462D78B3270093EEC5 /* GoogleService-Info.plist in Resources */,
+				9494ACFC2D8A07A60039F9EF /* xyz.gpx in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

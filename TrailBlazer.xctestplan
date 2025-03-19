@@ -1,0 +1,40 @@
+{
+  "configurations" : [
+    {
+      "id" : "596A81B1-BBE0-49E4-AE33-D451238802EA",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "locationScenario" : {
+      "identifier" : "..\/..\/xyz.gpx"
+    },
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:TrailBlazer.xcodeproj",
+      "identifier" : "4EAE89032CE3F2670086F310",
+      "name" : "TrailBlazer"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:TrailBlazer.xcodeproj",
+        "identifier" : "4EAE89142CE3F2690086F310",
+        "name" : "TrailBlazerTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:TrailBlazer.xcodeproj",
+        "identifier" : "4EAE891E2CE3F2690086F310",
+        "name" : "TrailBlazerUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
